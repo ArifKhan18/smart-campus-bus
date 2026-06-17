@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Smart Campus Bus Tracking System - Track university buses in real time, view schedules, routes, and bus stops.">
+    <title>Smart Campus Bus | University Bus Tracking System</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <!-- ===== HEADER / NAVBAR ===== -->
+    <header class="header" id="header">
+        <div class="container header__inner">
+            <a href="index.html" class="logo" id="logo">
+                <span class="logo__icon">🚌</span>
+                <span class="logo__text">SmartBus</span>
+            </a>
+            <nav class="nav" id="nav">
+                <a href="#features" class="nav__link">Features</a>
+                <a href="#how-it-works" class="nav__link">How It Works</a>
+                <a href="#roles" class="nav__link">Roles</a>
+            </nav>
+            <div class="header__actions">
+                <a href="pages/login.html" class="btn btn--outline" id="btn-login">Login</a>
+                <a href="pages/register.html" class="btn btn--primary" id="btn-register">Register</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- ===== HERO SECTION ===== -->
+    <main>
+        <section class="hero" id="hero">
+            <div class="hero__bg-glow"></div>
+            <div class="hero__bg-glow hero__bg-glow--secondary"></div>
+            <div class="container hero__inner">
+                <div class="hero__badge" id="hero-badge">
+                    <span class="hero__badge-dot"></span>
+                    University Bus Tracking
+                </div>
+                <h1 class="hero__title" id="hero-title">
+                    Track Your Campus Bus
+                    <span class="hero__title--accent">In Real Time</span>
+                </h1>
+                <p class="hero__subtitle" id="hero-subtitle">
+                    View schedules, routes, bus stops, and live status — all in one place.
+                    Built for students, drivers, and administrators.
+                </p>
+                <div class="hero__actions">
+                    <a href="pages/register.html" class="btn btn--primary btn--lg" id="btn-get-started">
+                        Get Started
+                        <span class="btn__arrow">→</span>
+                    </a>
+                    <a href="#features" class="btn btn--ghost btn--lg" id="btn-learn-more">
+                        Learn More
+                    </a>
+                </div>
+
+                <!-- Stats Strip -->
+                <div class="hero__stats" id="hero-stats">
+                    <div class="hero__stat">
+                        <span class="hero__stat-number" data-count="24">0</span>
+                        <span class="hero__stat-label">Active Buses</span>
+                    </div>
+                    <div class="hero__stat-divider"></div>
+                    <div class="hero__stat">
+                        <span class="hero__stat-number" data-count="12">0</span>
+                        <span class="hero__stat-label">Routes</span>
+                    </div>
+                    <div class="hero__stat-divider"></div>
+                    <div class="hero__stat">
+                        <span class="hero__stat-number" data-count="500">0</span>
+                        <span class="hero__stat-label">Students</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== FEATURES SECTION ===== -->
+        <section class="features" id="features">
+            <div class="container">
+                <div class="section-header">
+                    <span class="section-header__tag">Features</span>
+                    <h2 class="section-header__title">Everything You Need</h2>
+                    <p class="section-header__desc">A complete bus management system for your campus</p>
+                </div>
+                <div class="features__grid" id="features-grid">
+                    <div class="feature-card" id="feature-schedules">
+                        <div class="feature-card__icon">📅</div>
+                        <h3 class="feature-card__title">Bus Schedules</h3>
+                        <p class="feature-card__desc">View departure and arrival times for all campus buses at a glance.</p>
+                    </div>
+                    <div class="feature-card" id="feature-routes">
+                        <div class="feature-card__icon">🗺️</div>
+                        <h3 class="feature-card__title">Route Maps</h3>
+                        <p class="feature-card__desc">See complete routes with all stops displayed on an interactive map.</p>
+                    </div>
+                    <div class="feature-card" id="feature-status">
+                        <div class="feature-card__icon">🟢</div>
+                        <h3 class="feature-card__title">Live Status</h3>
+                        <p class="feature-card__desc">Know instantly whether a bus is running or waiting at the station.</p>
+                    </div>
+                    <div class="feature-card" id="feature-tracking">
+                        <div class="feature-card__icon">📍</div>
+                        <h3 class="feature-card__title">Real-Time Tracking</h3>
+                        <p class="feature-card__desc">Track your bus live on the map with real-time GPS updates.</p>
+                        <span class="feature-card__badge">Coming Soon</span>
+                    </div>
+                    <div class="feature-card" id="feature-eta">
+                        <div class="feature-card__icon">⏱️</div>
+                        <h3 class="feature-card__title">ETA Estimates</h3>
+                        <p class="feature-card__desc">Get estimated arrival times based on current bus position and route.</p>
+                        <span class="feature-card__badge">Coming Soon</span>
+                    </div>
+                    <div class="feature-card" id="feature-chat">
+                        <div class="feature-card__icon">💬</div>
+                        <h3 class="feature-card__title">Bus Chat</h3>
+                        <p class="feature-card__desc">Communicate with fellow riders in bus-specific group chat rooms.</p>
+                        <span class="feature-card__badge">Coming Soon</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== HOW IT WORKS ===== -->
+        <section class="how-it-works" id="how-it-works">
+            <div class="container">
+                <div class="section-header">
+                    <span class="section-header__tag">How It Works</span>
+                    <h2 class="section-header__title">Simple Steps to Get Started</h2>
+                    <p class="section-header__desc">Start tracking your campus bus in minutes</p>
+                </div>
+                <div class="steps" id="steps">
+                    <div class="step" id="step-1">
+                        <div class="step__number">01</div>
+                        <h3 class="step__title">Choose Your Role</h3>
+                        <p class="step__desc">Select whether you're a Student, Driver, or Admin.</p>
+                    </div>
+                    <div class="step__connector"></div>
+                    <div class="step" id="step-2">
+                        <div class="step__number">02</div>
+                        <h3 class="step__title">Register & Login</h3>
+                        <p class="step__desc">Create your account and sign in securely.</p>
+                    </div>
+                    <div class="step__connector"></div>
+                    <div class="step" id="step-3">
+                        <div class="step__number">03</div>
+                        <h3 class="step__title">Start Tracking</h3>
+                        <p class="step__desc">View schedules, routes, stops, and live bus status.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== ROLES SECTION ===== -->
+        <section class="roles" id="roles">
+            <div class="container">
+                <div class="section-header">
+                    <span class="section-header__tag">User Roles</span>
+                    <h2 class="section-header__title">Built for Everyone</h2>
+                    <p class="section-header__desc">Each role has its own dedicated dashboard and features</p>
+                </div>
+                <div class="roles__grid" id="roles-grid">
+                    <div class="role-card role-card--student" id="role-student">
+                        <div class="role-card__icon">🎓</div>
+                        <h3 class="role-card__title">Student</h3>
+                        <ul class="role-card__list">
+                            <li>View bus schedules</li>
+                            <li>See routes & stops</li>
+                            <li>Check running status</li>
+                            <li>Track buses live</li>
+                        </ul>
+                        <a href="pages/register.html" class="btn btn--primary btn--sm">Register as Student</a>
+                    </div>
+                    <div class="role-card role-card--driver" id="role-driver">
+                        <div class="role-card__icon">🚐</div>
+                        <h3 class="role-card__title">Driver</h3>
+                        <ul class="role-card__list">
+                            <li>Start & end trips</li>
+                            <li>Manage assigned bus</li>
+                            <li>Share GPS location</li>
+                            <li>Update trip status</li>
+                        </ul>
+                        <a href="pages/register.html" class="btn btn--primary btn--sm">Register as Driver</a>
+                    </div>
+                    <div class="role-card role-card--admin" id="role-admin">
+                        <div class="role-card__icon">🛡️</div>
+                        <h3 class="role-card__title">Admin</h3>
+                        <ul class="role-card__list">
+                            <li>Manage buses & routes</li>
+                            <li>Approve drivers</li>
+                            <li>Post announcements</li>
+                            <li>View analytics</li>
+                        </ul>
+                        <a href="pages/login.html" class="btn btn--primary btn--sm">Admin Login</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- ===== FOOTER ===== -->
+    <footer class="footer" id="footer">
+        <div class="container footer__inner">
+            <div class="footer__brand">
+                <span class="logo__icon">🚌</span>
+                <span class="logo__text">SmartBus</span>
+                <p class="footer__tagline">Smart Campus Bus Tracking System</p>
+            </div>
+            <div class="footer__links">
+                <a href="#features">Features</a>
+                <a href="#how-it-works">How It Works</a>
+                <a href="#roles">Roles</a>
+            </div>
+            <div class="footer__copy">
+                &copy; 2026 SmartBus. Built for campus transportation.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script type="module" src="js/firebase-config.js"></script>
+    <script type="module" src="js/app.js"></script>
+</body>
+</html>
