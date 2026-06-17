@@ -8,17 +8,13 @@ import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-aut
 import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 // ── Firebase Configuration ──
-// TODO: Replace these placeholder values with your actual Firebase project config.
-// Go to Firebase Console → Project Settings → General → Your apps → Web app
-// Copy the firebaseConfig object and paste it here.
-
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_PROJECT_ID.appspot.com",
-    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-    appId: "YOUR_APP_ID"
+    apiKey: "AIzaSyDJmFroVCpTFAxD0n035fd1vCfIrZceyqk",
+    authDomain: "smart-campus-bus-2bc13.firebaseapp.com",
+    projectId: "smart-campus-bus-2bc13",
+    storageBucket: "smart-campus-bus-2bc13.firebasestorage.app",
+    messagingSenderId: "445243680063",
+    appId: "1:445243680063:web:46cebd5f54d97ef9cb1f8a"
 };
 
 // ── Initialize Firebase ──
