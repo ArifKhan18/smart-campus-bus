@@ -1,0 +1,67 @@
+# =====================
+# .NET / ASP.NET Core
+# =====================
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.DotSettings.user
+project.lock.json
+/packages/
+
+# =====================
+# IDE / Editor
+# =====================
+.vs/
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# =====================
+# OS Files
+# =====================
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+.DS_Store?
+
+# =====================
+# Firebase / Credentials
+# =====================
+serviceAccountKey.json
+*serviceAccountKey*.json
+firebase-debug.log
+.firebase/
+
+# =====================
+# Node.js (if used later)
+# =====================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# =====================
+# Logs
+# =====================
+*.log
+logs/
+
+# =====================
+# Build outputs
+# =====================
+dist/
+build/
+out/
+
+# =====================
+# Environment files
+# =====================
+.env
+.env.local
+.env.production
