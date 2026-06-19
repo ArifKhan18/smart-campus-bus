@@ -25,13 +25,18 @@ smart-campus-bus/
 ├── .gitignore                  # Git ignore rules
 │
 ├── frontend/                   # Frontend (HTML/CSS/JS)
-│   ├── index.html              # Main entry page
+│   ├── index.html              # Main landing page
 │   ├── css/
 │   │   └── style.css           # Core design system
 │   ├── js/
-│   │   ├── app.js              # Main JavaScript
-│   │   └── firebase-config.js  # Firebase Web SDK config
-│   ├── pages/                  # Additional HTML pages
+│   │   ├── app.js              # Main JavaScript (landing page)
+│   │   ├── firebase-config.js  # Firebase Web SDK config
+│   │   ├── role-select.js      # Role selection page logic
+│   │   └── auth.js             # Auth pages (login/register) logic
+│   ├── pages/
+│   │   ├── role-select.html    # Role selection page
+│   │   ├── login.html          # Login page
+│   │   └── register.html       # Registration page
 │   └── assets/
 │       └── images/             # Image assets
 │
@@ -86,8 +91,8 @@ Open `frontend/index.html` in your browser directly, or use a live server extens
 
 | Phase | Name                    | Status      |
 |-------|-------------------------|-------------|
-| 0     | Project Foundation      | 🔄 In Progress |
-| 1     | Role Selection UI       | ⏳ Pending  |
+| 0     | Project Foundation      | ✅ Complete |
+| 1     | Role Selection UI       | ✅ Complete |
 | 2     | Authentication          | ⏳ Pending  |
 | 3     | Driver Approval System  | ⏳ Pending  |
 | 4     | Basic Dashboards        | ⏳ Pending  |

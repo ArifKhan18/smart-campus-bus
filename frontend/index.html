@@ -1,19 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Smart Campus Bus Tracking System - Track university buses in real time, view schedules, routes, and bus stops.">
+    <meta name="description"
+        content="Smart Campus Bus Tracking System - Track university buses in real time, view schedules, routes, and bus stops.">
     <title>Smart Campus Bus | University Bus Tracking System</title>
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
 
     <!-- Stylesheets -->
     <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body>
 
     <!-- ===== HEADER / NAVBAR ===== -->
@@ -29,8 +33,8 @@
                 <a href="#roles" class="nav__link">Roles</a>
             </nav>
             <div class="header__actions">
-                <a href="pages/login.html" class="btn btn--outline" id="btn-login">Login</a>
-                <a href="pages/register.html" class="btn btn--primary" id="btn-register">Register</a>
+                <a href="pages/role-select.html" class="btn btn--outline" id="btn-login">Login</a>
+                <a href="pages/role-select.html" class="btn btn--primary" id="btn-register">Get Started</a>
             </div>
         </div>
     </header>
@@ -54,7 +58,7 @@
                     Built for students, drivers, and administrators.
                 </p>
                 <div class="hero__actions">
-                    <a href="pages/register.html" class="btn btn--primary btn--lg" id="btn-get-started">
+                    <a href="pages/role-select.html" class="btn btn--primary btn--lg" id="btn-get-started">
                         Get Started
                         <span class="btn__arrow">→</span>
                     </a>
@@ -95,17 +99,20 @@
                     <div class="feature-card" id="feature-schedules">
                         <div class="feature-card__icon">📅</div>
                         <h3 class="feature-card__title">Bus Schedules</h3>
-                        <p class="feature-card__desc">View departure and arrival times for all campus buses at a glance.</p>
+                        <p class="feature-card__desc">View departure and arrival times for all campus buses at a glance.
+                        </p>
                     </div>
                     <div class="feature-card" id="feature-routes">
                         <div class="feature-card__icon">🗺️</div>
                         <h3 class="feature-card__title">Route Maps</h3>
-                        <p class="feature-card__desc">See complete routes with all stops displayed on an interactive map.</p>
+                        <p class="feature-card__desc">See complete routes with all stops displayed on an interactive
+                            map.</p>
                     </div>
                     <div class="feature-card" id="feature-status">
                         <div class="feature-card__icon">🟢</div>
                         <h3 class="feature-card__title">Live Status</h3>
-                        <p class="feature-card__desc">Know instantly whether a bus is running or waiting at the station.</p>
+                        <p class="feature-card__desc">Know instantly whether a bus is running or waiting at the station.
+                        </p>
                     </div>
                     <div class="feature-card" id="feature-tracking">
                         <div class="feature-card__icon">📍</div>
@@ -116,13 +123,15 @@
                     <div class="feature-card" id="feature-eta">
                         <div class="feature-card__icon">⏱️</div>
                         <h3 class="feature-card__title">ETA Estimates</h3>
-                        <p class="feature-card__desc">Get estimated arrival times based on current bus position and route.</p>
+                        <p class="feature-card__desc">Get estimated arrival times based on current bus position and
+                            route.</p>
                         <span class="feature-card__badge">Coming Soon</span>
                     </div>
                     <div class="feature-card" id="feature-chat">
                         <div class="feature-card__icon">💬</div>
                         <h3 class="feature-card__title">Bus Chat</h3>
-                        <p class="feature-card__desc">Communicate with fellow riders in bus-specific group chat rooms.</p>
+                        <p class="feature-card__desc">Communicate with fellow riders in bus-specific group chat rooms.
+                        </p>
                         <span class="feature-card__badge">Coming Soon</span>
                     </div>
                 </div>
@@ -177,7 +186,7 @@
                             <li>Check running status</li>
                             <li>Track buses live</li>
                         </ul>
-                        <a href="pages/register.html" class="btn btn--primary btn--sm">Register as Student</a>
+                        <a href="pages/role-select.html" class="btn btn--primary btn--sm">Get Started</a>
                     </div>
                     <div class="role-card role-card--driver" id="role-driver">
                         <div class="role-card__icon">🚐</div>
@@ -188,7 +197,7 @@
                             <li>Share GPS location</li>
                             <li>Update trip status</li>
                         </ul>
-                        <a href="pages/register.html" class="btn btn--primary btn--sm">Register as Driver</a>
+                        <a href="pages/role-select.html" class="btn btn--primary btn--sm">Get Started</a>
                     </div>
                     <div class="role-card role-card--admin" id="role-admin">
                         <div class="role-card__icon">🛡️</div>
@@ -199,7 +208,7 @@
                             <li>Post announcements</li>
                             <li>View analytics</li>
                         </ul>
-                        <a href="pages/login.html" class="btn btn--primary btn--sm">Admin Login</a>
+                        <a href="pages/role-select.html" class="btn btn--primary btn--sm">Get Started</a>
                     </div>
                 </div>
             </div>
@@ -229,4 +238,5 @@
     <script type="module" src="js/firebase-config.js"></script>
     <script type="module" src="js/app.js"></script>
 </body>
+
 </html>
