@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Register for Smart Campus Bus Tracking System.">
+    <title>Register | Smart Campus Bus</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+
+<body>
+    <div class="page-wrapper" id="page-wrapper">
+        <!-- Background Glows -->
+        <div class="page-wrapper__bg-glow page-wrapper__bg-glow--top-right"></div>
+        <div class="page-wrapper__bg-glow page-wrapper__bg-glow--bottom-left"></div>
+
+        <!-- Back Link -->
+        <a href="role-select.html" class="back-link" id="back-link">
+            <span class="back-link__arrow">←</span>
+            Change Role
+        </a>
+
+        <!-- Auth Content -->
+        <div class="auth" id="auth">
+            <!-- Logo -->
+            <a href="../index.html" class="auth__logo" id="auth-logo">
+                <span class="logo__icon">🚌</span>
+                <span class="logo__text">SmartBus</span>
+            </a>
+
+            <!-- Auth Card -->
+            <div class="auth__card" id="auth-card">
+                <!-- Role Badge (dynamically styled by JS) -->
+                <div class="auth__role-badge" id="auth-role-badge">
+                    <span class="auth__role-badge-icon" id="auth-role-icon">🎓</span>
+                    <span id="auth-role-label">Student</span>
+                </div>
+
+                <h1 class="auth__title" id="auth-title">Create Account</h1>
+                <p class="auth__subtitle" id="auth-subtitle">Register to get started with SmartBus</p>
+
+                <!-- Register Form -->
+                <form id="register-form" novalidate>
+                    <!-- Full Name -->
+                    <div class="form-group" id="form-group-name">
+                        <label class="form-group__label" for="register-name">Full Name</label>
+                        <div class="form-group__input-wrapper">
+                            <span class="form-group__icon">👤</span>
+                            <input type="text" class="form-group__input" id="register-name"
+                                placeholder="Enter your full name" autocomplete="name" required>
+                        </div>
+                        <p class="form-group__error" id="error-name">Full name is required</p>
+                    </div>
+
+                    <!-- Email -->
+                    <div class="form-group" id="form-group-email">
+                        <label class="form-group__label" for="register-email">Email Address</label>
+                        <div class="form-group__input-wrapper">
+                            <span class="form-group__icon">✉️</span>
+                            <input type="email" class="form-group__input" id="register-email"
+                                placeholder="Enter your email" autocomplete="email" required>
+                        </div>
+                        <p class="form-group__error" id="error-email">Please enter a valid email address</p>
+                    </div>
+
+                    <!-- Password -->
+                    <div class="form-group" id="form-group-password">
+                        <label class="form-group__label" for="register-password">Password</label>
+                        <div class="form-group__input-wrapper">
+                            <span class="form-group__icon">🔒</span>
+                            <input type="password" class="form-group__input" id="register-password"
+                                placeholder="Create a password (min 6 characters)" autocomplete="new-password" required>
+                            <button type="button" class="form-group__toggle-password" id="toggle-password"
+                                aria-label="Toggle password visibility">👁️</button>
+                        </div>
+                        <p class="form-group__error" id="error-password">Password must be at least 6 characters</p>
+                    </div>
+
+                    <!-- Confirm Password -->
+                    <div class="form-group" id="form-group-confirm-password">
+                        <label class="form-group__label" for="register-confirm-password">Confirm Password</label>
+                        <div class="form-group__input-wrapper">
+                            <span class="form-group__icon">🔒</span>
+                            <input type="password" class="form-group__input" id="register-confirm-password"
+                                placeholder="Confirm your password" autocomplete="new-password" required>
+                            <button type="button" class="form-group__toggle-password" id="toggle-confirm-password"
+                                aria-label="Toggle password visibility">👁️</button>
+                        </div>
+                        <p class="form-group__error" id="error-confirm-password">Passwords do not match</p>
+                    </div>
+
+                    <!-- Assigned Bus (Driver Only) -->
+                    <div class="form-group" id="form-group-bus" style="display: none;">
+                        <label class="form-group__label" for="register-bus">Assigned Bus</label>
+                        <div class="form-group__input-wrapper">
+                            <span class="form-group__icon">🚌</span>
+                            <select class="form-group__select" id="register-bus">
+                                <option value="" disabled selected>Select your assigned bus</option>
+                                <option value="bus-a">Bus A — Campus → City Center</option>
+                                <option value="bus-b">Bus B — Campus → Highway</option>
+                                <option value="bus-c">Bus C — Campus → Station</option>
+                            </select>
+                            <span class="form-group__select-arrow">▾</span>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" class="auth__submit" id="auth-submit">
+                        Create Account
+                    </button>
+                </form>
+
+                <!-- Divider -->
+                <div class="auth__divider">or</div>
+
+                <!-- Login Link -->
+                <div class="auth__footer" id="auth-footer">
+                    Already have an account?
+                    <a href="login.html" id="auth-login-link">Sign In</a>
+                </div>
+            </div>
+
+            <!-- Change Role -->
+            <p class="auth__change-role" id="auth-change-role">
+                Not your role? <a href="role-select.html">Choose a different role</a>
+            </p>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module" src="../js/auth.js"></script>
+</body>
+
+</html>
