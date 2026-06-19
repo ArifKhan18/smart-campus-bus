@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Login to Smart Campus Bus Tracking System.">
+    <title>Login | Smart Campus Bus</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+
+<body>
+    <div class="page-wrapper" id="page-wrapper">
+        <!-- Background Glows -->
+        <div class="page-wrapper__bg-glow page-wrapper__bg-glow--top-right"></div>
+        <div class="page-wrapper__bg-glow page-wrapper__bg-glow--bottom-left"></div>
+
+        <!-- Back Link -->
+        <a href="role-select.html" class="back-link" id="back-link">
+            <span class="back-link__arrow">←</span>
+            Change Role
+        </a>
+
+        <!-- Auth Content -->
+        <div class="auth" id="auth">
+            <!-- Logo -->
+            <a href="../index.html" class="auth__logo" id="auth-logo">
+                <span class="logo__icon">🚌</span>
+                <span class="logo__text">SmartBus</span>
+            </a>
+
+            <!-- Auth Card -->
+            <div class="auth__card" id="auth-card">
+                <!-- Role Badge (dynamically styled by JS) -->
+                <div class="auth__role-badge" id="auth-role-badge">
+                    <span class="auth__role-badge-icon" id="auth-role-icon">🎓</span>
+                    <span id="auth-role-label">Student</span>
+                </div>
+
+                <h1 class="auth__title" id="auth-title">Welcome Back</h1>
+                <p class="auth__subtitle" id="auth-subtitle">Sign in to your account to continue</p>
+
+                <!-- Login Form -->
+                <form id="login-form" novalidate>
+                    <!-- Email -->
+                    <div class="form-group" id="form-group-email">
+                        <label class="form-group__label" for="login-email">Email Address</label>
+                        <div class="form-group__input-wrapper">
+                            <span class="form-group__icon">✉️</span>
+                            <input type="email" class="form-group__input" id="login-email"
+                                placeholder="Enter your email" autocomplete="email" required>
+                        </div>
+                        <p class="form-group__error" id="error-email">Please enter a valid email address</p>
+                    </div>
+
+                    <!-- Password -->
+                    <div class="form-group" id="form-group-password">
+                        <label class="form-group__label" for="login-password">Password</label>
+                        <div class="form-group__input-wrapper">
+                            <span class="form-group__icon">🔒</span>
+                            <input type="password" class="form-group__input" id="login-password"
+                                placeholder="Enter your password" autocomplete="current-password" required>
+                            <button type="button" class="form-group__toggle-password" id="toggle-password"
+                                aria-label="Toggle password visibility">👁️</button>
+                        </div>
+                        <p class="form-group__error" id="error-password">Password is required</p>
+                    </div>
+
+                    <!-- Forgot Password -->
+                    <a href="#" class="auth__forgot" id="auth-forgot">Forgot Password?</a>
+
+                    <!-- Submit Button -->
+                    <button type="submit" class="auth__submit" id="auth-submit">
+                        Sign In
+                    </button>
+                </form>
+
+                <!-- Divider -->
+                <div class="auth__divider">or</div>
+
+                <!-- Register Link (hidden for admin) -->
+                <div class="auth__footer" id="auth-footer">
+                    Don't have an account?
+                    <a href="register.html" id="auth-register-link">Register</a>
+                </div>
+            </div>
+
+            <!-- Change Role -->
+            <p class="auth__change-role" id="auth-change-role">
+                Not your role? <a href="role-select.html">Choose a different role</a>
+            </p>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module" src="../js/auth.js"></script>
+</body>
+
+</html>
