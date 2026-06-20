@@ -29,7 +29,7 @@ export function initAuthGuard(requireAuth = true, allowedRoles = []) {
                         }
                         
                         // Check driver approval status if applicable
-                        if (currentProfile.role === 'driver' && currentProfile.status !== 'approved') {
+                        if (currentProfile.role === 'driver' && currentProfile.status !== 'active') {
                             // If they are on a protected page but not approved
                             if (requireAuth) {
                                 alert("Your driver account is pending admin approval. You cannot access this page yet.");
