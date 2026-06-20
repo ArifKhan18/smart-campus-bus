@@ -1,8 +1,17 @@
 // ========================================
 // Smart Campus Bus — Auth Pages (Login / Register)
 // ========================================
-// Handles role-based UI theming, form validation (UI only),
-// password toggle, and navigation between login/register.
+// Handles role-based UI theming, form validation,
+// password toggle, and real Firebase Authentication.
+
+import { auth, db } from "./firebase-config.js";
+import { 
+    signInWithEmailAndPassword, 
+    createUserWithEmailAndPassword, 
+    sendPasswordResetEmail,
+    sendEmailVerification
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 // ── Role Configuration ──
 const ROLE_CONFIG = {
@@ -45,6 +54,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initFormValidation(role);
     handleAdminRestrictions(role);
     updateNavigationLinks(role);
+    initForgotPassword();
 });
 
 // ── Get Role from URL ──
@@ -193,7 +203,7 @@ function initFormValidation(role) {
 }
 
 // ── Login Form Submit Handler ──
-function handleLoginSubmit(role) {
+async function handleLoginSubmit(role) {
     let isValid = true;
 
     // Validate email
@@ -217,24 +227,85 @@ function handleLoginSubmit(role) {
     }
 
     if (isValid) {
-        // Phase 1: Just show a message — actual auth in Phase 2
         const submitBtn = document.getElementById("auth-submit");
+        const loadingOverlay = document.getElementById("auth-loading");
         const originalText = submitBtn.textContent;
+        
         submitBtn.textContent = "Signing In...";
         submitBtn.disabled = true;
+        if(loadingOverlay) loadingOverlay.style.display = "flex";
 
-        setTimeout(() => {
-            submitBtn.textContent = originalText;
-            submitBtn.disabled = false;
-            alert(
-                `✅ Login UI works!\n\nRole: ${role}\nEmail: ${email.value}\n\n🔧 Firebase Authentication will be connected in Phase 2.`
-            );
-        }, 1500);
+        try {
+            // 1. Authenticate with Firebase
+            const userCredential = await signInWithEmailAndPassword(auth, email.value, password.value);
+            const user = userCredential.user;
+
+            // 2. Fetch User Profile from Firestore
+            const docRef = doc(db, "users", user.uid);
+            const docSnap = await getDoc(docRef);
+
+            if (docSnap.exists()) {
+                const profile = docSnap.data();
+
+                // 3. Verify Role Mismatch
+                if (profile.role !== role) {
+                    // Sign out because they tried to log in with wrong role
+                    await auth.signOut();
+                    if(window.showToast) window.showToast(`Error: This account is registered as a ${profile.role}. Please switch roles.`, 'error');
+                    else alert(`Error: This account is registered as a ${profile.role}. Please switch roles.`);
+                } 
+                // 4. Verify Driver Approval Status
+                else if (role === 'driver' && profile.status === 'pending') {
+                    await auth.signOut();
+                    if(window.showToast) window.showToast("Your account is pending admin approval. You cannot log in yet.", 'warning');
+                    else alert("Your account is pending admin approval. You cannot log in yet.");
+                }
+                else if (role === 'driver' && profile.status === 'rejected') {
+                    await auth.signOut();
+                    if(window.showToast) window.showToast("Your account application was rejected.", 'error');
+                    else alert("Your account application was rejected.");
+                }
+                // 5. Success - Redirect to Dashboard
+                else {
+                    if(window.showToast) window.showToast("Login successful! Redirecting...", 'success');
+                    setTimeout(() => {
+                        window.location.href = "dashboard.html";
+                    }, 1000);
+                    // Don't reset loading state because we are redirecting
+                    return; 
+                }
+            } else {
+                await auth.signOut();
+                if(window.showToast) window.showToast("User profile not found in database.", 'error');
+                else alert("User profile not found in database.");
+            }
+        } catch (error) {
+            console.error("Login Error:", error);
+            
+            let errorMessage = "An error occurred during login.";
+            if (error.code === 'auth/invalid-credential') {
+                errorMessage = "Invalid email or password.";
+            } else if (error.code === 'auth/user-not-found') {
+                errorMessage = "No account found with this email.";
+            } else if (error.code === 'auth/too-many-requests') {
+                errorMessage = "Too many failed attempts. Try again later.";
+            } else if (error.message) {
+                errorMessage = error.message;
+            }
+            
+            if(window.showToast) window.showToast(errorMessage, 'error');
+            else alert(errorMessage);
+        }
+
+        // Reset UI if not redirected
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+        if(loadingOverlay) loadingOverlay.style.display = "none";
     }
 }
 
 // ── Register Form Submit Handler ──
-function handleRegisterSubmit(role) {
+async function handleRegisterSubmit(role) {
     let isValid = true;
 
     // Validate name
@@ -278,27 +349,98 @@ function handleRegisterSubmit(role) {
     }
 
     // Validate bus selection for drivers
+    let selectedBus = null;
     if (role === "driver") {
         const bus = document.getElementById("register-bus");
         if (!bus.value) {
             isValid = false;
+            // Optionally add error class to bus group
+        } else {
+            selectedBus = bus.value;
         }
     }
 
     if (isValid) {
-        // Phase 1: Just show a message — actual auth in Phase 2
         const submitBtn = document.getElementById("auth-submit");
+        const loadingOverlay = document.getElementById("auth-loading");
+        const loadingText = document.getElementById("auth-loading-text");
         const originalText = submitBtn.textContent;
+        
         submitBtn.textContent = "Creating Account...";
         submitBtn.disabled = true;
+        if(loadingOverlay) {
+            if(loadingText) loadingText.textContent = "Creating Account...";
+            loadingOverlay.style.display = "flex";
+        }
 
-        setTimeout(() => {
-            submitBtn.textContent = originalText;
-            submitBtn.disabled = false;
-            alert(
-                `✅ Registration UI works!\n\nRole: ${role}\nName: ${name.value}\nEmail: ${email.value}\n\n🔧 Firebase Authentication will be connected in Phase 2.`
-            );
-        }, 1500);
+        try {
+            // 1. Create User in Firebase Auth
+            const userCredential = await createUserWithEmailAndPassword(auth, email.value, password.value);
+            const user = userCredential.user;
+
+            // 2. Send Verification Email
+            try {
+                await sendEmailVerification(user);
+                console.log("Verification email sent");
+            } catch (err) {
+                console.error("Error sending verification email", err);
+            }
+
+            // 3. Create User Profile in Firestore
+            const status = role === "driver" ? "pending" : "active";
+            
+            await setDoc(doc(db, "users", user.uid), {
+                uid: user.uid,
+                name: name.value.trim(),
+                email: email.value,
+                role: role,
+                status: status,
+                assignedBus: selectedBus,
+                createdAt: serverTimestamp()
+            });
+
+            // 4. Handle Post-Registration Logic based on Role
+            if (role === "driver") {
+                // Sign out driver since they are pending approval
+                await auth.signOut();
+                if(window.showToast) window.showToast("Account created successfully! Waiting for admin approval.", 'success', 6000);
+                else alert("Account created successfully! Waiting for admin approval.");
+                
+                setTimeout(() => {
+                    window.location.href = `login.html?role=${role}`;
+                }, 2000);
+            } else {
+                // Student - Keep logged in and redirect
+                if(window.showToast) window.showToast("Account created successfully! Please check your email to verify.", 'success', 6000);
+                else alert("Account created successfully! Please check your email to verify.");
+                
+                setTimeout(() => {
+                    window.location.href = "dashboard.html";
+                }, 1500);
+            }
+            // Don't reset UI to prevent duplicate clicks while redirecting
+            return;
+            
+        } catch (error) {
+            console.error("Registration Error:", error);
+            
+            let errorMessage = "An error occurred during registration.";
+            if (error.code === 'auth/email-already-in-use') {
+                errorMessage = "This email is already registered.";
+            } else if (error.code === 'auth/weak-password') {
+                errorMessage = "Password is too weak. Must be at least 6 characters.";
+            } else if (error.message) {
+                errorMessage = error.message;
+            }
+            
+            if(window.showToast) window.showToast(errorMessage, 'error');
+            else alert(errorMessage);
+        }
+
+        // Reset UI if error occurred
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+        if(loadingOverlay) loadingOverlay.style.display = "none";
     }
 }
 
@@ -317,3 +459,49 @@ document.addEventListener("input", (e) => {
         }
     }
 });
+
+// ── Forgot Password Logic ──
+function initForgotPassword() {
+    const forgotLink = document.getElementById("auth-forgot");
+    if (forgotLink) {
+        forgotLink.addEventListener("click", async (e) => {
+            e.preventDefault();
+            
+            const emailInput = document.getElementById("login-email");
+            const email = emailInput ? emailInput.value : "";
+            
+            if (!email || !isValidEmail(email)) {
+                if(window.showToast) window.showToast("Please enter a valid email address first.", "warning");
+                else alert("Please enter a valid email address first.");
+                
+                if (emailInput) emailInput.focus();
+                return;
+            }
+            
+            try {
+                const submitBtn = document.getElementById("auth-submit");
+                if (submitBtn) submitBtn.disabled = true;
+                
+                await sendPasswordResetEmail(auth, email);
+                
+                if(window.showToast) window.showToast(`Password reset link sent to ${email}`, "success", 5000);
+                else alert(`Password reset link sent to ${email}`);
+                
+            } catch (error) {
+                console.error("Forgot Password Error:", error);
+                let errorMessage = "Failed to send reset email.";
+                if (error.code === 'auth/user-not-found') {
+                    errorMessage = "No account found with this email.";
+                } else if (error.message) {
+                    errorMessage = error.message;
+                }
+                
+                if(window.showToast) window.showToast(errorMessage, "error");
+                else alert(errorMessage);
+            } finally {
+                const submitBtn = document.getElementById("auth-submit");
+                if (submitBtn) submitBtn.disabled = false;
+            }
+        });
+    }
+}

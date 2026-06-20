@@ -32,6 +32,9 @@ builder.Services.AddSingleton(provider =>
     return FirestoreDb.Create(projectId);
 });
 
+// ── Add Services ──
+builder.Services.AddScoped<SmartCampusBus.Api.Services.IAuthService, SmartCampusBus.Api.Services.AuthService>();
+
 // ── Add Controllers ──
 builder.Services.AddControllers();
 
