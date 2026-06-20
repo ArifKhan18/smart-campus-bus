@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Driver Dashboard | Smart Campus Bus</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="../css/style.css">
+    
+    <!-- Inline styles reusing the admin-layout -->
+    <style>
+        .admin-layout {
+            display: flex;
+            min-height: 100vh;
+            background-color: var(--bg-dark);
+        }
+        .admin-sidebar {
+            width: 260px;
+            background: rgba(18, 18, 28, 0.95);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 2rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            position: fixed;
+            height: 100vh;
+        }
+        .admin-sidebar .logo {
+            justify-content: flex-start;
+        }
+        .admin-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .admin-nav__link {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.8rem 1rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        .admin-nav__link:hover, .admin-nav__link.active {
+            background: rgba(108, 99, 255, 0.1);
+            color: var(--accent-primary);
+        }
+        .admin-content {
+            flex: 1;
+            margin-left: 260px;
+            padding: 2rem 3rem;
+            overflow-y: auto;
+        }
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2.5rem;
+        }
+        .admin-header__title {
+            font-size: 1.8rem;
+            color: var(--text-light);
+            font-weight: 600;
+        }
+        .admin-user {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 0.5rem 1rem;
+            border-radius: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .admin-user__avatar {
+            font-size: 1.2rem;
+        }
+        .admin-user__name {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            font-weight: 500;
+        }
+        .admin-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            transition: transform 0.3s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.04);
+        }
+        .stat-card__title {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        .stat-card__value {
+            color: var(--text-light);
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        .stat-card__value.text-success { color: var(--accent-success); }
+        .stat-card__value.text-primary { color: var(--accent-primary); }
+
+        /* Specific Driver Styles */
+        .trip-panel {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 2.5rem;
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+        .trip-panel__title {
+            color: var(--text-light);
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+        }
+        .trip-panel__desc {
+            color: var(--text-muted);
+            max-width: 500px;
+            margin: 0 auto 2rem;
+            line-height: 1.6;
+        }
+        .trip-panel__btn {
+            background: var(--accent-primary);
+            color: white;
+            border: none;
+            padding: 1rem 2.5rem;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: not-allowed;
+            opacity: 0.5;
+            transition: all 0.3s ease;
+        }
+        
+        #email-verification-banner {
+            display: none;
+            background: rgba(255, 170, 0, 0.1);
+            border: 1px solid rgba(255, 170, 0, 0.3);
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        #email-verification-banner p {
+            color: var(--accent-warning);
+            margin: 0;
+            font-weight: 500;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <aside class="admin-sidebar">
+            <a href="../index.html" class="logo">
+                <span class="logo__icon">🚌</span>
+                <span class="logo__text">SmartBus</span>
+            </a>
+            
+            <nav class="admin-nav">
+                <a href="#" class="admin-nav__link active">
+                    <span>🏠</span> Dashboard
+                </a>
+                <a href="#" class="admin-nav__link" onclick="alert('Coming in Phase 9')">
+                    <span>🚐</span> My Trip
+                </a>
+                <a href="#" class="admin-nav__link" onclick="alert('Coming in Phase 6')">
+                    <span>🗺️</span> Assigned Route
+                </a>
+                <a href="#" class="admin-nav__link" onclick="alert('Coming in Phase 7')">
+                    <span>📊</span> Trip History
+                </a>
+            </nav>
+            
+            <div style="margin-top: auto;">
+                <button id="btn-logout" class="btn btn--outline" style="width: 100%;">
+                    <span>🚪</span> Logout
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="admin-content">
+            <header class="admin-header">
+                <h1 class="admin-header__title">Driver Portal</h1>
+                <div class="admin-user">
+                    <span class="admin-user__avatar">🚐</span>
+                    <span class="admin-user__name" id="user-name">Loading...</span>
+                </div>
+            </header>
+            
+            <div id="email-verification-banner" style="display: none;">
+                <p>⚠️ Your email is not verified. Please check your inbox.</p>
+                <button id="resend-verification-btn" class="btn btn--outline btn--sm" style="border-color: var(--accent-warning); color: var(--accent-warning);">Resend Email</button>
+            </div>
+
+            <!-- Stats Overview -->
+            <div class="admin-stats">
+                <div class="stat-card">
+                    <span class="stat-card__title">Account Status</span>
+                    <span class="stat-card__value text-success" id="account-status">Active</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-card__title">Assigned Bus</span>
+                    <span class="stat-card__value text-primary" id="assigned-bus">None</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-card__title">Today's Schedule</span>
+                    <span class="stat-card__value">Pending</span>
+                </div>
+            </div>
+
+            <!-- Trip Status Panel -->
+            <div class="trip-panel">
+                <h2 class="trip-panel__title">Ready to Start a Trip?</h2>
+                <p class="trip-panel__desc">The "Start Trip" feature will be available in Phase 9. Once active, you will be able to share your real-time GPS location with students waiting at the bus stops.</p>
+                <button class="trip-panel__btn" title="Coming in Phase 9">Start Trip</button>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module" src="../js/firebase-config.js"></script>
+    <script type="module" src="../js/auth-guard.js"></script>
+    <script type="module" src="../js/driver-dashboard.js"></script>
+</body>
+
+</html>

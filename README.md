@@ -95,7 +95,7 @@ Open `frontend/index.html` in your browser directly, or use a live server extens
 | 1     | Role Selection UI       | ✅ Complete |
 | 2     | Authentication          | ✅ Complete |
 | 3     | Driver Approval System  | ✅ Complete |
-| 4     | Basic Dashboards        | ⏳ Pending  |
+| 4     | Basic Dashboards        | ✅ Complete |
 | 5     | Bus Management          | ⏳ Pending  |
 | 6     | Route Management        | ⏳ Pending  |
 | 7     | Schedule Management     | ⏳ Pending  |
