@@ -94,7 +94,7 @@ Open `frontend/index.html` in your browser directly, or use a live server extens
 | 0     | Project Foundation      | ✅ Complete |
 | 1     | Role Selection UI       | ✅ Complete |
 | 2     | Authentication          | ✅ Complete |
-| 3     | Driver Approval System  | ⏳ Pending  |
+| 3     | Driver Approval System  | ✅ Complete |
 | 4     | Basic Dashboards        | ⏳ Pending  |
 | 5     | Bus Management          | ⏳ Pending  |
 | 6     | Route Management        | ⏳ Pending  |

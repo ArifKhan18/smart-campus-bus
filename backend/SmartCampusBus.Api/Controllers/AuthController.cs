@@ -27,6 +27,13 @@ public class AuthController : ControllerBase
         return Ok(user);
     }
 
+    [HttpGet("users/role/{role}")]
+    public async Task<IActionResult> GetUsersByRole(string role, [FromQuery] string? status = null)
+    {
+        var users = await _authService.GetUsersByRoleAsync(role, status);
+        return Ok(users);
+    }
+
     // This endpoint will be primarily used by Admins in Phase 3
     [HttpPut("user/{uid}/status")]
     public async Task<IActionResult> UpdateUserStatus(string uid, [FromBody] UpdateStatusDto request)

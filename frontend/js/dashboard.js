@@ -7,6 +7,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     const authData = await initAuthGuard(true);
     
     if (authData) {
+        if (authData.profile.role === 'admin') {
+            window.location.replace("admin-dashboard.html");
+            return;
+        }
+
         populateDashboard(authData.user, authData.profile);
         setupLogout();
         setupEmailVerification(authData.user);
