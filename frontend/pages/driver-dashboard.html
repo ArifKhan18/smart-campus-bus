@@ -9,247 +9,421 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     
     <!-- Stylesheets -->
     <link rel="stylesheet" href="../css/style.css">
     
-    <!-- Inline styles reusing the admin-layout -->
     <style>
-        .admin-layout {
+        body {
+            background-color: #07070E;
+            color: var(--text-light);
+            font-family: 'Outfit', sans-serif;
+            margin: 0;
+            padding: 0;
             display: flex;
+            justify-content: center;
+            align-items: center;
             min-height: 100vh;
-            background-color: var(--bg-dark);
+            position: relative;
+            overflow-x: hidden;
         }
-        .admin-sidebar {
-            width: 260px;
-            background: rgba(18, 18, 28, 0.95);
-            border-right: 1px solid rgba(255, 255, 255, 0.05);
-            padding: 2rem 1.5rem;
-            display: flex;
-            flex-direction: column;
-            gap: 2rem;
+
+        /* Animated Background Glows */
+        .bg-glow {
             position: fixed;
-            height: 100vh;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(108, 99, 255, 0.15) 0%, rgba(0, 0, 0, 0) 70%);
+            border-radius: 50%;
+            z-index: 0;
+            pointer-events: none;
         }
-        .admin-sidebar .logo {
-            justify-content: flex-start;
-        }
-        .admin-nav {
+        .bg-glow--1 { top: -200px; right: -200px; }
+        .bg-glow--2 { bottom: -200px; left: -200px; background: radial-gradient(circle, rgba(0, 200, 83, 0.1) 0%, rgba(0, 0, 0, 0) 70%); }
+
+        .driver-container {
+            width: 100%;
+            max-width: 1000px; /* Increased for desktop */
+            padding: 30px 20px;
+            z-index: 1;
             display: flex;
             flex-direction: column;
-            gap: 0.5rem;
+            gap: 25px;
         }
-        .admin-nav__link {
+
+        /* Top Bar */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+
+        .logo-area {
             display: flex;
             align-items: center;
-            gap: 1rem;
-            padding: 0.8rem 1rem;
-            color: var(--text-muted);
-            text-decoration: none;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-            font-weight: 500;
+            gap: 10px;
         }
-        .admin-nav__link:hover, .admin-nav__link.active {
+
+        .logo-icon {
+            font-size: 1.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            width: 40px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 12px;
+        }
+
+        .driver-greeting {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .greeting-text {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .driver-name {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .btn-logout {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-muted);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-logout:hover {
+            background: rgba(255, 107, 107, 0.1);
+            color: #ff4d4d;
+            border-color: rgba(255, 107, 107, 0.3);
+        }
+
+        /* Center Action Area - Round Button */
+        .action-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 0;
+            position: relative;
+        }
+
+        /* Ripple Animation for Start Button */
+        @keyframes ripple {
+            0% { box-shadow: 0 0 0 0 rgba(0, 200, 83, 0.4); }
+            70% { box-shadow: 0 0 0 30px rgba(0, 200, 83, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 200, 83, 0); }
+        }
+        @keyframes ripple-stop {
+            0% { box-shadow: 0 0 0 0 rgba(255, 77, 77, 0.4); }
+            70% { box-shadow: 0 0 0 30px rgba(255, 77, 77, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 77, 77, 0); }
+        }
+
+        .round-btn {
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+        }
+
+        .round-btn::after {
+            content: '';
+            position: absolute;
+            top: -10px; left: -10px; right: -10px; bottom: -10px;
+            border-radius: 50%;
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            animation: spin 10s linear infinite;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        .btn-start {
+            background: linear-gradient(135deg, #00E676 0%, #00C853 100%);
+            color: #004D40;
+            box-shadow: 0 10px 30px rgba(0, 200, 83, 0.3);
+            animation: ripple 2s infinite;
+        }
+        .btn-start:hover { transform: scale(1.05); }
+
+        .btn-stop {
+            background: linear-gradient(135deg, #FF6B6B 0%, #FF4D4D 100%);
+            color: #4A0000;
+            box-shadow: 0 10px 30px rgba(255, 77, 77, 0.3);
+            display: none;
+            animation: ripple-stop 2s infinite;
+        }
+        .btn-stop:hover { transform: scale(1.05); }
+
+        .btn-icon {
+            font-size: 3rem;
+            line-height: 1;
+        }
+
+        .btn-text {
+            font-size: 1.2rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+        }
+
+        .trip-status {
+            margin-top: 30px;
+            font-size: 1rem;
+            color: var(--text-muted);
+            background: rgba(255, 255, 255, 0.03);
+            padding: 8px 20px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Glassmorphism Info Card */
+        .info-card {
+            background: rgba(20, 20, 30, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .info-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .info-icon {
+            width: 50px;
+            height: 50px;
             background: rgba(108, 99, 255, 0.1);
             color: var(--accent-primary);
-        }
-        .admin-content {
-            flex: 1;
-            margin-left: 260px;
-            padding: 2rem 3rem;
-            overflow-y: auto;
-        }
-        .admin-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2.5rem;
-        }
-        .admin-header__title {
-            font-size: 1.8rem;
-            color: var(--text-light);
-            font-weight: 600;
-        }
-        .admin-user {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            background: rgba(255, 255, 255, 0.03);
-            padding: 0.5rem 1rem;
-            border-radius: 30px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-        .admin-user__avatar {
-            font-size: 1.2rem;
-        }
-        .admin-user__name {
-            font-size: 0.9rem;
-            color: var(--text-light);
-            font-weight: 500;
-        }
-        .admin-stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-        .stat-card {
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.05);
             border-radius: 12px;
-            padding: 1.5rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+        }
+
+        .info-details {
+            flex: 1;
+        }
+
+        .info-label {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .info-value {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text-light);
+            margin: 0;
+        }
+
+        .divider {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.05);
+            width: 100%;
+        }
+
+        /* Schedule Timeline */
+        .schedule-list {
             display: flex;
             flex-direction: column;
-            gap: 0.5rem;
-            transition: transform 0.3s ease;
+            gap: 12px;
         }
-        .stat-card:hover {
-            transform: translateY(-5px);
-            background: rgba(255, 255, 255, 0.04);
-        }
-        .stat-card__title {
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            font-weight: 500;
-        }
-        .stat-card__value {
-            color: var(--text-light);
-            font-size: 1.5rem;
-            font-weight: 700;
-        }
-        .stat-card__value.text-success { color: var(--accent-success); }
-        .stat-card__value.text-primary { color: var(--accent-primary); }
 
-        /* Specific Driver Styles */
-        .trip-panel {
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
-            padding: 2.5rem;
-            text-align: center;
-            margin-bottom: 2.5rem;
-        }
-        .trip-panel__title {
-            color: var(--text-light);
-            font-size: 1.4rem;
-            margin-bottom: 1rem;
-        }
-        .trip-panel__desc {
-            color: var(--text-muted);
-            max-width: 500px;
-            margin: 0 auto 2rem;
-            line-height: 1.6;
-        }
-        .trip-panel__btn {
-            background: var(--accent-primary);
-            color: white;
-            border: none;
-            padding: 1rem 2.5rem;
-            border-radius: 8px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: not-allowed;
-            opacity: 0.5;
-            transition: all 0.3s ease;
-        }
-        
-        #email-verification-banner {
-            display: none;
-            background: rgba(255, 170, 0, 0.1);
-            border: 1px solid rgba(255, 170, 0, 0.3);
-            border-radius: 12px;
-            padding: 1rem 1.5rem;
-            margin-bottom: 2rem;
+        .schedule-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            background: rgba(255, 255, 255, 0.02);
+            padding: 12px 15px;
+            border-radius: 10px;
+            border-left: 3px solid var(--accent-primary);
         }
-        #email-verification-banner p {
-            color: var(--accent-warning);
-            margin: 0;
-            font-weight: 500;
+
+        .schedule-item.active {
+            background: rgba(0, 200, 83, 0.05);
+            border-left-color: var(--accent-success);
         }
+
+        .schedule-time {
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            color: var(--text-light);
+        }
+
+        .schedule-route {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        /* Desktop specific layout */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+
+        @media (min-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr 1fr;
+                align-items: center;
+            }
+            .action-area {
+                padding: 60px 0;
+            }
+            .round-btn {
+                width: 240px;
+                height: 240px;
+            }
+            .btn-icon {
+                font-size: 4rem;
+            }
+            .btn-text {
+                font-size: 1.5rem;
+            }
+            .info-card {
+                padding: 40px;
+            }
+        }
+
     </style>
 </head>
 
 <body>
-    <div class="admin-layout">
-        <!-- Sidebar -->
-        <aside class="admin-sidebar">
-            <a href="../index.html" class="logo">
-                <span class="logo__icon">🚌</span>
-                <span class="logo__text">SmartBus</span>
-            </a>
-            
-            <nav class="admin-nav">
-                <a href="#" class="admin-nav__link active">
-                    <span>🏠</span> Dashboard
-                </a>
-                <a href="#" class="admin-nav__link" onclick="alert('Coming in Phase 9')">
-                    <span>🚐</span> My Trip
-                </a>
-                <a href="#" class="admin-nav__link" onclick="alert('Coming in Phase 6')">
-                    <span>🗺️</span> Assigned Route
-                </a>
-                <a href="#" class="admin-nav__link" onclick="alert('Coming in Phase 7')">
-                    <span>📊</span> Trip History
-                </a>
-            </nav>
-            
-            <div style="margin-top: auto;">
-                <button id="btn-logout" class="btn btn--outline" style="width: 100%;">
-                    <span>🚪</span> Logout
+    <div class="bg-glow bg-glow--1"></div>
+    <div class="bg-glow bg-glow--2"></div>
+
+    <div class="driver-container">
+        
+        <!-- Header -->
+        <header class="top-bar">
+            <div class="logo-area">
+                <div class="logo-icon">🚌</div>
+                <div class="driver-greeting">
+                    <span class="greeting-text">Hello Driver</span>
+                    <span class="driver-name" id="user-name">Loading...</span>
+                </div>
+            </div>
+            <button id="btn-logout" class="btn-logout">Sign Out</button>
+        </header>
+
+        <div class="dashboard-grid">
+            <!-- Big Start Button (Left side on desktop, top on mobile) -->
+            <div class="action-area">
+                <button id="btn-start-trip" class="round-btn btn-start">
+                    <span class="btn-icon">▶</span>
+                    <span class="btn-text">START</span>
                 </button>
-            </div>
-        </aside>
-
-        <!-- Main Content -->
-        <main class="admin-content">
-            <header class="admin-header">
-                <h1 class="admin-header__title">Driver Portal</h1>
-                <div class="admin-user">
-                    <span class="admin-user__avatar">🚐</span>
-                    <span class="admin-user__name" id="user-name">Loading...</span>
-                </div>
-            </header>
-            
-            <div id="email-verification-banner" style="display: none;">
-                <p>⚠️ Your email is not verified. Please check your inbox.</p>
-                <button id="resend-verification-btn" class="btn btn--outline btn--sm" style="border-color: var(--accent-warning); color: var(--accent-warning);">Resend Email</button>
+                
+                <button id="btn-stop-trip" class="round-btn btn-stop">
+                    <span class="btn-icon">⏹</span>
+                    <span class="btn-text">STOP</span>
+                </button>
+                
+                <div class="trip-status" id="trip-status">Ready for next trip</div>
             </div>
 
-            <!-- Stats Overview -->
-            <div class="admin-stats">
-                <div class="stat-card">
-                    <span class="stat-card__title">Account Status</span>
-                    <span class="stat-card__value text-success" id="account-status">Active</span>
+            <!-- Info Card (Right side on desktop, bottom on mobile) -->
+            <div class="info-card">
+                
+                <!-- Assigned Bus -->
+                <div class="info-row">
+                    <div class="info-icon">🚐</div>
+                    <div class="info-details">
+                        <div class="info-label">ASSIGNED BUS</div>
+                        <h3 class="info-value" id="assigned-bus">--</h3>
+                    </div>
                 </div>
-                <div class="stat-card">
-                    <span class="stat-card__title">Assigned Bus</span>
-                    <span class="stat-card__value text-primary" id="assigned-bus">None</span>
-                </div>
-                <div class="stat-card">
-                    <span class="stat-card__title">Today's Schedule</span>
-                    <span class="stat-card__value">Pending</span>
-                </div>
-            </div>
 
-            <!-- Trip Status Panel -->
-            <div class="trip-panel">
-                <h2 class="trip-panel__title">Ready to Start a Trip?</h2>
-                <p class="trip-panel__desc">The "Start Trip" feature will be available in Phase 9. Once active, you will be able to share your real-time GPS location with students waiting at the bus stops.</p>
-                <button class="trip-panel__btn" title="Coming in Phase 9">Start Trip</button>
-            </div>
+                <div class="divider"></div>
 
-        </main>
+                <!-- Duty Schedule -->
+                <div class="info-row" style="align-items: flex-start;">
+                    <div class="info-icon" style="background: rgba(0, 200, 83, 0.1); color: var(--accent-success);">⏰</div>
+                    <div class="info-details" style="width: 100%;">
+                        <div class="info-label" style="margin-bottom: 10px;">TODAY'S DUTY SCHEDULE</div>
+                        
+                        <div class="schedule-list">
+                            <!-- Placeholder Schedule (Will be dynamic in Phase 7) -->
+                            <div class="schedule-item active">
+                                <span class="schedule-time">08:00 AM</span>
+                                <span class="schedule-route">Campus → City Center</span>
+                            </div>
+                            <div class="schedule-item">
+                                <span class="schedule-time">02:30 PM</span>
+                                <span class="schedule-route">City Center → Campus</span>
+                            </div>
+                            <div class="schedule-item">
+                                <span class="schedule-time">05:15 PM</span>
+                                <span class="schedule-route">Campus → City Center</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
     </div>
 
     <!-- Scripts -->
     <script type="module" src="../js/firebase-config.js"></script>
     <script type="module" src="../js/auth-guard.js"></script>
     <script type="module" src="../js/driver-dashboard.js"></script>
+    
+    <script>
+        // Interactive Toggle Logic
+        const btnStart = document.getElementById('btn-start-trip');
+        const btnStop = document.getElementById('btn-stop-trip');
+        const statusText = document.getElementById('trip-status');
+
+        btnStart.addEventListener('click', () => {
+            btnStart.style.display = 'none';
+            btnStop.style.display = 'flex';
+            statusText.textContent = '📍 SHARING LIVE LOCATION...';
+            statusText.style.color = 'var(--accent-success)';
+            statusText.style.borderColor = 'rgba(0, 200, 83, 0.2)';
+            statusText.style.background = 'rgba(0, 200, 83, 0.05)';
+        });
+
+        btnStop.addEventListener('click', () => {
+            btnStop.style.display = 'none';
+            btnStart.style.display = 'flex';
+            statusText.textContent = 'Trip Completed. Ready for next.';
+            statusText.style.color = 'var(--text-muted)';
+            statusText.style.borderColor = 'rgba(255, 255, 255, 0.05)';
+            statusText.style.background = 'rgba(255, 255, 255, 0.03)';
+        });
+    </script>
 </body>
 
 </html>
