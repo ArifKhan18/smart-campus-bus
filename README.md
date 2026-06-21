@@ -30,18 +30,28 @@ smart-campus-bus/
 │   │   └── style.css           # Core design system
 │   ├── js/
 │   │   ├── app.js              # Main JavaScript (landing page)
+│   │   ├── auth.js             # Auth pages (login/register) logic
+│   │   ├── auth-guard.js       # Route protection logic
 │   │   ├── firebase-config.js  # Firebase Web SDK config
 │   │   ├── role-select.js      # Role selection page logic
-│   │   └── auth.js             # Auth pages (login/register) logic
+│   │   ├── admin-dashboard.js  # Admin panel logic
+│   │   ├── bus-management.js   # Admin: Bus CRUD operations
+│   │   ├── route-management.js # Admin: Route CRUD operations
+│   │   ├── schedule-management.js # Admin: Schedule CRUD
+│   │   ├── driver-dashboard.js # Driver panel and trip system
+│   │   └── student-dashboard.js # Student tracking panel
 │   ├── pages/
 │   │   ├── role-select.html    # Role selection page
 │   │   ├── login.html          # Login page
-│   │   └── register.html       # Registration page
+│   │   ├── register.html       # Registration page
+│   │   ├── admin-dashboard.html # Admin panel
+│   │   ├── driver-dashboard.html # Driver panel
+│   │   └── student-dashboard.html # Student portal
 │   └── assets/
 │       └── images/             # Image assets
 │
 └── backend/
-    └── SmartCampusBus.Api/     # ASP.NET Core Web API
+    └── SmartCampusBus.Api/     # ASP.NET Core Web API (Future)
         ├── Controllers/        # API Controllers
         ├── Models/             # Data Models
         ├── Services/           # Business Logic
