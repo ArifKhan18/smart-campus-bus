@@ -361,6 +361,65 @@
             border-color: rgba(108, 99, 255, 0.3);
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
         }
+        
+        /* Route Stops Styles */
+        .route-stop-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .route-stop-item .form-group__input {
+            padding: 0.5rem 1rem;
+        }
+        .btn-remove-stop {
+            background: rgba(255, 77, 77, 0.1);
+            color: #ff4d4d;
+            border: none;
+            border-radius: 6px;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-remove-stop:hover {
+            background: rgba(255, 77, 77, 0.2);
+        }
+        .route-stops-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+            margin: 1rem 0;
+            padding-left: 1rem;
+            border-left: 2px solid var(--border-card);
+        }
+        .route-stops-list__item {
+            position: relative;
+            padding-left: 1rem;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+        .route-stops-list__item::before {
+            content: '';
+            position: absolute;
+            left: -1.4rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--text-muted);
+            border: 2px solid var(--bg-surface);
+        }
+        .route-stops-list__item:first-child::before {
+            background: var(--accent-success);
+        }
+        .route-stops-list__item:last-child::before {
+            background: var(--accent-warning);
+        }
     </style>
 </head>
 
@@ -380,10 +439,10 @@
                 <a href="#" class="admin-nav__link" id="nav-buses">
                     <span>🚐</span> Manage Buses
                 </a>
-                <a href="#" class="admin-nav__link" onclick="alert('Coming in Phase 6')">
+                <a href="#" class="admin-nav__link" id="nav-routes">
                     <span>🗺️</span> Routes & Stops
                 </a>
-                <a href="#" class="admin-nav__link" onclick="alert('Coming in Phase 7')">
+                <a href="#" class="admin-nav__link" id="nav-schedules">
                     <span>📅</span> Schedules
                 </a>
             </nav>
@@ -486,6 +545,68 @@
                     </div>
                 </div>
             </section>
+
+            <!-- Route Management Section -->
+            <section class="admin-section" id="section-routes" style="display: none;">
+                <div class="admin-section__header">
+                    <h2 class="admin-section__title">Routes & Stops</h2>
+                    <button class="btn btn--primary" id="btn-add-route">
+                        <span>➕</span> Add Route
+                    </button>
+                </div>
+
+                <!-- Route Stats Overview -->
+                <div class="admin-stats" style="margin-bottom: 2rem;">
+                    <div class="stat-card">
+                        <span class="stat-card__title">Total Routes</span>
+                        <span class="stat-card__value" id="route-stat-total">0</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-card__title">Assigned to Bus</span>
+                        <span class="stat-card__value text-success" id="route-stat-assigned">0</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-card__title">Unassigned</span>
+                        <span class="stat-card__value text-warning" id="route-stat-unassigned">0</span>
+                    </div>
+                </div>
+
+                <!-- Route Grid -->
+                <div class="driver-grid" id="route-grid">
+                    <!-- Loading State -->
+                    <div class="empty-state">
+                        <div style="width: 40px; height: 40px; border: 3px solid rgba(108, 99, 255, 0.3); border-top-color: var(--accent-primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1rem;"></div>
+                        <p>Loading routes...</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Schedule Management Section -->
+            <section class="admin-section" id="section-schedules" style="display: none;">
+                <div class="admin-section__header">
+                    <h2 class="admin-section__title">Schedule Management</h2>
+                    <button class="btn btn--primary" id="btn-add-schedule">
+                        <span>➕</span> Add Schedule
+                    </button>
+                </div>
+
+                <!-- Schedule Stats Overview -->
+                <div class="admin-stats" style="margin-bottom: 2rem;">
+                    <div class="stat-card">
+                        <span class="stat-card__title">Total Schedules</span>
+                        <span class="stat-card__value" id="schedule-stat-total">0</span>
+                    </div>
+                </div>
+
+                <!-- Schedule Grid -->
+                <div class="driver-grid" id="schedule-grid">
+                    <!-- Loading State -->
+                    <div class="empty-state">
+                        <div style="width: 40px; height: 40px; border: 3px solid rgba(108, 99, 255, 0.3); border-top-color: var(--accent-primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1rem;"></div>
+                        <p>Loading schedules...</p>
+                    </div>
+                </div>
+            </section>
         </main>
     </div>
 
@@ -546,6 +667,147 @@
         </div>
     </div>
 
+    <!-- Route Modal -->
+    <div class="modal-overlay" id="route-modal">
+        <div class="modal-content" style="max-width: 600px; max-height: 90vh; overflow-y: auto;">
+            <div class="modal-header">
+                <h3 class="modal-title" id="route-modal-title">Add New Route</h3>
+                <button class="modal-close" id="route-modal-close">&times;</button>
+            </div>
+            <form id="route-form">
+                <div class="modal-body">
+                    <input type="hidden" id="route-id">
+                    <div class="form-group">
+                        <label class="form-group__label">Route Name</label>
+                        <div class="form-group__input-wrapper">
+                            <input type="text" id="route-name" class="form-group__input" placeholder="e.g. Campus to City Center" required>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 1rem;">
+                        <div class="form-group" style="flex: 1;">
+                            <label class="form-group__label">Start Point</label>
+                            <div class="form-group__input-wrapper">
+                                <input type="text" id="route-start" class="form-group__input" placeholder="e.g. Campus Gate" required>
+                            </div>
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label class="form-group__label">End Point</label>
+                            <div class="form-group__input-wrapper">
+                                <input type="text" id="route-end" class="form-group__input" placeholder="e.g. City Center" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Dynamic Stops Container -->
+                    <div class="form-group" style="background: rgba(255, 255, 255, 0.02); padding: 1rem; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.05);">
+                        <label class="form-group__label" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                            Intermediate Stops
+                            <button type="button" class="btn btn--sm btn--outline" id="btn-add-stop" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;">+ Add Stop</button>
+                        </label>
+                        <div id="route-stops-container" style="display: flex; flex-direction: column;">
+                            <!-- Stop items will be added here dynamically -->
+                        </div>
+                        <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem;">Note: Start and End points are automatically treated as the first and last stops.</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-group__label">Assign Bus (Optional)</label>
+                        <div class="form-group__input-wrapper">
+                            <select id="route-bus" class="form-group__input" style="appearance: auto;">
+                                <option value="">-- Select Bus --</option>
+                                <!-- Populated dynamically -->
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn--outline" id="route-modal-cancel">Cancel</button>
+                    <button type="submit" class="btn btn--primary" id="route-modal-submit">Save Route</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Schedule Modal -->
+    <div class="modal-overlay" id="schedule-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="schedule-modal-title">Add New Schedule</h3>
+                <button class="modal-close" id="schedule-modal-close">&times;</button>
+            </div>
+            <form id="schedule-form">
+                <div class="modal-body">
+                    <input type="hidden" id="schedule-id">
+                    
+                    <div class="form-group">
+                        <label class="form-group__label">Assign Bus</label>
+                        <div class="form-group__input-wrapper">
+                            <select id="schedule-bus" class="form-group__input" style="appearance: auto;" required>
+                                <option value="">-- Select Bus --</option>
+                                <!-- Populated dynamically -->
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-group__label">Departure Time(s)</label>
+                        
+                        <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+                            <input type="time" id="schedule-time-input" class="form-group__input" style="flex: 1;">
+                            <button type="button" class="btn btn--outline" id="btn-add-time" style="padding: 0 1rem;">Add</button>
+                        </div>
+                        
+                        <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem; flex-wrap: wrap;">
+                            <button type="button" class="btn btn--sm btn--outline quick-time-btn" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;" data-time="08:00">08:00 AM</button>
+                            <button type="button" class="btn btn--sm btn--outline quick-time-btn" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;" data-time="10:00">10:00 AM</button>
+                            <button type="button" class="btn btn--sm btn--outline quick-time-btn" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;" data-time="12:00">12:00 PM</button>
+                            <button type="button" class="btn btn--sm btn--outline quick-time-btn" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;" data-time="14:00">02:00 PM</button>
+                            <button type="button" class="btn btn--sm btn--outline quick-time-btn" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;" data-time="16:00">04:00 PM</button>
+                        </div>
+                        
+                        <div id="selected-times-container" style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; padding: 0.5rem; background: rgba(0,0,0,0.2); border-radius: 4px; min-height: 44px; align-items: center;">
+                            <!-- Selected times tags will appear here -->
+                            <span style="color: var(--text-muted); font-size: 0.85rem;" id="no-times-msg">No times added yet.</span>
+                        </div>
+                        <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem;">You can add multiple times to create schedules instantly.</p>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-group__label" style="margin-bottom: 0.5rem; display: block;">Operating Days</label>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; background: rgba(255, 255, 255, 0.02); padding: 1rem; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.05);">
+                            <label style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-light); font-size: 0.9rem; cursor: pointer;">
+                                <input type="checkbox" name="schedule-days" value="Sunday"> Sunday
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-light); font-size: 0.9rem; cursor: pointer;">
+                                <input type="checkbox" name="schedule-days" value="Monday"> Monday
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-light); font-size: 0.9rem; cursor: pointer;">
+                                <input type="checkbox" name="schedule-days" value="Tuesday"> Tuesday
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-light); font-size: 0.9rem; cursor: pointer;">
+                                <input type="checkbox" name="schedule-days" value="Wednesday"> Wednesday
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-light); font-size: 0.9rem; cursor: pointer;">
+                                <input type="checkbox" name="schedule-days" value="Thursday"> Thursday
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-light); font-size: 0.9rem; cursor: pointer;">
+                                <input type="checkbox" name="schedule-days" value="Friday"> Friday
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-light); font-size: 0.9rem; cursor: pointer;">
+                                <input type="checkbox" name="schedule-days" value="Saturday"> Saturday
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn--outline" id="schedule-modal-cancel">Cancel</button>
+                    <button type="submit" class="btn btn--primary" id="schedule-modal-submit">Save Schedule</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Toast Component -->
     <div id="toast-container" class="toast-container"></div>
     <script src="./components/toast.html" type="text/html"></script>
@@ -555,6 +817,8 @@
     <script type="module" src="../js/auth-guard.js"></script>
     <script type="module" src="../js/admin-dashboard.js"></script>
     <script type="module" src="../js/bus-management.js"></script>
+    <script type="module" src="../js/route-management.js"></script>
+    <script type="module" src="../js/schedule-management.js"></script>
     
     <script>
         // Inline toast logic

@@ -56,24 +56,59 @@ document.addEventListener("DOMContentLoaded", () => {
     // Section Toggle Logic
     const navDrivers = document.getElementById('nav-drivers');
     const navBuses = document.getElementById('nav-buses');
+    const navRoutes = document.getElementById('nav-routes');
+    const navSchedules = document.getElementById('nav-schedules');
+    
     const sectionDrivers = document.getElementById('section-drivers');
     const sectionBuses = document.getElementById('section-buses');
+    const sectionRoutes = document.getElementById('section-routes');
+    const sectionSchedules = document.getElementById('section-schedules');
 
-    if (navDrivers && navBuses) {
+    function resetTabs() {
+        if(navDrivers) navDrivers.classList.remove('active');
+        if(navBuses) navBuses.classList.remove('active');
+        if(navRoutes) navRoutes.classList.remove('active');
+        if(navSchedules) navSchedules.classList.remove('active');
+        
+        if(sectionDrivers) sectionDrivers.style.display = 'none';
+        if(sectionBuses) sectionBuses.style.display = 'none';
+        if(sectionRoutes) sectionRoutes.style.display = 'none';
+        if(sectionSchedules) sectionSchedules.style.display = 'none';
+    }
+
+    if (navDrivers) {
         navDrivers.addEventListener('click', (e) => {
             e.preventDefault();
+            resetTabs();
             navDrivers.classList.add('active');
-            navBuses.classList.remove('active');
             sectionDrivers.style.display = 'block';
-            sectionBuses.style.display = 'none';
         });
+    }
 
+    if (navBuses) {
         navBuses.addEventListener('click', (e) => {
             e.preventDefault();
+            resetTabs();
             navBuses.classList.add('active');
-            navDrivers.classList.remove('active');
             sectionBuses.style.display = 'block';
-            sectionDrivers.style.display = 'none';
+        });
+    }
+
+    if (navRoutes) {
+        navRoutes.addEventListener('click', (e) => {
+            e.preventDefault();
+            resetTabs();
+            navRoutes.classList.add('active');
+            sectionRoutes.style.display = 'block';
+        });
+    }
+
+    if (navSchedules) {
+        navSchedules.addEventListener('click', (e) => {
+            e.preventDefault();
+            resetTabs();
+            navSchedules.classList.add('active');
+            sectionSchedules.style.display = 'block';
         });
     }
 });
