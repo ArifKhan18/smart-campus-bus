@@ -34,6 +34,7 @@ builder.Services.AddSingleton(provider =>
 
 // ── Add Services ──
 builder.Services.AddScoped<SmartCampusBus.Api.Services.IAuthService, SmartCampusBus.Api.Services.AuthService>();
+builder.Services.AddScoped<SmartCampusBus.Api.Services.IBusService, SmartCampusBus.Api.Services.BusService>();
 
 // ── Add Controllers ──
 builder.Services.AddControllers();

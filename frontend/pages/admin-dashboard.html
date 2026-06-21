@@ -278,6 +278,89 @@
             margin-bottom: 1rem;
             opacity: 0.5;
         }
+        
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-card);
+            border-radius: var(--radius-lg);
+            width: 100%;
+            max-width: 500px;
+            padding: 2rem;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+        }
+        .modal-overlay.active .modal-content {
+            transform: translateY(0);
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        .modal-title {
+            font-size: 1.25rem;
+            color: var(--text-light);
+            font-weight: 600;
+        }
+        .modal-close {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .modal-close:hover {
+            color: var(--text-light);
+        }
+        
+        .modal-body {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+        
+        .modal-footer {
+            margin-top: 2rem;
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+        }
+        
+        /* Bus Card specific styles */
+        .bus-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-card);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            transition: all 0.3s ease;
+        }
+        .bus-card:hover {
+            border-color: rgba(108, 99, 255, 0.3);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
     </style>
 </head>
 
@@ -291,10 +374,10 @@
             </a>
             
             <nav class="admin-nav">
-                <a href="#" class="admin-nav__link active">
+                <a href="#" class="admin-nav__link active" id="nav-drivers">
                     <span>👥</span> Driver Approvals
                 </a>
-                <a href="#" class="admin-nav__link" onclick="alert('Coming in Phase 5')">
+                <a href="#" class="admin-nav__link" id="nav-buses">
                     <span>🚐</span> Manage Buses
                 </a>
                 <a href="#" class="admin-nav__link" onclick="alert('Coming in Phase 6')">
@@ -343,7 +426,7 @@
             </div>
 
             <!-- Driver Management Section -->
-            <section class="admin-section">
+            <section class="admin-section" id="section-drivers">
                 <div class="admin-section__header">
                     <h2 class="admin-section__title">Driver Management</h2>
                     <div class="filter-tabs" id="filter-tabs">
@@ -364,7 +447,103 @@
                     </div>
                 </div>
             </section>
+
+            <!-- Bus Management Section -->
+            <section class="admin-section" id="section-buses" style="display: none;">
+                <div class="admin-section__header">
+                    <h2 class="admin-section__title">Bus Management</h2>
+                    <button class="btn btn--primary" id="btn-add-bus">
+                        <span>➕</span> Add Bus
+                    </button>
+                </div>
+
+                <!-- Bus Stats Overview -->
+                <div class="admin-stats" style="margin-bottom: 2rem;">
+                    <div class="stat-card">
+                        <span class="stat-card__title">Total Buses</span>
+                        <span class="stat-card__value" id="bus-stat-total">0</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-card__title">Active Buses</span>
+                        <span class="stat-card__value text-success" id="bus-stat-active">0</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-card__title">Special Trips</span>
+                        <span class="stat-card__value text-warning" id="bus-stat-special">0</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-card__title">Inactive / Maint.</span>
+                        <span class="stat-card__value text-danger" id="bus-stat-inactive">0</span>
+                    </div>
+                </div>
+
+                <!-- Bus Grid -->
+                <div class="driver-grid" id="bus-grid">
+                    <!-- Loading State -->
+                    <div class="empty-state">
+                        <div style="width: 40px; height: 40px; border: 3px solid rgba(108, 99, 255, 0.3); border-top-color: var(--accent-primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1rem;"></div>
+                        <p>Loading buses...</p>
+                    </div>
+                </div>
+            </section>
         </main>
+    </div>
+
+    <!-- Bus Modal -->
+    <div class="modal-overlay" id="bus-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="bus-modal-title">Add New Bus</h3>
+                <button class="modal-close" id="bus-modal-close">&times;</button>
+            </div>
+            <form id="bus-form">
+                <div class="modal-body">
+                    <input type="hidden" id="bus-id">
+                    <div class="form-group">
+                        <label class="form-group__label">Bus Name</label>
+                        <div class="form-group__input-wrapper">
+                            <input type="text" id="bus-name" class="form-group__input" placeholder="e.g. Campus Express" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-group__label">Bus Number</label>
+                        <div class="form-group__input-wrapper">
+                            <input type="text" id="bus-number" class="form-group__input" placeholder="Free text (e.g. DHA-1234)" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-group__label">Capacity (Optional)</label>
+                        <div class="form-group__input-wrapper">
+                            <input type="number" id="bus-capacity" class="form-group__input" placeholder="e.g. 50">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-group__label">Assign Driver (Optional)</label>
+                        <div class="form-group__input-wrapper">
+                            <select id="bus-driver" class="form-group__input" style="appearance: auto;">
+                                <option value="">-- Select Driver --</option>
+                                <!-- Populated dynamically -->
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group" id="bus-status-group" style="display: none;">
+                        <label class="form-group__label">Status</label>
+                        <div class="form-group__input-wrapper">
+                            <select id="bus-status" class="form-group__input" style="appearance: auto;">
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                                <option value="maintenance">Maintenance</option>
+                                <option value="special_trip">Special Trip</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn--outline" id="bus-modal-cancel">Cancel</button>
+                    <button type="submit" class="btn btn--primary" id="bus-modal-submit">Save Bus</button>
+                </div>
+            </form>
+        </div>
     </div>
 
     <!-- Toast Component -->
@@ -375,6 +554,7 @@
     <script type="module" src="../js/firebase-config.js"></script>
     <script type="module" src="../js/auth-guard.js"></script>
     <script type="module" src="../js/admin-dashboard.js"></script>
+    <script type="module" src="../js/bus-management.js"></script>
     
     <script>
         // Inline toast logic

@@ -52,6 +52,30 @@ document.addEventListener("DOMContentLoaded", () => {
             renderDrivers();
         });
     });
+
+    // Section Toggle Logic
+    const navDrivers = document.getElementById('nav-drivers');
+    const navBuses = document.getElementById('nav-buses');
+    const sectionDrivers = document.getElementById('section-drivers');
+    const sectionBuses = document.getElementById('section-buses');
+
+    if (navDrivers && navBuses) {
+        navDrivers.addEventListener('click', (e) => {
+            e.preventDefault();
+            navDrivers.classList.add('active');
+            navBuses.classList.remove('active');
+            sectionDrivers.style.display = 'block';
+            sectionBuses.style.display = 'none';
+        });
+
+        navBuses.addEventListener('click', (e) => {
+            e.preventDefault();
+            navBuses.classList.add('active');
+            navDrivers.classList.remove('active');
+            sectionBuses.style.display = 'block';
+            sectionDrivers.style.display = 'none';
+        });
+    }
 });
 
 // ── Dashboard Setup ──
