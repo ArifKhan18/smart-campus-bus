@@ -371,59 +371,19 @@
                     <div class="info-icon" style="background: rgba(0, 200, 83, 0.1); color: var(--accent-success);">⏰</div>
                     <div class="info-details" style="width: 100%;">
                         <div class="info-label" style="margin-bottom: 10px;">TODAY'S DUTY SCHEDULE</div>
-                        
-                        <div class="schedule-list">
-                            <!-- Placeholder Schedule (Will be dynamic in Phase 7) -->
-                            <div class="schedule-item active">
-                                <span class="schedule-time">08:00 AM</span>
-                                <span class="schedule-route">Campus → City Center</span>
-                            </div>
+                        <div class="schedule-list" id="duty-schedule-list">
+                            <!-- Dynamic schedules will be rendered here -->
                             <div class="schedule-item">
-                                <span class="schedule-time">02:30 PM</span>
-                                <span class="schedule-route">City Center → Campus</span>
-                            </div>
-                            <div class="schedule-item">
-                                <span class="schedule-time">05:15 PM</span>
-                                <span class="schedule-route">Campus → City Center</span>
+                                <span class="schedule-time" style="color: var(--text-muted);">Loading schedules...</span>
                             </div>
                         </div>
-                    </div>
-                </div>
-
-            </div>
         </div>
 
     </div>
 
-    <!-- Scripts -->
     <script type="module" src="../js/firebase-config.js"></script>
     <script type="module" src="../js/auth-guard.js"></script>
     <script type="module" src="../js/driver-dashboard.js"></script>
-    
-    <script>
-        // Interactive Toggle Logic
-        const btnStart = document.getElementById('btn-start-trip');
-        const btnStop = document.getElementById('btn-stop-trip');
-        const statusText = document.getElementById('trip-status');
-
-        btnStart.addEventListener('click', () => {
-            btnStart.style.display = 'none';
-            btnStop.style.display = 'flex';
-            statusText.textContent = '📍 SHARING LIVE LOCATION...';
-            statusText.style.color = 'var(--accent-success)';
-            statusText.style.borderColor = 'rgba(0, 200, 83, 0.2)';
-            statusText.style.background = 'rgba(0, 200, 83, 0.05)';
-        });
-
-        btnStop.addEventListener('click', () => {
-            btnStop.style.display = 'none';
-            btnStart.style.display = 'flex';
-            statusText.textContent = 'Trip Completed. Ready for next.';
-            statusText.style.color = 'var(--text-muted)';
-            statusText.style.borderColor = 'rgba(255, 255, 255, 0.05)';
-            statusText.style.background = 'rgba(255, 255, 255, 0.03)';
-        });
-    </script>
 </body>
 
 </html>

@@ -154,12 +154,6 @@ function updateNavigationLinks(role) {
     if (loginLink) {
         loginLink.href = `login.html?role=${role}`;
     }
-
-    // Show bus dropdown for drivers on register page
-    const busGroup = document.getElementById("form-group-bus");
-    if (busGroup && role === "driver") {
-        busGroup.style.display = "block";
-    }
 }
 
 // ── Password Toggle ──
@@ -348,17 +342,8 @@ async function handleRegisterSubmit(role) {
         confirmGroup.classList.remove("form-group--error");
     }
 
-    // Validate bus selection for drivers
+    // Bus selection for drivers is handled by admins in Phase 3+
     let selectedBus = null;
-    if (role === "driver") {
-        const bus = document.getElementById("register-bus");
-        if (!bus.value) {
-            isValid = false;
-            // Optionally add error class to bus group
-        } else {
-            selectedBus = bus.value;
-        }
-    }
 
     if (isValid) {
         const submitBtn = document.getElementById("auth-submit");

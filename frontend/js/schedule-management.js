@@ -131,17 +131,18 @@ function setupSchedulesListener() {
 }
 
 // ── Fetch Buses ──
-async function fetchBuses() {
-    try {
-        const snapshot = await getDocs(collection(db, "buses"));
+function fetchBuses() {
+    const q = query(collection(db, "buses"));
+    onSnapshot(q, (snapshot) => {
         allBuses = [];
         snapshot.forEach((doc) => {
             allBuses.push({ id: doc.id, ...doc.data() });
         });
         populateBusDropdown();
-    } catch (error) {
+        renderSchedules();
+    }, (error) => {
         console.error("Error fetching buses:", error);
-    }
+    });
 }
 
 function populateBusDropdown() {
@@ -203,7 +204,8 @@ function renderSchedules() {
             }
         }
         
-        const busName = schedule.busName || 'Unknown Bus';
+        const busObj = allBuses.find(b => b.id === schedule.busId);
+        const busName = busObj ? busObj.busName : (schedule.busName || 'Unknown Bus');
         const formattedTime = formatTime12Hour(schedule.departureTime);
 
         card.innerHTML = `

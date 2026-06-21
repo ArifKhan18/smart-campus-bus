@@ -161,6 +161,20 @@
             color: var(--text-light);
             margin-bottom: 1rem;
         }
+        .status-badge--pending { background: rgba(255, 170, 0, 0.1); color: var(--accent-warning); border: 1px solid rgba(255, 170, 0, 0.2); }
+        .status-badge--active { background: rgba(0, 200, 83, 0.1); color: var(--accent-success); border: 1px solid rgba(0, 200, 83, 0.2); }
+        .status-badge--rejected { background: rgba(255, 77, 77, 0.1); color: #ff4d4d; border: 1px solid rgba(255, 77, 77, 0.2); }
+        .status-badge--running { 
+            background: rgba(0, 212, 170, 0.15); 
+            color: #00ffcc; 
+            border: 1px solid rgba(0, 212, 170, 0.4); 
+            animation: pulseRunning 1.5s infinite;
+        }
+        @keyframes pulseRunning {
+            0% { box-shadow: 0 0 0 0 rgba(0, 212, 170, 0.4); }
+            70% { box-shadow: 0 0 0 8px rgba(0, 212, 170, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 212, 170, 0); }
+        }
         .upcoming-features p {
             color: var(--text-muted);
             margin-bottom: 1.5rem;

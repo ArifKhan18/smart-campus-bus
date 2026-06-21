@@ -151,8 +151,10 @@ function listenToBuses() {
             allBuses.push({ id: doc.id, ...doc.data() });
         });
         
-        // Sort active first
+        // Sort: Running first, then Active, then alphabetical
         allBuses.sort((a, b) => {
+            if (a.status === 'running' && b.status !== 'running') return -1;
+            if (a.status !== 'running' && b.status === 'running') return 1;
             if (a.status === 'active' && b.status !== 'active') return -1;
             if (a.status !== 'active' && b.status === 'active') return 1;
             return a.busName.localeCompare(b.busName);
@@ -198,6 +200,7 @@ function listenToSchedules() {
 
 // ── Render Helpers ──
 function getStatusBadge(status) {
+    if (status === 'running') return '<span class="status-badge status-badge--running">🟢 Running</span>';
     if (status === 'active') return '<span class="status-badge status-badge--active">Active</span>';
     if (status === 'inactive') return '<span class="status-badge">Inactive</span>';
     if (status === 'maintenance') return '<span class="status-badge status-badge--maintenance">Maintenance</span>';
@@ -278,7 +281,8 @@ function renderRoutes() {
         const card = document.createElement('div');
         card.className = 'bus-card';
         
-        const busName = route.assignedBusName ? `[${route.assignedBusName}]` : '[Unassigned]';
+        const busObj = allBuses.find(b => b.id === route.assignedBus);
+        const busName = busObj ? `[${busObj.busName}]` : (route.assignedBusName ? `[${route.assignedBusName}]` : '[Unassigned]');
         
         let stopsHtml = '';
         if (route.stops && route.stops.length > 0) {
@@ -344,7 +348,8 @@ function renderSchedules() {
             }
         }
         
-        const busName = schedule.busName || 'Unknown Bus';
+        const busObj = allBuses.find(b => b.id === schedule.busId);
+        const busName = busObj ? busObj.busName : (schedule.busName || 'Unknown Bus');
         const formattedTime = formatTime12Hour(schedule.departureTime);
 
         card.innerHTML = `

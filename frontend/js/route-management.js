@@ -72,17 +72,19 @@ function setupRoutesListener() {
 }
 
 // ── Fetch Buses ──
-async function fetchBuses() {
-    try {
-        const snapshot = await getDocs(collection(db, "buses"));
+function fetchBuses() {
+    const q = query(collection(db, "buses"));
+    onSnapshot(q, (snapshot) => {
         allBuses = [];
         snapshot.forEach((doc) => {
             allBuses.push({ id: doc.id, ...doc.data() });
         });
         populateBusDropdown();
-    } catch (error) {
+        // Also re-render routes to update dynamic bus names if needed
+        renderRoutes();
+    }, (error) => {
         console.error("Error fetching buses:", error);
-    }
+    });
 }
 
 function populateBusDropdown() {
@@ -127,7 +129,8 @@ function renderRoutes() {
         const card = document.createElement('div');
         card.className = 'bus-card'; // Reusing bus-card styles
         
-        const busName = route.assignedBusName ? `[${route.assignedBusName}]` : '[Unassigned]';
+        const busObj = allBuses.find(b => b.id === route.assignedBus);
+        const busName = busObj ? `[${busObj.busName}]` : (route.assignedBusName ? `[${route.assignedBusName}]` : '[Unassigned]');
         
         // Build stops list visualization
         let stopsHtml = '';

@@ -60,8 +60,10 @@ function setupBusesListener() {
             allBuses.push({ id: doc.id, ...doc.data() });
         });
         
-        // Sort by created date descending
+        // Sort by status (running first) then created date descending
         allBuses.sort((a, b) => {
+            if (a.status === 'running' && b.status !== 'running') return -1;
+            if (a.status !== 'running' && b.status === 'running') return 1;
             const timeA = a.createdAt?.toMillis() || 0;
             const timeB = b.createdAt?.toMillis() || 0;
             return timeB - timeA;
@@ -153,7 +155,8 @@ function renderBuses() {
         let statusBadgeClass = '';
         let statusText = bus.status;
         
-        if(bus.status === 'active') { statusBadgeClass = 'status-badge--active'; statusText = 'Active'; }
+        if(bus.status === 'running') { statusBadgeClass = 'status-badge--running'; statusText = '🟢 Running'; }
+        else if(bus.status === 'active') { statusBadgeClass = 'status-badge--active'; statusText = 'Active'; }
         else if(bus.status === 'special_trip') { statusBadgeClass = 'status-badge--pending'; statusText = 'Special Trip'; }
         else if(bus.status === 'maintenance') { statusBadgeClass = 'status-badge--rejected'; statusText = 'Maintenance'; }
         else { statusBadgeClass = 'status-badge'; statusText = 'Inactive'; } // default inactive
