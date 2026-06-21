@@ -136,6 +136,9 @@ function initNavigation() {
 let allBuses = [];
 let allRoutes = [];
 let allSchedules = [];
+let currentMap = null;
+let currentBusMarker = null;
+let currentSelectedBusId = null;
 
 function initDataListeners() {
     listenToBuses();
@@ -240,6 +243,11 @@ function renderBuses() {
         const card = document.createElement('div');
         card.className = 'bus-card';
         
+        card.style.cursor = 'pointer';
+        card.style.transition = 'all 0.3s ease';
+        card.onmouseover = () => card.style.transform = 'translateY(-5px)';
+        card.onmouseout = () => card.style.transform = 'translateY(0)';
+        
         card.innerHTML = `
             <div class="driver-card__header" style="flex-direction: column; align-items: flex-start; gap: 0.5rem;">
                 <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
@@ -255,8 +263,111 @@ function renderBuses() {
                     <span class="detail-item__value" style="font-weight: 500;">${bus.route || 'Unassigned'}</span>
                 </div>
             </div>
+            <div style="margin-top: 0.5rem; text-align: center; color: var(--accent-primary); font-size: 0.85rem; font-weight: 600;">
+                Click to view details & live map →
+            </div>
         `;
         
+        card.addEventListener('click', () => openBusDetails(bus.id));
+        
+        grid.appendChild(card);
+    });
+}
+
+// ── Bus Details & Map Logic ──
+function openBusDetails(busId) {
+    currentSelectedBusId = busId;
+    const bus = allBuses.find(b => b.id === busId);
+    if (!bus) return;
+    
+    // Hide buses list, show details
+    document.getElementById('section-buses').style.display = 'none';
+    const sectionDetails = document.getElementById('section-bus-details');
+    sectionDetails.style.display = 'block';
+    
+    // Setup Header
+    document.getElementById('detail-bus-name').textContent = bus.busName;
+    document.getElementById('detail-bus-status').innerHTML = getStatusBadge(bus.status);
+    
+    // Setup Back Button
+    document.getElementById('btn-back-buses').onclick = () => {
+        sectionDetails.style.display = 'none';
+        document.getElementById('section-buses').style.display = 'block';
+        currentSelectedBusId = null;
+    };
+    
+    // Map Logic
+    const overlay = document.getElementById('map-overlay');
+    
+    // Initialize map once
+    if (!currentMap) {
+        currentMap = L.map('bus-map').setView([23.8122, 90.3582], 15); // BUBT Coordinates
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(currentMap);
+        
+        const busIcon = L.divIcon({
+            html: '<div style="font-size: 24px; background: rgba(0,212,170,0.2); border-radius: 50%; border: 2px solid #00ffcc; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 15px rgba(0,212,170,0.5);">🚌</div>',
+            className: '',
+            iconSize: [36, 36],
+            iconAnchor: [18, 18]
+        });
+        
+        currentBusMarker = L.marker([23.8122, 90.3582], {icon: busIcon}).addTo(currentMap);
+    }
+    
+    // Important: Invalidate size after unhiding to prevent rendering bugs
+    setTimeout(() => {
+        currentMap.invalidateSize();
+    }, 100);
+    
+    if (bus.status === 'running') {
+        overlay.style.display = 'none';
+        // In the future (Phase 14+), we will update the marker with real coordinates from bus/trip
+        // For Phase 11, it's a dummy location at BUBT
+    } else {
+        overlay.style.display = 'flex';
+    }
+    
+    // Render specific schedules for this bus
+    renderBusSpecificSchedules(busId);
+}
+
+function renderBusSpecificSchedules(busId) {
+    const grid = document.getElementById('detail-schedule-grid');
+    if (!grid) return;
+    
+    const busSchedules = allSchedules.filter(s => s.busId === busId);
+    
+    if (busSchedules.length === 0) {
+        grid.innerHTML = '<div class="empty-state"><p>No schedules assigned to this bus yet.</p></div>';
+        return;
+    }
+    
+    grid.innerHTML = '';
+    busSchedules.forEach(schedule => {
+        const card = document.createElement('div');
+        card.className = 'bus-card';
+        
+        let daysText = "All Days";
+        if (schedule.operatingDays && schedule.operatingDays.length > 0) {
+            daysText = schedule.operatingDays.length === 7 ? "Everyday" : schedule.operatingDays.map(d => d.substring(0,3)).join(', ');
+        }
+        
+        const formattedTime = formatTime12Hour(schedule.departureTime);
+        card.innerHTML = `
+            <div class="driver-card__header" style="flex-direction: column; align-items: flex-start; gap: 0.5rem;">
+                <h3 class="driver-card__name" style="margin: 0; font-size: 1.5rem; color: var(--text-light);">
+                    🕒 ${formattedTime}
+                </h3>
+            </div>
+            <div class="driver-card__details" style="display: block; padding: 0.5rem 0;">
+                <div class="detail-item" style="text-align: left;">
+                    <span class="detail-item__label">📅 Operating Days</span>
+                    <span class="detail-item__value" style="color: var(--accent-success);">${daysText}</span>
+                </div>
+            </div>
+        `;
         grid.appendChild(card);
     });
 }

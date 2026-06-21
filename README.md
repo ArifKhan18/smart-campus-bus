@@ -100,9 +100,9 @@ Open `frontend/index.html` in your browser directly, or use a live server extens
 | 6     | Route Management        | ✅ Complete |
 | 7     | Schedule Management     | ✅ Complete |
 | 8     | Student Bus View        | ✅ Complete |
-| 9     | Driver Trip System      | ⏳ Pending  |
-| 10    | Running Status System   | ⏳ Pending  |
-| 11    | OpenStreetMap Integration | ⏳ Pending |
+| 9     | Driver Trip System      | ✅ Complete |
+| 10    | Running Status System   | ✅ Complete |
+| 11    | OpenStreetMap Integration | ✅ Complete |
 | 12    | Bus Stop Visualization  | ⏳ Pending  |
 | 13    | Route Visualization     | ⏳ Pending  |
 | 14-18 | GPS, Tracking, ETA      | ⏳ Future   |
