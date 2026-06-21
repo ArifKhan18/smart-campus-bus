@@ -195,16 +195,16 @@
             </a>
             
             <nav class="admin-nav">
-                <a href="#" class="admin-nav__link active">
+                <a href="#" class="admin-nav__link active" id="nav-dashboard">
                     <span>🏠</span> Dashboard
                 </a>
-                <a href="#" class="admin-nav__link" onclick="alert('Coming in Phase 8')">
+                <a href="#" class="admin-nav__link" id="nav-buses">
                     <span>🚌</span> Available Buses
                 </a>
-                <a href="#" class="admin-nav__link" onclick="alert('Coming in Phase 6')">
+                <a href="#" class="admin-nav__link" id="nav-routes">
                     <span>🗺️</span> Routes & Stops
                 </a>
-                <a href="#" class="admin-nav__link" onclick="alert('Coming in Phase 7')">
+                <a href="#" class="admin-nav__link" id="nav-schedules">
                     <span>📅</span> Schedules
                 </a>
             </nav>
@@ -219,12 +219,15 @@
         <!-- Main Content -->
         <main class="admin-content">
             <header class="admin-header">
-                <h1 class="admin-header__title">Student Portal</h1>
+                <h1 class="admin-header__title" id="page-title">Student Portal</h1>
                 <div class="admin-user">
                     <span class="admin-user__avatar">🎓</span>
                     <span class="admin-user__name" id="user-name">Loading...</span>
                 </div>
             </header>
+            
+            <!-- Dashboard Section -->
+            <section id="section-dashboard">
             
             <div id="email-verification-banner" style="display: none;">
                 <p>⚠️ Your email is not verified. Please check your inbox.</p>
@@ -252,12 +255,39 @@
                 </div>
             </div>
 
-            <div class="upcoming-features">
-                <span style="font-size: 3rem; margin-bottom: 1rem; display: block; opacity: 0.5;">🚧</span>
-                <h3>More Features Coming Soon</h3>
-                <p>Phase 5 to 10 will bring Live Bus Tracking, Route Visualization, and OpenStreetMap Integration right here!</p>
-            </div>
-
+            </section>
+            
+            <!-- Available Buses Section -->
+            <section id="section-buses" style="display: none;">
+                <div class="driver-grid" id="bus-grid">
+                    <div class="empty-state">
+                        <div style="width: 40px; height: 40px; border: 3px solid rgba(108, 99, 255, 0.3); border-top-color: var(--accent-primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1rem;"></div>
+                        <p>Loading buses...</p>
+                        <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Routes & Stops Section -->
+            <section id="section-routes" style="display: none;">
+                <div class="driver-grid" id="route-grid">
+                    <div class="empty-state">
+                        <div style="width: 40px; height: 40px; border: 3px solid rgba(108, 99, 255, 0.3); border-top-color: var(--accent-primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1rem;"></div>
+                        <p>Loading routes...</p>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Schedules Section -->
+            <section id="section-schedules" style="display: none;">
+                <div class="driver-grid" id="schedule-grid">
+                    <div class="empty-state">
+                        <div style="width: 40px; height: 40px; border: 3px solid rgba(108, 99, 255, 0.3); border-top-color: var(--accent-primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1rem;"></div>
+                        <p>Loading schedules...</p>
+                    </div>
+                </div>
+            </section>
+            
         </main>
     </div>
 

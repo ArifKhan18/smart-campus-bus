@@ -96,10 +96,10 @@ Open `frontend/index.html` in your browser directly, or use a live server extens
 | 2     | Authentication          | ✅ Complete |
 | 3     | Driver Approval System  | ✅ Complete |
 | 4     | Basic Dashboards        | ✅ Complete |
-| 5     | Bus Management          | ⏳ Pending  |
-| 6     | Route Management        | ⏳ Pending  |
-| 7     | Schedule Management     | ⏳ Pending  |
-| 8     | Student Bus View        | ⏳ Pending  |
+| 5     | Bus Management          | ✅ Complete |
+| 6     | Route Management        | ✅ Complete |
+| 7     | Schedule Management     | ✅ Complete |
+| 8     | Student Bus View        | ✅ Complete |
 | 9     | Driver Trip System      | ⏳ Pending  |
 | 10    | Running Status System   | ⏳ Pending  |
 | 11    | OpenStreetMap Integration | ⏳ Pending |
