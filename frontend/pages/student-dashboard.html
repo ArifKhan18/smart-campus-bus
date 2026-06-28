@@ -370,6 +370,28 @@
                     </div>
                 </div>
 
+                <!-- Stop Legend (Phase 12) -->
+                <div id="stop-legend" style="display: none; gap: 1.5rem; align-items: center; padding: 0.75rem 1rem; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 10px; margin-bottom: 1.5rem; flex-wrap: wrap;">
+                    <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-light);">🗺️ Map Legend:</span>
+                    <span style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; color: var(--text-muted);">
+                        <span style="width: 14px; height: 14px; background: #00c853; border-radius: 50%; border: 2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.3); display: inline-block;"></span>
+                        Start Point
+                    </span>
+                    <span style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; color: var(--text-muted);">
+                        <span style="width: 14px; height: 14px; background: #448aff; border-radius: 50%; border: 2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.3); display: inline-block;"></span>
+                        Intermediate Stop
+                    </span>
+                    <span style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; color: var(--text-muted);">
+                        <span style="width: 14px; height: 14px; background: #ff4444; border-radius: 50%; border: 2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.3); display: inline-block;"></span>
+                        End Point
+                    </span>
+                    <span style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; color: var(--text-muted); margin-left: 0.5rem;">
+                        <span style="width: 24px; height: 4px; background: repeating-linear-gradient(90deg, #6c63ff, #6c63ff 4px, transparent 4px, transparent 8px); display: inline-block;"></span>
+                        Route Path
+                    </span>
+                </div>
+                <p id="no-stops-msg" style="display: none; color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 0.75rem; background: rgba(255, 255, 255, 0.02); border-radius: 8px; margin-bottom: 1.5rem;">No route assigned to this bus yet.</p>
+
                 <div class="admin-section__header">
                     <h2 class="admin-section__title">Schedules & Route</h2>
                 </div>

@@ -11,6 +11,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
+    <!-- Leaflet.js -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+    
     <!-- Stylesheets -->
     <link rel="stylesheet" href="../css/style.css">
     
@@ -431,6 +435,65 @@
         .route-stops-list__item:last-child::before {
             background: var(--accent-warning);
         }
+
+        /* Map Picker Styles (Phase 12) */
+        .map-picker-container {
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+        }
+        .map-picker-container #route-map-picker {
+            height: 280px;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+        }
+        .map-picker-hint {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            background: rgba(108, 99, 255, 0.1);
+            border-top: 1px solid rgba(108, 99, 255, 0.2);
+            font-size: 0.75rem;
+            color: var(--accent-primary);
+        }
+        .map-picker-hint .pulse-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent-primary);
+            animation: pulseRunning 1.5s infinite;
+        }
+        .btn-pick-location {
+            background: rgba(108, 99, 255, 0.15);
+            color: var(--accent-primary);
+            border: 1px solid rgba(108, 99, 255, 0.3);
+            border-radius: 6px;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .btn-pick-location:hover {
+            background: rgba(108, 99, 255, 0.25);
+        }
+        .btn-pick-location.picking {
+            background: rgba(0, 200, 83, 0.15);
+            color: var(--accent-success);
+            border-color: rgba(0, 200, 83, 0.3);
+            animation: pulseRunning 1.5s infinite;
+        }
+        .stop-coords {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            margin-top: 0.15rem;
+        }
+        .stop-coords.has-coords {
+            color: var(--accent-success);
+        }
     </style>
 </head>
 
@@ -710,6 +773,40 @@
                         </div>
                     </div>
                     
+                    <!-- Map Picker (Phase 12) -->
+                    <div class="form-group">
+                        <label class="form-group__label" style="margin-bottom: 0.5rem;">📍 Stop Locations (click map to place)</label>
+                        <div class="map-picker-container">
+                            <div id="route-map-picker"></div>
+                            <div class="map-picker-hint">
+                                <span class="pulse-dot"></span>
+                                <span id="map-picker-status">Select a stop field, then click the map to set its location.</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Start/End Point Coordinates -->
+                    <div style="display: flex; gap: 1rem;">
+                        <div class="form-group" style="flex: 1;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <label class="form-group__label">🟢 Start Point</label>
+                                <button type="button" class="btn-pick-location" data-target="start" title="Click then click map">📍 Pick</button>
+                            </div>
+                            <input type="hidden" id="route-start-lat">
+                            <input type="hidden" id="route-start-lng">
+                            <div class="stop-coords" id="route-start-coords">No location set</div>
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <label class="form-group__label">🔴 End Point</label>
+                                <button type="button" class="btn-pick-location" data-target="end" title="Click then click map">📍 Pick</button>
+                            </div>
+                            <input type="hidden" id="route-end-lat">
+                            <input type="hidden" id="route-end-lng">
+                            <div class="stop-coords" id="route-end-coords">No location set</div>
+                        </div>
+                    </div>
+
                     <!-- Dynamic Stops Container -->
                     <div class="form-group" style="background: rgba(255, 255, 255, 0.02); padding: 1rem; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.05);">
                         <label class="form-group__label" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
@@ -823,6 +920,10 @@
     <div id="toast-container" class="toast-container"></div>
     <script src="./components/toast.html" type="text/html"></script>
 
+    <!-- Leaflet.js & Plugins -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+    
     <!-- Scripts -->
     <script type="module" src="../js/firebase-config.js"></script>
     <script type="module" src="../js/auth-guard.js"></script>

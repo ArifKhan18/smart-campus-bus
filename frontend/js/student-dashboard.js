@@ -89,6 +89,11 @@ function initNavigation() {
         if(sectionBuses) sectionBuses.style.display = 'none';
         if(sectionRoutes) sectionRoutes.style.display = 'none';
         if(sectionSchedules) sectionSchedules.style.display = 'none';
+        
+        const sectionBusDetails = document.getElementById('section-bus-details');
+        if(sectionBusDetails) sectionBusDetails.style.display = 'none';
+        
+        currentSelectedBusId = null;
     }
 
     if (navDashboard) {
@@ -139,6 +144,7 @@ let allSchedules = [];
 let currentMap = null;
 let currentBusMarker = null;
 let currentSelectedBusId = null;
+let stopMarkersLayer = null; // Phase 12: layer group for stop markers
 
 function initDataListeners() {
     listenToBuses();
@@ -314,6 +320,7 @@ function openBusDetails(busId) {
         });
         
         currentBusMarker = L.marker([23.8122, 90.3582], {icon: busIcon}).addTo(currentMap);
+        stopMarkersLayer = L.layerGroup().addTo(currentMap);
     }
     
     // Important: Invalidate size after unhiding to prevent rendering bugs
@@ -323,14 +330,116 @@ function openBusDetails(busId) {
     
     if (bus.status === 'running') {
         overlay.style.display = 'none';
-        // In the future (Phase 14+), we will update the marker with real coordinates from bus/trip
-        // For Phase 11, it's a dummy location at BUBT
+        currentBusMarker.setOpacity(1);
     } else {
         overlay.style.display = 'flex';
+        currentBusMarker.setOpacity(0);
     }
+    
+    // Phase 12: Render bus stop markers on map
+    renderStopMarkers(bus);
     
     // Render specific schedules for this bus
     renderBusSpecificSchedules(busId);
+}
+
+// ── Phase 12: Bus Stop Markers ──
+function createStopIcon(color, label) {
+    return L.divIcon({
+        html: `<div style="
+            width: 26px; height: 26px;
+            background: ${color};
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px; font-weight: bold; color: white;
+        ">${label}</div>`,
+        className: '',
+        iconSize: [26, 26],
+        iconAnchor: [13, 13]
+    });
+}
+
+function renderStopMarkers(bus) {
+    // Clear previous stop markers
+    if (stopMarkersLayer) stopMarkersLayer.clearLayers();
+    
+    // Find the route assigned to this bus
+    const route = allRoutes.find(r => r.assignedBus === bus.id);
+    
+    const legendEl = document.getElementById('stop-legend');
+    const noStopsEl = document.getElementById('no-stops-msg');
+    
+    if (!route || !route.stops || route.stops.length === 0) {
+        if (legendEl) legendEl.style.display = 'none';
+        if (noStopsEl) noStopsEl.style.display = 'block';
+        return;
+    }
+    
+    // Check if any stops have coordinates
+    const stopsWithCoords = route.stops.filter(s => s.latitude && s.longitude);
+    
+    if (stopsWithCoords.length === 0) {
+        if (legendEl) legendEl.style.display = 'none';
+        if (noStopsEl) {
+            noStopsEl.style.display = 'block';
+            noStopsEl.textContent = 'Stop locations have not been set by admin yet.';
+        }
+        return;
+    }
+    
+    // Show legend, hide no-stops message
+    if (legendEl) legendEl.style.display = 'flex';
+    if (noStopsEl) noStopsEl.style.display = 'none';
+    
+    const bounds = [];
+    const totalStops = route.stops.length;
+    
+    route.stops.forEach((stop, index) => {
+        if (!stop.latitude || !stop.longitude) return;
+        
+        let color, label, popupPrefix;
+        if (index === 0) {
+            color = '#00c853'; label = 'S'; popupPrefix = '🟢 Start';
+        } else if (index === totalStops - 1) {
+            color = '#ff4444'; label = 'E'; popupPrefix = '🔴 End';
+        } else {
+            color = '#448aff'; label = index.toString(); popupPrefix = '🔵 Stop';
+        }
+        
+        const icon = createStopIcon(color, label);
+        const marker = L.marker([stop.latitude, stop.longitude], { icon })
+            .bindPopup(`
+                <div style="font-family: 'Inter', sans-serif; min-width: 120px;">
+                    <div style="font-weight: 600; font-size: 13px; margin-bottom: 2px;">${popupPrefix}</div>
+                    <div style="font-size: 12px; color: #666;">${stop.name}</div>
+                    <div style="font-size: 10px; color: #999; margin-top: 3px;">Stop #${stop.order || index + 1}</div>
+                </div>
+            `);
+        
+        stopMarkersLayer.addLayer(marker);
+        bounds.push([stop.latitude, stop.longitude]);
+    });
+    
+    // Phase 13: Draw connecting route line
+    if (bounds.length > 1) {
+        const routeLine = L.polyline(bounds, {
+            color: '#6c63ff',
+            weight: 4,
+            opacity: 0.7,
+            dashArray: '10, 8',
+            lineCap: 'round'
+        });
+        stopMarkersLayer.addLayer(routeLine);
+    }
+    
+    // Fit map to show all stop markers
+    if (bounds.length > 0) {
+        setTimeout(() => {
+            currentMap.fitBounds(bounds, { padding: [40, 40], maxZoom: 16 });
+        }, 200);
+    }
 }
 
 function renderBusSpecificSchedules(busId) {

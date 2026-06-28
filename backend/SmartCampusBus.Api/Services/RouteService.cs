@@ -88,10 +88,15 @@ public class RouteService : IRouteService
 
         if (route.Stops != null && route.Stops.Any())
         {
-            var stopsList = route.Stops.Select(s => new Dictionary<string, object>
-            {
-                { "name", s.Name },
-                { "order", s.Order }
+            var stopsList = route.Stops.Select(s => {
+                var stopDict = new Dictionary<string, object>
+                {
+                    { "name", s.Name },
+                    { "order", s.Order }
+                };
+                if (s.Latitude.HasValue) stopDict.Add("latitude", s.Latitude.Value);
+                if (s.Longitude.HasValue) stopDict.Add("longitude", s.Longitude.Value);
+                return stopDict;
             }).ToList();
             
             updates.Add("stops", stopsList);
@@ -142,11 +147,16 @@ public class RouteService : IRouteService
             {
                 if (stopObj is Dictionary<string, object> stopDict)
                 {
-                    route.Stops.Add(new RouteStop
+                    var stop = new RouteStop
                     {
                         Name = stopDict.GetValueOrDefault("name")?.ToString() ?? string.Empty,
                         Order = stopDict.TryGetValue("order", out var order) ? Convert.ToInt32(order) : 0
-                    });
+                    };
+                    if (stopDict.TryGetValue("latitude", out var lat) && lat != null)
+                        stop.Latitude = Convert.ToDouble(lat);
+                    if (stopDict.TryGetValue("longitude", out var lng) && lng != null)
+                        stop.Longitude = Convert.ToDouble(lng);
+                    route.Stops.Add(stop);
                 }
             }
         }
@@ -174,11 +184,14 @@ public class RouteService : IRouteService
         {
             foreach (var stop in route.Stops)
             {
-                stopsList.Add(new Dictionary<string, object>
+                var stopDict = new Dictionary<string, object>
                 {
                     { "name", stop.Name },
                     { "order", stop.Order }
-                });
+                };
+                if (stop.Latitude.HasValue) stopDict.Add("latitude", stop.Latitude.Value);
+                if (stop.Longitude.HasValue) stopDict.Add("longitude", stop.Longitude.Value);
+                stopsList.Add(stopDict);
             }
         }
         dict.Add("stops", stopsList);

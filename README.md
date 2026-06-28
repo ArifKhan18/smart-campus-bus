@@ -113,8 +113,8 @@ Open `frontend/index.html` in your browser directly, or use a live server extens
 | 9     | Driver Trip System      | ✅ Complete |
 | 10    | Running Status System   | ✅ Complete |
 | 11    | OpenStreetMap Integration | ✅ Complete |
-| 12    | Bus Stop Visualization  | ⏳ Pending  |
-| 13    | Route Visualization     | ⏳ Pending  |
+| 12    | Bus Stop Visualization  | ✅ Complete |
+| 13    | Route Visualization     | ✅ Complete |
 | 14-18 | GPS, Tracking, ETA      | ⏳ Future   |
 | 19-20 | Notifications, Chat     | ⏳ Future   |
 | 21-27 | Polish & Deployment     | ⏳ Future   |
