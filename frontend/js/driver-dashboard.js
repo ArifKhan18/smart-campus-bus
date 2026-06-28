@@ -11,12 +11,23 @@ let currentDriverUser = null;
 let assignedBusId = null;
 let activeTripId = null;
 
+// GPS State (Phase 14)
+let gpsWatchId = null;
+let lastGpsUpdateTime = 0;
+const GPS_UPDATE_INTERVAL_MS = 5000; // 5 seconds
+
 // DOM Elements
 const btnStart = document.getElementById('btn-start-trip');
 const btnStop = document.getElementById('btn-stop-trip');
 const statusText = document.getElementById('trip-status');
 const assignedBusEl = document.getElementById('assigned-bus');
 const scheduleListEl = document.getElementById('duty-schedule-list');
+
+// GPS UI Elements
+const gpsStatusDiv = document.getElementById('gps-status');
+const gpsDot = document.getElementById('gps-dot');
+const gpsText = document.getElementById('gps-text');
+const gpsDetails = document.getElementById('gps-details');
 
 document.addEventListener("DOMContentLoaded", async () => {
     // Require authentication, allow only drivers
@@ -170,6 +181,8 @@ function checkActiveTrips() {
                 statusText.style.borderColor = 'rgba(0, 200, 83, 0.2)';
                 statusText.style.background = 'rgba(0, 200, 83, 0.05)';
             }
+            // Resume GPS if page was reloaded during active trip
+            if (!gpsWatchId) startGpsTracking();
         } else {
             // Reset to default state
             activeTripId = null;
@@ -181,6 +194,8 @@ function checkActiveTrips() {
                 statusText.style.borderColor = 'rgba(255, 255, 255, 0.05)';
                 statusText.style.background = 'rgba(255, 255, 255, 0.03)';
             }
+            // Stop GPS if it was running
+            if (gpsWatchId) stopGpsTracking();
         }
     });
 }
@@ -207,6 +222,9 @@ async function startTrip() {
             status: 'running'
         });
         
+        // 3. Start GPS Tracking (Phase 14)
+        startGpsTracking();
+        
     } catch (error) {
         console.error("Error starting trip:", error);
         alert("Failed to start trip.");
@@ -227,12 +245,16 @@ async function stopTrip() {
             endTime: serverTimestamp()
         });
         
-        // 2. Update Bus Status back to 'active' (idle)
+        // 2. Update Bus Status back to 'active' (idle) and clear GPS
         await updateDoc(doc(db, "buses", assignedBusId), {
-            status: 'active'
+            status: 'active',
+            currentLocation: null // Clear location when trip stops
         });
         
         activeTripId = null;
+        
+        // 3. Stop GPS Tracking (Phase 14)
+        stopGpsTracking();
         
     } catch (error) {
         console.error("Error stopping trip:", error);
@@ -253,3 +275,130 @@ function formatTime12Hour(time24) {
     let formattedHour = h < 10 ? '0' + h : h;
     return `${formattedHour}:${minutes} ${ampm}`;
 }
+
+let mockGpsInterval = null; // Phase 14: Mock GPS fallback
+
+function startGpsTracking() {
+    if (!navigator.geolocation) {
+        updateGpsUiError("Browser does not support GPS. Starting mock GPS...");
+        startMockGps();
+        return;
+    }
+    if (gpsStatusDiv) gpsStatusDiv.classList.add('visible');
+    if (gpsDot) { gpsDot.classList.remove('error'); gpsDot.classList.add('active'); }
+    if (gpsText) gpsText.textContent = "Connecting to GPS...";
+    if (gpsDetails) gpsDetails.textContent = "Waiting for signal";
+    
+    // Clear any existing watch
+    if (gpsWatchId) navigator.geolocation.clearWatch(gpsWatchId);
+    
+    gpsWatchId = navigator.geolocation.watchPosition(
+        handleGpsSuccess,
+        handleGpsError,
+        {
+            enableHighAccuracy: false, // Set to false to allow network/IP based location on desktops without GPS chips
+            timeout: 20000, // Increase timeout to 20s
+            maximumAge: 10000 // Allow 10s old cached locations
+        }
+    );
+}
+
+function stopGpsTracking() {
+    if (gpsWatchId) {
+        navigator.geolocation.clearWatch(gpsWatchId);
+        gpsWatchId = null;
+    }
+    if (mockGpsInterval) {
+        clearInterval(mockGpsInterval);
+        mockGpsInterval = null;
+    }
+    
+    if (gpsStatusDiv) gpsStatusDiv.classList.remove('visible');
+    if (gpsDot) { gpsDot.classList.remove('active', 'error'); }
+    if (gpsText) gpsText.textContent = "GPS Offline";
+    if (gpsDetails) gpsDetails.textContent = "Location not available";
+}
+
+async function handleGpsSuccess(position) {
+    const { latitude, longitude, accuracy } = position.coords;
+    await processLocationUpdate(latitude, longitude, accuracy);
+}
+
+async function processLocationUpdate(latitude, longitude, accuracy) {
+    const now = Date.now();
+    
+    // Update UI immediately
+    if (gpsDot) { gpsDot.classList.remove('error'); gpsDot.classList.add('active'); }
+    if (gpsText) gpsText.textContent = mockGpsInterval ? "GPS Active (Mock Mode)" : "GPS Active";
+    if (gpsDetails) gpsDetails.textContent = `Accuracy: ±${Math.round(accuracy)}m | Updated: ${new Date().toLocaleTimeString()}`;
+    
+    // Throttle Firestore updates (e.g. every 5 seconds)
+    if (now - lastGpsUpdateTime < GPS_UPDATE_INTERVAL_MS) {
+        return; // Skip this update to save Firestore writes
+    }
+    
+    if (!assignedBusId) return;
+    
+    try {
+        await updateDoc(doc(db, "buses", assignedBusId), {
+            currentLocation: {
+                latitude,
+                longitude,
+                accuracy,
+                timestamp: new Date().toISOString()
+            }
+        });
+        lastGpsUpdateTime = now;
+        console.log(`[GPS] Location updated: ${latitude}, ${longitude}`);
+    } catch (error) {
+        console.error("Failed to update GPS in Firestore:", error);
+    }
+}
+
+function handleGpsError(error) {
+    console.error("GPS Error:", error);
+    let msg = "GPS Error";
+    switch(error.code) {
+        case error.PERMISSION_DENIED:
+            msg = "Permission Denied. Please enable location access.";
+            break;
+        case error.POSITION_UNAVAILABLE:
+            msg = "Location unavailable. Poor signal.";
+            break;
+        case error.TIMEOUT:
+            msg = "GPS request timed out.";
+            break;
+    }
+    
+    updateGpsUiError(msg + " Starting mock GPS...");
+    
+    // Fallback to mock GPS for testing on Desktop
+    if (!mockGpsInterval) {
+        startMockGps();
+    }
+}
+
+// ── Mock GPS Logic for Testing ──
+function startMockGps() {
+    console.log("Starting Mock GPS from Nabinagar towards BUBT...");
+    let mockLat = 23.9056; // Nabinagar start location
+    let mockLng = 90.2676;
+    
+    // Send immediate update
+    processLocationUpdate(mockLat, mockLng, 10);
+    
+    // Then update every 5 seconds, moving the bus towards BUBT
+    mockGpsInterval = setInterval(() => {
+        mockLat -= 0.0005; // move South towards BUBT
+        mockLng += 0.0005; // move East towards BUBT
+        processLocationUpdate(mockLat, mockLng, 10);
+    }, GPS_UPDATE_INTERVAL_MS);
+}
+
+function updateGpsUiError(msg) {
+    if (gpsStatusDiv) gpsStatusDiv.classList.add('visible');
+    if (gpsDot) { gpsDot.classList.remove('active'); gpsDot.classList.add('error'); }
+    if (gpsText) gpsText.textContent = "GPS Error";
+    if (gpsDetails) gpsDetails.textContent = msg;
+}
+

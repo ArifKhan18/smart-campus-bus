@@ -243,6 +243,43 @@
             gap: 1rem;
             backdrop-filter: blur(4px);
         }
+        
+        /* Phase 17 & 18: ETA Panel */
+        .eta-panel {
+            background: rgba(20, 20, 30, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+        }
+        .eta-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .eta-item__label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+        .eta-item__value {
+            font-size: 1.25rem;
+            color: var(--text-light);
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .eta-item__value.highlight {
+            color: #00ffcc;
+        }
     </style>
 </head>
 
@@ -367,6 +404,26 @@
                         <span style="font-size: 2rem;">⏸️</span>
                         <h3 style="color: var(--text-light); margin: 0;">Bus is not running</h3>
                         <p style="color: var(--text-muted); margin: 0;">Live tracking is only available during an active trip.</p>
+                    </div>
+                </div>
+
+                <!-- Live ETA Info (Phase 17 & 18) -->
+                <div class="eta-panel" id="eta-panel" style="display: none;">
+                    <div class="eta-item">
+                        <span class="eta-item__label">Nearest Stop</span>
+                        <span class="eta-item__value" id="eta-stop-name">Calculating...</span>
+                    </div>
+                    <div class="eta-item">
+                        <span class="eta-item__label">Distance</span>
+                        <span class="eta-item__value">
+                            <span id="eta-distance">--</span>
+                        </span>
+                    </div>
+                    <div class="eta-item">
+                        <span class="eta-item__label">ETA</span>
+                        <span class="eta-item__value highlight">
+                            <span id="eta-time">--</span>
+                        </span>
                     </div>
                 </div>
 

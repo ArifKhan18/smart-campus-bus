@@ -170,6 +170,11 @@ function listenToBuses() {
         });
         
         renderBuses();
+        
+        // Phase 16: Live Tracking - Update map if a bus is currently selected
+        if (currentSelectedBusId) {
+            updateLiveBusLocation(currentSelectedBusId);
+        }
     }, (error) => {
         console.error("Error fetching buses:", error);
     });
@@ -328,19 +333,124 @@ function openBusDetails(busId) {
         currentMap.invalidateSize();
     }, 100);
     
-    if (bus.status === 'running') {
-        overlay.style.display = 'none';
-        currentBusMarker.setOpacity(1);
-    } else {
-        overlay.style.display = 'flex';
-        currentBusMarker.setOpacity(0);
-    }
+    // Phase 16: Initial Live Location setup
+    updateLiveBusLocation(busId);
     
     // Phase 12: Render bus stop markers on map
     renderStopMarkers(bus);
     
     // Render specific schedules for this bus
     renderBusSpecificSchedules(busId);
+}
+
+// ── Phase 16: Live Tracking Logic ──
+function updateLiveBusLocation(busId) {
+    const bus = allBuses.find(b => b.id === busId);
+    if (!bus || !currentMap || !currentBusMarker) return;
+    
+    const overlay = document.getElementById('map-overlay');
+    
+    // Check if running and has valid GPS coordinates
+    if (bus.status === 'running' && bus.currentLocation && bus.currentLocation.latitude && bus.currentLocation.longitude) {
+        if (overlay) overlay.style.display = 'none';
+        
+        const newLatLng = [bus.currentLocation.latitude, bus.currentLocation.longitude];
+        currentBusMarker.setLatLng(newLatLng);
+        currentBusMarker.setOpacity(1);
+        
+        // Phase 17 & 18: Distance & ETA Calculation
+        updateEtaInfo(bus, newLatLng);
+        
+        // Panning the camera to make it obvious the bus is moving
+        currentMap.panTo(newLatLng, { animate: true, duration: 1 }); 
+    } else {
+        if (overlay) overlay.style.display = 'flex';
+        currentBusMarker.setOpacity(0);
+        
+        // Hide ETA panel if not running
+        const etaPanel = document.getElementById('eta-panel');
+        if (etaPanel) etaPanel.style.display = 'none';
+    }
+}
+
+// ── Phase 17 & 18: Distance & ETA Logic ──
+function updateEtaInfo(bus, busLatLng) {
+    const etaPanel = document.getElementById('eta-panel');
+    const stopNameEl = document.getElementById('eta-stop-name');
+    const distanceEl = document.getElementById('eta-distance');
+    const timeEl = document.getElementById('eta-time');
+    
+    if (!etaPanel || !stopNameEl || !distanceEl || !timeEl) return;
+    
+    const route = allRoutes.find(r => r.assignedBus === bus.id);
+    if (!route || !route.stops || route.stops.length === 0) {
+        etaPanel.style.display = 'none';
+        return;
+    }
+    
+    let nearestStop = null;
+    let minDistance = Infinity;
+    
+    // Find the nearest stop
+    route.stops.forEach(stop => {
+        if (stop.latitude && stop.longitude) {
+            const dist = getDistanceFromLatLonInMeters(
+                busLatLng[0], busLatLng[1], 
+                stop.latitude, stop.longitude
+            );
+            if (dist < minDistance) {
+                minDistance = dist;
+                nearestStop = stop;
+            }
+        }
+    });
+    
+    if (!nearestStop) {
+        etaPanel.style.display = 'none';
+        return;
+    }
+    
+    // Show ETA Panel
+    etaPanel.style.display = 'flex';
+    stopNameEl.textContent = nearestStop.name;
+    
+    if (minDistance < 50) {
+        // Less than 50 meters = Arriving
+        distanceEl.textContent = `${Math.round(minDistance)}m`;
+        timeEl.textContent = "Arriving...";
+        timeEl.style.color = "var(--accent-success)";
+    } else {
+        // Format Distance
+        if (minDistance >= 1000) {
+            distanceEl.textContent = `${(minDistance / 1000).toFixed(1)} km`;
+        } else {
+            distanceEl.textContent = `${Math.round(minDistance)} m`;
+        }
+        
+        // Calculate ETA (Assumed average speed: 20 km/h = ~5.5 m/s)
+        const speedMetersPerSecond = 5.5; 
+        const timeInSeconds = minDistance / speedMetersPerSecond;
+        const timeInMinutes = Math.ceil(timeInSeconds / 60);
+        
+        timeEl.textContent = `${timeInMinutes} min`;
+        timeEl.style.color = "#00ffcc"; // Default highlight color
+    }
+}
+
+function getDistanceFromLatLonInMeters(lat1, lon1, lat2, lon2) {
+    const R = 6371e3; // Radius of the earth in m
+    const dLat = deg2rad(lat2 - lat1);
+    const dLon = deg2rad(lon2 - lon1);
+    const a = 
+        Math.sin(dLat/2) * Math.sin(dLat/2) +
+        Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * 
+        Math.sin(dLon/2) * Math.sin(dLon/2); 
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+    return R * c; 
+}
+
+function deg2rad(deg) {
+    return deg * (Math.PI/180);
 }
 
 // ── Phase 12: Bus Stop Markers ──

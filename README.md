@@ -115,7 +115,11 @@ Open `frontend/index.html` in your browser directly, or use a live server extens
 | 11    | OpenStreetMap Integration | ✅ Complete |
 | 12    | Bus Stop Visualization  | ✅ Complete |
 | 13    | Route Visualization     | ✅ Complete |
-| 14-18 | GPS, Tracking, ETA      | ⏳ Future   |
+| 14    | GPS Collection (Driver) | ✅ Complete |
+| 15    | Real-Time Tracking Backend | ✅ Complete |
+| 16    | Live Tracking (Student) | ✅ Complete |
+| 17    | Distance Calculation    | ✅ Complete |
+| 18    | ETA System              | ✅ Complete |
 | 19-20 | Notifications, Chat     | ⏳ Future   |
 | 21-27 | Polish & Deployment     | ⏳ Future   |
 
