@@ -65,20 +65,27 @@ public class AuthController : ControllerBase
     [Authorize]
     public async Task<IActionResult> SendOtp()
     {
-        var uid = User.FindFirst("user_id")?.Value;
-        if (string.IsNullOrEmpty(uid)) return Unauthorized();
+        try
+        {
+            var uid = User.FindFirst("user_id")?.Value;
+            if (string.IsNullOrEmpty(uid)) return Unauthorized();
 
-        var user = await _authService.GetUserAsync(uid);
-        if (user == null) return NotFound(new { message = "User not found" });
+            var user = await _authService.GetUserAsync(uid);
+            if (user == null) return NotFound(new { message = "User not found" });
 
-        var random = new Random();
-        var otpCode = random.Next(100000, 999999).ToString();
-        var expiresAt = DateTime.UtcNow.AddMinutes(10);
+            var random = new Random();
+            var otpCode = random.Next(100000, 999999).ToString();
+            var expiresAt = DateTime.UtcNow.AddMinutes(10);
 
-        await _authService.SaveOtpAsync(uid, otpCode, expiresAt);
-        await _emailService.SendOtpEmailAsync(user.Email, otpCode, user.Name);
+            await _authService.SaveOtpAsync(uid, otpCode, expiresAt);
+            await _emailService.SendOtpEmailAsync(user.Email, otpCode, user.Name);
 
-        return Ok(new { message = "OTP sent successfully" });
+            return Ok(new { message = "OTP sent successfully" });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = $"Server Error: {ex.Message}" });
+        }
     }
 
     [HttpPost("verify-otp")]
