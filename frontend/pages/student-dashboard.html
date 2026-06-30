@@ -740,6 +740,42 @@
             background: var(--border-subtle);
         }
 
+        /* Mobile Chat layout */
+        .chat-mobile-back {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 1.2rem;
+            cursor: pointer;
+            margin-right: 0.5rem;
+            padding: 0.2rem 0.5rem;
+        }
+        @media (max-width: 768px) {
+            .chat-layout {
+                gap: 0;
+                border: none;
+                border-radius: 0;
+            }
+            .chat-sidebar {
+                width: 100%;
+                border-right: none;
+            }
+            .chat-window {
+                display: none;
+                width: 100%;
+            }
+            .chat-layout.chat-mobile-active .chat-sidebar {
+                display: none;
+            }
+            .chat-layout.chat-mobile-active .chat-window {
+                display: flex;
+            }
+            .chat-mobile-back {
+                display: block;
+            }
+        }
+
         /* Bus Stop List Styles */
         .bus-stop-list {
             background: var(--bg-surface);
