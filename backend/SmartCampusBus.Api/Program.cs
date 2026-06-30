@@ -24,6 +24,17 @@ builder.Services.AddCors(options =>
 // ── Firebase Admin SDK Initialization ──
 FirebaseSetup.Initialize(builder.Configuration);
 
+// ── Setup Credentials for Firestore ──
+var serviceAccountPath = "/etc/secrets/serviceAccountKey.json"; // Render path
+if (!System.IO.File.Exists(serviceAccountPath))
+{
+    serviceAccountPath = "serviceAccountKey.json"; // Local path
+}
+if (System.IO.File.Exists(serviceAccountPath))
+{
+    Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", serviceAccountPath);
+}
+
 // ── Register Firestore as Singleton ──
 builder.Services.AddSingleton(provider =>
 {

@@ -23,6 +23,11 @@ public static class FirebaseSetup
         }
 
         var serviceAccountKeyPath = configuration["Firebase:ServiceAccountKeyPath"];
+        
+        if (!File.Exists(serviceAccountKeyPath))
+        {
+            serviceAccountKeyPath = "/etc/secrets/serviceAccountKey.json";
+        }
 
         if (!string.IsNullOrEmpty(serviceAccountKeyPath) && File.Exists(serviceAccountKeyPath))
         {
