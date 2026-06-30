@@ -766,41 +766,53 @@
         }
         @media (max-width: 768px) {
             .chat-layout {
-                position: fixed;
-                top: 72px; /* Just below the fixed admin header */
-                left: 0;
-                right: 0;
-                bottom: 0;
-                z-index: 90;
-                margin: 0;
+                gap: 0;
                 border: none;
                 border-radius: 0;
+                margin: -1rem -0.75rem;
+                width: calc(100% + 1.5rem);
+                height: auto; /* Flow naturally for the list */
                 display: flex;
-                flex-direction: column; /* Stack vertically */
-                background: var(--bg-surface);
+                flex-direction: column;
+                background: var(--bg-primary); /* Match the dark background */
             }
             .chat-sidebar {
                 width: 100%;
-                flex: 1; /* Force sidebar to grow */
                 border-right: none;
                 display: flex;
                 flex-direction: column;
+                background: var(--bg-primary);
+            }
+            .chat-sidebar__header {
+                display: none; /* Hide header to match user's expected design */
             }
             .chat-room-list {
-                flex: 1; /* Force list to take all remaining space */
-                overflow-y: auto;
+                overflow-y: visible; /* Let the whole page scroll */
             }
             .chat-window {
-                display: none; /* Hide chat window by default on mobile */
+                display: none;
                 width: 100%;
-                flex: 1;
             }
-            /* When chat is active on mobile, hide sidebar and show chat window */
+            
+            /* When chat is active on mobile, make it full screen */
+            .chat-layout.chat-mobile-active {
+                position: fixed;
+                top: 70px; /* Below admin header */
+                bottom: 0;
+                left: 0;
+                right: 0;
+                margin: 0;
+                width: 100vw;
+                height: auto;
+                z-index: 90;
+                background: var(--bg-surface);
+            }
             .chat-layout.chat-mobile-active .chat-sidebar {
                 display: none;
             }
             .chat-layout.chat-mobile-active .chat-window {
                 display: flex;
+                height: 100%;
             }
             .chat-mobile-back {
                 display: block;
