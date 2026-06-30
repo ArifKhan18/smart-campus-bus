@@ -9,6 +9,7 @@ import { collection, query, where, getDocs, onSnapshot, addDoc, doc, updateDoc, 
 
 let currentDriverUser = null;
 let assignedBusId = null;
+let assignedBusName = "Bus";
 let activeTripId = null;
 
 // GPS State (Phase 14)
@@ -19,6 +20,7 @@ const GPS_UPDATE_INTERVAL_MS = 5000; // 5 seconds
 // DOM Elements
 const btnStart = document.getElementById('btn-start-trip');
 const btnStop = document.getElementById('btn-stop-trip');
+const btnDelay = document.getElementById('btn-delay-bus');
 const statusText = document.getElementById('trip-status');
 const assignedBusEl = document.getElementById('assigned-bus');
 const scheduleListEl = document.getElementById('duty-schedule-list');
@@ -49,6 +51,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         // Setup Trip Actions
         if(btnStart) btnStart.addEventListener("click", startTrip);
         if(btnStop) btnStop.addEventListener("click", stopTrip);
+        if(btnDelay) btnDelay.addEventListener("click", delayBus);
     }
 });
 
@@ -98,6 +101,7 @@ async function fetchDriverData() {
             const busDoc = busSnapshot.docs[0];
             const busData = busDoc.data();
             assignedBusId = busDoc.id;
+            assignedBusName = busData.busName;
             
             if (assignedBusEl) assignedBusEl.textContent = busData.busName;
             
@@ -110,7 +114,7 @@ async function fetchDriverData() {
             if (assignedBusEl) assignedBusEl.textContent = "No Bus Assigned";
             if (scheduleListEl) scheduleListEl.innerHTML = `
                 <div class="schedule-item">
-                    <span class="schedule-time" style="color: var(--text-muted);">Please contact admin to assign a bus.</span>
+                    <span class="schedule-time" style="color: var(--text-primary);">Please contact admin to assign a bus.</span>
                 </div>
             `;
             if(btnStart) {
@@ -140,7 +144,7 @@ function fetchSchedules() {
             if (schedules.length === 0) {
                 scheduleListEl.innerHTML = `
                     <div class="schedule-item">
-                        <span class="schedule-time" style="color: var(--text-muted);">No schedules assigned for today.</span>
+                        <span class="schedule-time" style="color: var(--text-primary);">No schedules assigned for today.</span>
                     </div>
                 `;
                 return;
@@ -175,6 +179,7 @@ function checkActiveTrips() {
             activeTripId = snapshot.docs[0].id;
             if(btnStart) btnStart.style.display = 'none';
             if(btnStop) btnStop.style.display = 'flex';
+            if(btnDelay) btnDelay.classList.remove('hidden');
             if(statusText) {
                 statusText.textContent = '📍 TRIP IN PROGRESS...';
                 statusText.style.color = 'var(--accent-success)';
@@ -188,6 +193,7 @@ function checkActiveTrips() {
             activeTripId = null;
             if(btnStart) btnStart.style.display = 'flex';
             if(btnStop) btnStop.style.display = 'none';
+            if(btnDelay) btnDelay.classList.add('hidden');
             if(statusText) {
                 statusText.textContent = 'Ready for next trip';
                 statusText.style.color = 'var(--text-muted)';
@@ -222,7 +228,15 @@ async function startTrip() {
             status: 'running'
         });
         
-        // 3. Start GPS Tracking (Phase 14)
+        // 3. Add Notification
+        await addDoc(collection(db, "notifications"), {
+            busId: assignedBusId,
+            type: 'bus_started',
+            message: `${assignedBusName} has started its trip.`,
+            timestamp: serverTimestamp()
+        });
+        
+        // 4. Start GPS Tracking (Phase 14)
         startGpsTracking();
         
     } catch (error) {
@@ -230,6 +244,28 @@ async function startTrip() {
         alert("Failed to start trip.");
     } finally {
         btnStart.disabled = false;
+    }
+}
+
+async function delayBus() {
+    if (!activeTripId || !assignedBusId) return;
+    
+    if (!confirm("Are you sure you want to mark the bus as delayed?")) return;
+    
+    btnDelay.disabled = true;
+    try {
+        await addDoc(collection(db, "notifications"), {
+            busId: assignedBusId,
+            type: 'bus_delayed',
+            message: `${assignedBusName} is currently delayed due to traffic or other issues.`,
+            timestamp: serverTimestamp()
+        });
+        alert("Delay notification sent to students.");
+    } catch (error) {
+        console.error("Error sending delay notification:", error);
+        alert("Failed to send delay notification.");
+    } finally {
+        btnDelay.disabled = false;
     }
 }
 
@@ -245,7 +281,15 @@ async function stopTrip() {
             endTime: serverTimestamp()
         });
         
-        // 2. Update Bus Status back to 'active' (idle) and clear GPS
+        // 2. Add Notification for trip completion
+        await addDoc(collection(db, "notifications"), {
+            busId: assignedBusId,
+            type: 'bus_stopped',
+            message: `${assignedBusName} has completed its trip.`,
+            timestamp: serverTimestamp()
+        });
+        
+        // 3. Update Bus Status back to 'active' (idle) and clear GPS
         await updateDoc(doc(db, "buses", assignedBusId), {
             status: 'active',
             currentLocation: null // Clear location when trip stops
@@ -360,15 +404,16 @@ function handleGpsError(error) {
     let msg = "GPS Error";
     switch(error.code) {
         case error.PERMISSION_DENIED:
-            msg = "Permission Denied. Please enable location access.";
+            msg = "Permission Denied by browser.";
             break;
         case error.POSITION_UNAVAILABLE:
-            msg = "Location unavailable. Poor signal.";
+            msg = "Location unavailable. (Check Windows Location Settings if on PC)";
             break;
         case error.TIMEOUT:
             msg = "GPS request timed out.";
             break;
     }
+    console.warn(`GPS Error Code: ${error.code}, Message: ${error.message}`);
     
     updateGpsUiError(msg + " Starting mock GPS...");
     

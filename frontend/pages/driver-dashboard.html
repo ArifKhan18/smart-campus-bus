@@ -17,7 +17,7 @@
     <style>
         body {
             background-color: #07070E;
-            color: var(--text-light);
+            color: var(--text-primary);
             font-family: 'Outfit', sans-serif;
             margin: 0;
             padding: 0;
@@ -84,7 +84,8 @@
 
         .greeting-text {
             font-size: 0.8rem;
-            color: var(--text-muted);
+            color: var(--text-primary);
+            opacity: 0.9;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
@@ -177,6 +178,27 @@
         }
         .btn-stop:hover { transform: scale(1.05); }
 
+        .btn-delay {
+            background: linear-gradient(135deg, #FFB74D 0%, #FF9800 100%);
+            color: #4A2B00;
+            box-shadow: 0 10px 30px rgba(255, 152, 0, 0.3);
+            display: none;
+            width: 160px;
+            height: 160px;
+            margin: 20px auto 0;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+        .btn-delay:hover { transform: scale(1.05); }
+        .btn-delay.hidden { display: none !important; }
+
         .btn-icon {
             font-size: 3rem;
             line-height: 1;
@@ -190,8 +212,9 @@
 
         .trip-status {
             margin-top: 30px;
-            font-size: 1rem;
-            color: var(--text-muted);
+            font-size: 1.1rem;
+            color: var(--text-primary);
+            font-weight: 500;
             background: rgba(255, 255, 255, 0.03);
             padding: 8px 20px;
             border-radius: 20px;
@@ -201,8 +224,8 @@
         /* GPS Status (Phase 14) */
         .gps-status {
             margin-top: 15px;
-            font-size: 0.85rem;
-            color: var(--text-muted);
+            font-size: 0.95rem;
+            color: var(--text-primary);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -219,10 +242,10 @@
             gap: 8px;
         }
         .gps-dot {
-            width: 8px;
-            height: 8px;
+            width: 10px;
+            height: 10px;
             border-radius: 50%;
-            background: var(--text-muted);
+            background: var(--text-primary);
         }
         .gps-dot.active {
             background: var(--accent-success);
@@ -239,8 +262,9 @@
             100% { transform: scale(0.95); opacity: 0.8; }
         }
         .gps-details {
-            font-size: 0.75rem;
-            color: rgba(255, 255, 255, 0.4);
+            font-size: 0.85rem;
+            color: var(--text-primary);
+            opacity: 0.8;
         }
 
         /* Glassmorphism Info Card */
@@ -280,14 +304,16 @@
         .info-label {
             font-family: 'Inter', sans-serif;
             font-size: 0.8rem;
-            color: var(--text-muted);
-            margin-bottom: 4px;
+            color: var(--text-primary);
+            opacity: 0.9;
+            margin-bottom: 5px;
+            letter-spacing: 1px;
         }
 
         .info-value {
             font-size: 1.2rem;
             font-weight: 600;
-            color: var(--text-light);
+            color: var(--text-primary);
             margin: 0;
         }
 
@@ -321,13 +347,15 @@
 
         .schedule-time {
             font-family: 'Inter', sans-serif;
-            font-weight: 600;
-            color: var(--text-light);
+            font-weight: 700;
+            color: var(--text-primary);
+            font-size: 1.1rem;
         }
 
         .schedule-route {
-            font-size: 0.9rem;
-            color: var(--text-muted);
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            opacity: 0.9;
         }
 
         /* Desktop specific layout */
@@ -394,6 +422,11 @@
                     <span class="btn-text">STOP</span>
                 </button>
                 
+                <button id="btn-delay-bus" class="btn-delay hidden">
+                    <span class="btn-icon" style="font-size: 2rem;">⏳</span>
+                    <span class="btn-text" style="font-size: 1rem;">DELAY</span>
+                </button>
+                
                 <div class="trip-status" id="trip-status">Ready for next trip</div>
                 
                 <!-- GPS Status (Phase 14) -->
@@ -428,7 +461,7 @@
                         <div class="schedule-list" id="duty-schedule-list">
                             <!-- Dynamic schedules will be rendered here -->
                             <div class="schedule-item">
-                                <span class="schedule-time" style="color: var(--text-muted);">Loading schedules...</span>
+                                <span class="schedule-time" style="color: var(--text-primary);">Loading schedules...</span>
                             </div>
                         </div>
         </div>

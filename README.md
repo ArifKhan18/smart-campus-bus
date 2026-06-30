@@ -120,9 +120,9 @@ Open `frontend/index.html` in your browser directly, or use a live server extens
 | 16    | Live Tracking (Student) | ✅ Complete |
 | 17    | Distance Calculation    | ✅ Complete |
 | 18    | ETA System              | ✅ Complete |
-| 19-20 | Notifications, Chat     | ⏳ Future   |
+| 19    | Notifications           | ✅ Complete |
+| 20    | Group Chat              | ✅ Complete |
 | 21-27 | Polish & Deployment     | ⏳ Future   |
-
 ---
 
 ## 🤝 Contributing

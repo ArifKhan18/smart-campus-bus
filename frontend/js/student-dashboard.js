@@ -5,7 +5,7 @@
 import { db } from "./firebase-config.js";
 import { initAuthGuard, logoutUser } from "./auth-guard.js";
 import { sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { collection, query, where, onSnapshot, orderBy, limit, addDoc, serverTimestamp, getDocs, doc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
     // Require authentication, allow only students
@@ -15,6 +15,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         setupDashboard(authData.user, authData.profile);
         initNavigation();
         initDataListeners();
+        initNotifications();
+        initChat(authData.user, authData.profile);
+        fetchDashboardStats();
         
         // Setup Logout
         const btnLogout = document.getElementById('btn-logout');
@@ -58,10 +61,33 @@ function setupDashboard(user, profile) {
                     console.error("Error sending verification email:", error);
                     resendBtn.textContent = "Failed. Try again.";
                     resendBtn.disabled = false;
-                    alert(error.message);
+                    resendBtn.disabled = false;
                 }
             });
         }
+    }
+}
+
+async function fetchDashboardStats() {
+    try {
+        // Active Buses
+        const qBuses = query(collection(db, "buses"), where("status", "in", ["running", "active"]));
+        const busesSnap = await getDocs(qBuses);
+        const activeBusesEl = document.getElementById("stat-active-buses");
+        if (activeBusesEl) activeBusesEl.textContent = busesSnap.size;
+
+        // Available Routes
+        const routesSnap = await getDocs(collection(db, "routes"));
+        const routesEl = document.getElementById("stat-available-routes");
+        if (routesEl) routesEl.textContent = routesSnap.size;
+
+        // Active Trips
+        const qTrips = query(collection(db, "trips"), where("status", "==", "active"));
+        const tripsSnap = await getDocs(qTrips);
+        const tripsEl = document.getElementById("stat-todays-trips");
+        if (tripsEl) tripsEl.textContent = tripsSnap.size;
+    } catch (error) {
+        console.error("Error fetching dashboard stats:", error);
     }
 }
 
@@ -76,6 +102,7 @@ function initNavigation() {
     const sectionBuses = document.getElementById('section-buses');
     const sectionRoutes = document.getElementById('section-routes');
     const sectionSchedules = document.getElementById('section-schedules');
+    const sectionChat = document.getElementById('section-chat');
     
     const pageTitle = document.getElementById('page-title');
 
@@ -84,11 +111,14 @@ function initNavigation() {
         if(navBuses) navBuses.classList.remove('active');
         if(navRoutes) navRoutes.classList.remove('active');
         if(navSchedules) navSchedules.classList.remove('active');
+        const navChat = document.getElementById('nav-chat');
+        if(navChat) navChat.classList.remove('active');
         
         if(sectionDashboard) sectionDashboard.style.display = 'none';
         if(sectionBuses) sectionBuses.style.display = 'none';
         if(sectionRoutes) sectionRoutes.style.display = 'none';
         if(sectionSchedules) sectionSchedules.style.display = 'none';
+        if(sectionChat) sectionChat.style.display = 'none';
         
         const sectionBusDetails = document.getElementById('section-bus-details');
         if(sectionBusDetails) sectionBusDetails.style.display = 'none';
@@ -133,6 +163,17 @@ function initNavigation() {
             navSchedules.classList.add('active');
             sectionSchedules.style.display = 'block';
             pageTitle.textContent = "Schedules";
+        });
+    }
+
+    const navChat = document.getElementById('nav-chat');
+    if (navChat) {
+        navChat.addEventListener('click', (e) => {
+            e.preventDefault();
+            resetTabs();
+            navChat.classList.add('active');
+            if(sectionChat) sectionChat.style.display = 'block';
+            pageTitle.textContent = "Bus Chat";
         });
     }
 }
@@ -419,6 +460,16 @@ function updateEtaInfo(bus, busLatLng) {
         distanceEl.textContent = `${Math.round(minDistance)}m`;
         timeEl.textContent = "Arriving...";
         timeEl.style.color = "var(--accent-success)";
+        
+        // Phase 19: Local "Bus Arrived" Notification
+        if (!bus.arrivalNotified) {
+            bus.arrivalNotified = true;
+            addLocalNotification({
+                type: 'bus_arrived',
+                message: `${bus.busName} has arrived at ${nearestStop.name}`,
+                timestamp: new Date()
+            });
+        }
     } else {
         // Format Distance
         if (minDistance >= 1000) {
@@ -434,6 +485,11 @@ function updateEtaInfo(bus, busLatLng) {
         
         timeEl.textContent = `${timeInMinutes} min`;
         timeEl.style.color = "#00ffcc"; // Default highlight color
+        
+        // Reset arrival flag if moved away
+        if (bus.arrivalNotified && minDistance > 100) {
+            bus.arrivalNotified = false;
+        }
     }
 }
 
@@ -705,4 +761,471 @@ function renderSchedules() {
         
         grid.appendChild(card);
     });
+}
+
+// ── Phase 19: Notifications System ──
+
+let localNotifications = [];
+let isMuted = localStorage.getItem('smartbus_notifications_muted') === 'true';
+
+function initNotifications() {
+    const bellBtn = document.getElementById('notification-bell');
+    const dropdown = document.getElementById('notification-dropdown');
+    const muteToggle = document.getElementById('mute-notifications-toggle');
+    const clearBtn = document.getElementById('clear-notifications-btn');
+    
+    if (clearBtn) {
+        clearBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            localNotifications = [];
+            localStorage.setItem('smartbus_notifications_cleared', Date.now().toString());
+            renderNotifications();
+            const badge = document.getElementById('notification-badge');
+            if (badge) {
+                badge.style.display = 'none';
+                badge.textContent = '0';
+            }
+        });
+    }
+    
+    if (muteToggle) {
+        muteToggle.checked = isMuted;
+        muteToggle.addEventListener('change', (e) => {
+            isMuted = e.target.checked;
+            localStorage.setItem('smartbus_notifications_muted', isMuted);
+        });
+    }
+    
+    if (bellBtn && dropdown) {
+        bellBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            dropdown.classList.toggle('active');
+            // Hide badge when opening
+            document.getElementById('notification-badge').style.display = 'none';
+        });
+        
+        document.addEventListener('click', (e) => {
+            if (!dropdown.contains(e.target) && !bellBtn.contains(e.target)) {
+                dropdown.classList.remove('active');
+            }
+        });
+    }
+    
+    // Listen to global notifications from Firestore
+    const qNotif = query(collection(db, "notifications"), orderBy("timestamp", "desc"), limit(20));
+    onSnapshot(qNotif, (snapshot) => {
+        snapshot.docChanges().forEach((change) => {
+            if (change.type === "added") {
+                const data = change.doc.data();
+                if (data.timestamp) {
+                    const notifDate = data.timestamp.toDate ? data.timestamp.toDate() : new Date();
+                    const clearedTime = parseInt(localStorage.getItem('smartbus_notifications_cleared') || '0');
+                    
+                    if (notifDate.getTime() > clearedTime) {
+                        addLocalNotification({
+                            type: data.type,
+                            message: data.message,
+                            timestamp: notifDate,
+                            isNew: true
+                        }, false);
+                    }
+                }
+            }
+        });
+        renderNotifications();
+    });
+}
+
+function addLocalNotification(notif, renderNow = true) {
+    // Prevent duplicates
+    const exists = localNotifications.some(n => n.message === notif.message && Math.abs(n.timestamp - notif.timestamp) < 60000);
+    if (exists) return;
+    
+    localNotifications.unshift(notif);
+    
+    // Keep max 20
+    if (localNotifications.length > 20) {
+        localNotifications.pop();
+    }
+    
+    if (notif.isNew !== false && !isMuted) {
+        // Show browser notification badge
+        const badge = document.getElementById('notification-badge');
+        const dropdown = document.getElementById('notification-dropdown');
+        if (badge && (!dropdown || !dropdown.classList.contains('active'))) {
+            badge.style.display = 'flex';
+            let current = parseInt(badge.textContent) || 0;
+            badge.textContent = current + 1;
+        }
+    }
+    
+    if (renderNow) renderNotifications();
+}
+
+function renderNotifications() {
+    const listEl = document.getElementById('notification-list');
+    if (!listEl) return;
+    
+    if (localNotifications.length === 0) {
+        listEl.innerHTML = '<div class="notification-empty">No notifications yet.</div>';
+        return;
+    }
+    
+    // Sort by timestamp desc
+    localNotifications.sort((a, b) => b.timestamp - a.timestamp);
+    
+    listEl.innerHTML = '';
+    localNotifications.forEach(notif => {
+        const item = document.createElement('div');
+        item.className = 'notification-item';
+        
+        let icon = '🔔';
+        if (notif.type === 'bus_started') icon = '▶️';
+        if (notif.type === 'bus_delayed') icon = '⏳';
+        if (notif.type === 'bus_arrived') icon = '📍';
+        
+        let timeStr = 'Just now';
+        if (notif.timestamp) {
+            const now = new Date();
+            const diffMs = now - notif.timestamp;
+            const diffMins = Math.floor(diffMs / 60000);
+            if (diffMins > 60) {
+                timeStr = notif.timestamp.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            } else if (diffMins > 0) {
+                timeStr = `${diffMins} min ago`;
+            }
+        }
+        
+        item.innerHTML = `
+            <div class="notification-icon">${icon}</div>
+            <div class="notification-content">
+                <div class="notification-text">${notif.message}</div>
+                <div class="notification-time">${timeStr}</div>
+            </div>
+        `;
+        listEl.appendChild(item);
+    });
+}
+
+// ── Phase 20: Group Chat Logic ──
+
+let currentChatBusId = null;
+let currentChatUnsubscribe = null;
+let currentUserProfile = null;
+let chatMessagesCache = [];
+let chatMessageLimit = 50;
+
+function initChat(user, profile) {
+    currentUserProfile = profile;
+    const chatRoomList = document.getElementById('chat-room-list');
+    if (!chatRoomList) return;
+    
+    // Fetch all buses for chat list
+    const qBuses = query(collection(db, "buses"));
+    onSnapshot(qBuses, (snapshot) => {
+        chatRoomList.innerHTML = '';
+        if (snapshot.empty) {
+            chatRoomList.innerHTML = '<div class="empty-state" style="padding: 2rem 1rem;">No buses available</div>';
+            return;
+        }
+        
+        snapshot.docs.forEach(docSnap => {
+            const bus = docSnap.data();
+            const busId = docSnap.id; // Fix: docSnap.id instead of bus.busId
+            const busName = bus.busName;
+            
+            // Ensure chat room exists in Firestore
+            ensureChatRoomExists(busId, busName);
+            
+            const item = document.createElement('div');
+            item.className = 'chat-room-item';
+            if (busId === currentChatBusId) item.classList.add('active');
+            
+            item.innerHTML = `
+                <div class="chat-room-icon">🚌</div>
+                <div class="chat-room-info">
+                    <div class="chat-room-name">${busName}</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted);">${bus.busNumber}</div>
+                </div>
+            `;
+            
+            item.addEventListener('click', () => {
+                document.querySelectorAll('.chat-room-item').forEach(el => el.classList.remove('active'));
+                item.classList.add('active');
+                openChatRoom(busId, busName);
+            });
+            
+            chatRoomList.appendChild(item);
+        });
+    });
+}
+
+async function ensureChatRoomExists(busId, busName) {
+    try {
+        const roomRef = doc(db, "chatRooms", busId);
+        await setDoc(roomRef, {
+            busId: busId,
+            busName: busName,
+            updatedAt: serverTimestamp()
+        }, { merge: true });
+    } catch (e) {
+        console.error("Error ensuring chat room exists", e);
+    }
+}
+
+function openChatRoom(busId, busName) {
+    currentChatBusId = busId;
+    chatMessageLimit = 50;
+    
+    const chatWindow = document.getElementById('chat-window');
+    chatWindow.innerHTML = `
+        <div class="chat-header">
+            <h3 style="margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+                🚌 <span>${busName} - Live Chat</span>
+            </h3>
+        </div>
+        <div class="chat-messages" id="chat-messages-container">
+            <div style="text-align: center; color: var(--text-muted); padding: 1rem;">Loading messages...</div>
+        </div>
+        <div class="chat-input-area">
+            <textarea id="chat-input" class="chat-input" placeholder="Type a message..." rows="1"></textarea>
+            <button id="chat-send-btn" class="chat-send-btn" disabled>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+            </button>
+        </div>
+    `;
+    
+    const inputEl = document.getElementById('chat-input');
+    const sendBtn = document.getElementById('chat-send-btn');
+    const msgContainer = document.getElementById('chat-messages-container');
+    
+    // Auto-resize input
+    inputEl.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = (this.scrollHeight) + 'px';
+        sendBtn.disabled = this.value.trim() === '';
+    });
+    
+    inputEl.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            if (inputEl.value.trim() !== '') {
+                sendMessage(busId, inputEl.value.trim());
+                inputEl.value = '';
+                inputEl.style.height = 'auto';
+                sendBtn.disabled = true;
+            }
+        }
+    });
+    
+    sendBtn.addEventListener('click', () => {
+        if (inputEl.value.trim() !== '') {
+            sendMessage(busId, inputEl.value.trim());
+            inputEl.value = '';
+            inputEl.style.height = 'auto';
+            sendBtn.disabled = true;
+        }
+    });
+
+    // Pagination scroll listener
+    msgContainer.addEventListener('scroll', () => {
+        if (msgContainer.scrollTop === 0 && chatMessagesCache.length >= chatMessageLimit) {
+            chatMessageLimit += 50;
+            loadMessages(busId);
+        }
+    });
+    
+    loadMessages(busId);
+}
+
+function loadMessages(busId) {
+    if (currentChatUnsubscribe) {
+        currentChatUnsubscribe();
+    }
+    
+    const messagesRef = collection(db, "chatRooms", busId, "messages");
+    const qMsgs = query(messagesRef, orderBy("timestamp", "desc"), limit(chatMessageLimit));
+    
+    currentChatUnsubscribe = onSnapshot(qMsgs, (snapshot) => {
+        const msgContainer = document.getElementById('chat-messages-container');
+        if (!msgContainer || currentChatBusId !== busId) return;
+        
+        chatMessagesCache = [];
+        snapshot.forEach(docSnap => {
+            chatMessagesCache.push({ id: docSnap.id, ...docSnap.data() });
+        });
+        
+        // Reverse to show oldest first
+        chatMessagesCache.reverse();
+        
+        renderMessages(busId, msgContainer);
+    }, (error) => {
+        console.error("Chat onSnapshot Error:", error);
+        const msgContainer = document.getElementById('chat-messages-container');
+        if (msgContainer && error.code === 'permission-denied') {
+            msgContainer.innerHTML = '<div style="color: #ff4d4d; text-align: center; padding: 2rem;">Error: Permission Denied. Please update Firestore Rules to allow read/write for chatRooms.</div>';
+        } else if (msgContainer && error.message.includes('index')) {
+            msgContainer.innerHTML = '<div style="color: #ff4d4d; text-align: center; padding: 2rem;">Error: Index required. Check console for the link to create it.</div>';
+        } else if (msgContainer) {
+            msgContainer.innerHTML = '<div style="color: #ff4d4d; text-align: center; padding: 2rem;">Error loading messages: ' + error.message + '</div>';
+        }
+    });
+}
+
+async function renderMessages(busId, container) {
+    // Keep track of scroll height to maintain scroll position when loading older messages
+    const previousScrollHeight = container.scrollHeight;
+    const previousScrollTop = container.scrollTop;
+    
+    container.innerHTML = '';
+    
+    if (chatMessagesCache.length >= chatMessageLimit) {
+        const loadMoreDiv = document.createElement('div');
+        loadMoreDiv.style.textAlign = 'center';
+        loadMoreDiv.style.padding = '0.5rem';
+        loadMoreDiv.innerHTML = '<button class="load-more-btn">Load earlier messages</button>';
+        loadMoreDiv.querySelector('.load-more-btn').addEventListener('click', () => {
+            chatMessageLimit += 50;
+            loadMessages(busId);
+        });
+        container.appendChild(loadMoreDiv);
+    }
+    
+    if (chatMessagesCache.length === 0) {
+        container.innerHTML = '<div class="chat-empty-state"><span class="chat-empty-icon">💬</span><p>No messages yet. Be the first to say hello!</p></div>';
+        return;
+    }
+    
+    let currentUserId = currentUserProfile ? currentUserProfile.uid : null;
+    
+    chatMessagesCache.forEach(msg => {
+        const isOwn = msg.senderId === currentUserId;
+        const msgWrapper = document.createElement('div');
+        msgWrapper.className = 'chat-message-wrapper ' + (isOwn ? 'chat-message-wrapper--own' : 'chat-message-wrapper--other');
+        
+        let timeStr = 'Sending...';
+        if (msg.timestamp && typeof msg.timestamp.toDate === 'function') {
+            const date = msg.timestamp.toDate();
+            timeStr = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        }
+        
+        let contentHtml = msg.isDeleted ? '<em>This message was deleted</em>' : msg.text;
+        let messageClass = isOwn ? 'chat-message--own' : 'chat-message--other';
+        if (msg.isDeleted) messageClass += ' chat-message--deleted';
+        
+        // Seen indicator logic (only for own non-deleted messages)
+        let seenHtml = '';
+        if (isOwn && !msg.isDeleted) {
+            const readCount = (msg.readBy || []).filter(uid => uid !== currentUserId).length;
+            if (readCount > 0) {
+                seenHtml = '<span style="color: #4CAF50; font-weight: bold; margin-left: 4px;">✓✓</span>';
+            } else {
+                seenHtml = '<span style="color: rgba(255,255,255,0.5); margin-left: 4px;">✓</span>';
+            }
+        }
+        
+        let editedHtml = msg.isEdited && !msg.isDeleted ? '<span style="font-size: 0.65rem; margin-left: 4px; font-style: italic;">(edited)</span>' : '';
+
+        let actionsHtml = '';
+        if (isOwn && !msg.isDeleted) {
+            actionsHtml = `
+                <div class="chat-message-actions">
+                    <button class="chat-action-btn chat-action-btn--edit" onclick="editMessage('${busId}', '${msg.id}', \`${(msg.text || '').replace(/`/g, '\\`')}\`)">✏️</button>
+                    <button class="chat-action-btn chat-action-btn--delete" onclick="deleteMessage('${busId}', '${msg.id}')">🗑️</button>
+                </div>
+            `;
+        }
+
+        msgWrapper.innerHTML = `
+            ${!isOwn ? `<div class="chat-message-sender">${msg.senderName}</div>` : ''}
+            <div class="chat-message ${messageClass}">
+                ${contentHtml}
+                ${actionsHtml}
+            </div>
+            <div class="chat-message-meta">
+                ${timeStr} ${editedHtml} ${seenHtml}
+            </div>
+        `;
+        
+        container.appendChild(msgWrapper);
+        
+        // Mark as seen if it's someone else's message
+        if (!isOwn && !msg.isDeleted) {
+            markMessageAsSeen(busId, msg.id, msg.readBy || []);
+        }
+    });
+    
+    // Auto-scroll logic
+    // If we were at the bottom, stay at the bottom. Otherwise maintain relative position
+    if (previousScrollTop === 0 && chatMessageLimit > 50) {
+        // We just loaded older messages, maintain scroll pos
+        container.scrollTop = container.scrollHeight - previousScrollHeight;
+    } else {
+        // Normal scroll to bottom
+        container.scrollTop = container.scrollHeight;
+    }
+}
+
+async function sendMessage(busId, text) {
+    if (!currentUserProfile) return;
+    try {
+        const messagesRef = collection(db, "chatRooms", busId, "messages");
+        await addDoc(messagesRef, {
+            text: text,
+            senderId: currentUserProfile.uid,
+            senderName: currentUserProfile.name || "Student",
+            timestamp: serverTimestamp(),
+            isEdited: false,
+            isDeleted: false,
+            readBy: [currentUserProfile.uid]
+        });
+    } catch (e) {
+        console.error("Error sending message", e);
+        alert("Error sending message: " + e.message);
+    }
+}
+
+window.editMessage = async function(busId, msgId, oldText) {
+    const newText = prompt("Edit your message:", oldText);
+    if (newText !== null && newText.trim() !== '' && newText !== oldText) {
+        try {
+            const msgRef = doc(db, "chatRooms", busId, "messages", msgId);
+            await updateDoc(msgRef, {
+                text: newText.trim(),
+                isEdited: true
+            });
+        } catch (e) {
+            console.error("Error editing message", e);
+        }
+    }
+};
+
+window.deleteMessage = async function(busId, msgId) {
+    if (confirm("Are you sure you want to delete this message?")) {
+        try {
+            const msgRef = doc(db, "chatRooms", busId, "messages", msgId);
+            await updateDoc(msgRef, {
+                isDeleted: true,
+                text: ""
+            });
+        } catch (e) {
+            console.error("Error deleting message", e);
+        }
+    }
+};
+
+async function markMessageAsSeen(busId, msgId, currentReadBy) {
+    if (!currentUserProfile) return;
+    const currentUserId = currentUserProfile.uid;
+    if (!currentReadBy.includes(currentUserId)) {
+        try {
+            const msgRef = doc(db, "chatRooms", busId, "messages", msgId);
+            const newReadBy = [...currentReadBy, currentUserId];
+            await updateDoc(msgRef, {
+                readBy: newReadBy
+            });
+        } catch (e) {
+            // Ignore minor errors in read receipts
+        }
+    }
 }
