@@ -767,32 +767,19 @@
         @media (max-width: 768px) {
             .chat-layout {
                 gap: 0;
-                border: none !important;
-                border-radius: 0 !important;
-                margin: 0 !important;
-                width: 100% !important;
-                height: auto !important;
-                min-height: 100vh;
-                display: block !important; /* Absolutely force block layout */
-                background: var(--bg-primary) !important;
-                overflow: visible !important; 
-                padding-top: 1rem;
+                border: none;
+                border-radius: 0;
+                height: calc(100vh - 120px); /* Let it be a fixed box like desktop */
+                margin: 0;
+                background: var(--bg-primary);
             }
             .chat-sidebar {
-                width: 100% !important;
-                height: auto !important;
-                display: block !important; /* Force block */
-                border-right: none !important;
-                background: transparent !important;
+                width: 100%;
+                border-right: none;
+                background: var(--bg-primary);
             }
             .chat-sidebar__header {
-                display: none !important;
-            }
-            .chat-room-list {
-                height: auto !important;
-                display: block !important; /* Force block */
-                overflow: visible !important;
-                padding-bottom: 4rem !important; 
+                display: none;
             }
             .chat-window {
                 display: none;
