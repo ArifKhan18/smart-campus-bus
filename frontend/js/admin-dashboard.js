@@ -3,8 +3,9 @@
 // ========================================
 
 import { auth, db } from "./firebase-config.js";
-import { collection, query, where, getDocs, doc, updateDoc, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { collection, query, where, getDocs, doc, getDoc, updateDoc, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { ApiService } from "./api.js";
 
 // State
 let allDrivers = [];
@@ -22,8 +23,18 @@ document.addEventListener("DOMContentLoaded", () => {
     // Auth state is checked by auth-guard.js, but we need the user profile here
     onAuthStateChanged(auth, async (user) => {
         if (user) {
-            // Set Admin Name from guard or fetch it
-            // Assuming auth-guard already verified this is an admin
+            // Fetch admin profile to get name
+            try {
+                const docRef = doc(db, "users", user.uid);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists() && adminName) {
+                    adminName.textContent = docSnap.data().name || "Admin";
+                } else if (adminName) {
+                    adminName.textContent = "Admin";
+                }
+            } catch (err) {
+                if (adminName) adminName.textContent = "Admin";
+            }
             setupDashboard();
         }
     });
@@ -283,18 +294,9 @@ function renderDrivers() {
 // ── Make Action Function Global ──
 window.updateDriverStatus = async function (driverId, newStatus) {
     try {
-        // Option A: Use .NET Backend API (More secure)
-        // const response = await fetch(`http://localhost:5000/api/auth/user/${driverId}/status`, {
-        //     method: 'PUT',
-        //     headers: { 'Content-Type': 'application/json' },
-        //     body: JSON.stringify({ status: newStatus })
-        // });
-        // if(!response.ok) throw new Error('Backend update failed');
-
-        // Option B: Direct Firestore SDK (Used here for Phase 3 simplicity)
-        const driverRef = doc(db, "users", driverId);
-        await updateDoc(driverRef, {
-            status: newStatus
+        await ApiService.fetchWithAuth(`/Auth/user/${driverId}/status`, {
+            method: 'PUT',
+            body: JSON.stringify({ status: newStatus })
         });
 
         const statusMsg = newStatus === 'active' ? 'Approved' : 'Rejected';

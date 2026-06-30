@@ -94,10 +94,10 @@ function initHeaderScroll() {
 
     window.addEventListener("scroll", () => {
         if (window.scrollY > 50) {
-            header.style.background = "rgba(7, 7, 14, 0.95)";
-            header.style.boxShadow = "0 2px 20px rgba(0, 0, 0, 0.3)";
+            header.style.background = "var(--bg-surface)";
+            header.style.boxShadow = "var(--shadow-md)";
         } else {
-            header.style.background = "rgba(7, 7, 14, 0.8)";
+            header.style.background = "var(--bg-glass)";
             header.style.boxShadow = "none";
         }
     });

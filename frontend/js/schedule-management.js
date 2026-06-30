@@ -3,8 +3,8 @@
 // ========================================
 
 import { db } from "./firebase-config.js";
-import { collection, query, doc, getDocs, setDoc, updateDoc, deleteDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
+import { collection, query, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { ApiService } from "./api.js";
 // State
 let allSchedules = [];
 let allBuses = [];
@@ -319,44 +319,46 @@ async function handleScheduleSubmit(e) {
         }
 
         if (scheduleId) {
-            // Edit mode - we only edit the single document, updating its single time
-            // If they added more times during edit, we update the first one, and create new docs for the rest
             const firstTime = selectedTimes[0];
             
-            const docRef = doc(db, "schedules", scheduleId);
-            await updateDoc(docRef, {
-                busId,
-                busName,
-                departureTime: firstTime,
-                operatingDays,
-                updatedAt: serverTimestamp()
+            await ApiService.fetchWithAuth(`/Schedule/${scheduleId}`, {
+                method: 'PUT',
+                body: JSON.stringify({
+                    busId,
+                    busName,
+                    departureTime: firstTime,
+                    operatingDays
+                })
             });
             
             // If they added extra times while editing, create new docs for them
-            for (let i = 1; i < selectedTimes.length; i++) {
-                const newDocRef = doc(collection(db, "schedules"));
-                await setDoc(newDocRef, {
-                    busId,
-                    busName,
-                    departureTime: selectedTimes[i],
-                    operatingDays,
-                    createdAt: serverTimestamp(),
-                    updatedAt: serverTimestamp()
+            if (selectedTimes.length > 1) {
+                const batchPromises = selectedTimes.slice(1).map(time => {
+                    return ApiService.fetchWithAuth('/Schedule', {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            busId,
+                            busName,
+                            departureTime: time,
+                            operatingDays
+                        })
+                    });
                 });
+                await Promise.all(batchPromises);
             }
             
             if(window.showToast) window.showToast("Schedule updated successfully!", "success");
         } else {
-            // Add mode - Create multiple documents for multiple times
+            // Add mode - Create multiple schedules for multiple times
             const batchPromises = selectedTimes.map(time => {
-                const newDocRef = doc(collection(db, "schedules"));
-                return setDoc(newDocRef, {
-                    busId,
-                    busName,
-                    departureTime: time,
-                    operatingDays,
-                    createdAt: serverTimestamp(),
-                    updatedAt: serverTimestamp()
+                return ApiService.fetchWithAuth('/Schedule', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        busId,
+                        busName,
+                        departureTime: time,
+                        operatingDays
+                    })
                 });
             });
             
@@ -381,10 +383,12 @@ window.deleteSchedule = async function(scheduleId) {
     if (!confirm("Are you sure you want to delete this schedule?")) return;
     
     try {
-        await deleteDoc(doc(db, "schedules", scheduleId));
+        await ApiService.fetchWithAuth(`/Schedule/${scheduleId}`, {
+            method: 'DELETE'
+        });
         if(window.showToast) window.showToast("Schedule deleted successfully!", "success");
     } catch (error) {
         console.error("Error deleting schedule:", error);
-        if(window.showToast) window.showToast(`Error: ${error.message}`, "error");
+        if(window.showToast) window.showToast("Error deleting schedule", "error");
     }
 };

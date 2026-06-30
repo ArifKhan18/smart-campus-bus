@@ -160,17 +160,21 @@ function updateNavigationLinks(role) {
 function initPasswordToggle() {
     const toggles = document.querySelectorAll(".form-group__toggle-password");
 
+    const eyeSvg = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
+    const eyeOffSvg = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>';
+
     toggles.forEach((toggle) => {
+        toggle.innerHTML = eyeSvg;
         toggle.addEventListener("click", () => {
             const wrapper = toggle.closest(".form-group__input-wrapper");
             const input = wrapper.querySelector(".form-group__input");
 
             if (input.type === "password") {
                 input.type = "text";
-                toggle.textContent = "🙈";
+                toggle.innerHTML = eyeOffSvg;
             } else {
                 input.type = "password";
-                toggle.textContent = "👁️";
+                toggle.innerHTML = eyeSvg;
             }
         });
     });
@@ -248,6 +252,12 @@ async function handleLoginSubmit(role) {
                     if(window.showToast) window.showToast(`Error: This account is registered as a ${profile.role}. Please switch roles.`, 'error');
                     else alert(`Error: This account is registered as a ${profile.role}. Please switch roles.`);
                 } 
+                // 3.5 Verify Email (Skip for admins to prevent lockout if manually added)
+                else if (!user.emailVerified && role !== 'admin') {
+                    await auth.signOut();
+                    if(window.showToast) window.showToast("Please verify your email address before logging in. Check your inbox.", 'warning', 5000);
+                    else alert("Please verify your email address before logging in.");
+                }
                 // 4. Verify Driver Approval Status
                 else if (role === 'driver' && profile.status === 'pending') {
                     await auth.signOut();
@@ -388,20 +398,21 @@ async function handleRegisterSubmit(role) {
             if (role === "driver") {
                 // Sign out driver since they are pending approval
                 await auth.signOut();
-                if(window.showToast) window.showToast("Account created successfully! Waiting for admin approval.", 'success', 6000);
-                else alert("Account created successfully! Waiting for admin approval.");
+                if(window.showToast) window.showToast("Account created successfully! Waiting for admin approval. Please check your email to verify.", 'success', 6000);
+                else alert("Account created successfully! Waiting for admin approval. Please check your email to verify.");
                 
                 setTimeout(() => {
                     window.location.href = `login.html?role=${role}`;
                 }, 2000);
             } else {
-                // Student - Keep logged in and redirect
-                if(window.showToast) window.showToast("Account created successfully! Please check your email to verify.", 'success', 6000);
-                else alert("Account created successfully! Please check your email to verify.");
+                // Student - Keep logged in and redirect? No, sign out so they must verify email
+                await auth.signOut();
+                if(window.showToast) window.showToast("Account created successfully! Please check your email to verify before logging in.", 'success', 6000);
+                else alert("Account created successfully! Please check your email to verify before logging in.");
                 
                 setTimeout(() => {
-                    window.location.href = "dashboard.html";
-                }, 1500);
+                    window.location.href = `login.html?role=${role}`;
+                }, 2000);
             }
             // Don't reset UI to prevent duplicate clicks while redirecting
             return;

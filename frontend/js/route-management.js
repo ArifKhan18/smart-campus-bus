@@ -3,8 +3,8 @@
 // ========================================
 
 import { db } from "./firebase-config.js";
-import { collection, query, doc, getDocs, setDoc, updateDoc, deleteDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
+import { collection, query, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { ApiService } from "./api.js";
 // State
 let allRoutes = [];
 let allBuses = [];
@@ -654,47 +654,29 @@ async function handleRouteSubmit(e) {
             if (bus) busName = bus.busName;
         }
 
+        const routeData = {
+            routeName,
+            startPoint,
+            endPoint,
+            stops: allStops,
+            assignedBus: busId || null,
+            assignedBusName: busName
+        };
+
         if (routeId) {
             // Update
-            const docRef = doc(db, "routes", routeId);
-            await updateDoc(docRef, {
-                routeName,
-                startPoint,
-                endPoint,
-                stops: allStops,
-                assignedBus: busId || null,
-                assignedBusName: busName,
-                updatedAt: serverTimestamp()
+            await ApiService.fetchWithAuth(`/Route/${routeId}`, {
+                method: 'PUT',
+                body: JSON.stringify(routeData)
             });
-            
-            // Also update bus's route field if a bus was selected
-            if (busId) {
-                await updateDoc(doc(db, "buses", busId), {
-                    route: routeName
-                });
-            }
             
             if(window.showToast) window.showToast("Route updated successfully!", "success");
         } else {
             // Add
-            const newDocRef = doc(collection(db, "routes"));
-            await setDoc(newDocRef, {
-                routeName,
-                startPoint,
-                endPoint,
-                stops: allStops,
-                assignedBus: busId || null,
-                assignedBusName: busName,
-                createdAt: serverTimestamp(),
-                updatedAt: serverTimestamp()
+            await ApiService.fetchWithAuth('/Route', {
+                method: 'POST',
+                body: JSON.stringify(routeData)
             });
-            
-            // Also update bus's route field if a bus was selected
-            if (busId) {
-                await updateDoc(doc(db, "buses", busId), {
-                    route: routeName
-                });
-            }
             
             if(window.showToast) window.showToast("New route added successfully!", "success");
         }
@@ -715,10 +697,12 @@ window.deleteRoute = async function(routeId) {
     if (!confirm("Are you sure you want to delete this route?")) return;
     
     try {
-        await deleteDoc(doc(db, "routes", routeId));
+        await ApiService.fetchWithAuth(`/Route/${routeId}`, {
+            method: 'DELETE'
+        });
         if(window.showToast) window.showToast("Route deleted successfully!", "success");
     } catch (error) {
         console.error("Error deleting route:", error);
-        if(window.showToast) window.showToast(`Error: ${error.message}`, "error");
+        if(window.showToast) window.showToast("Error deleting route", "error");
     }
 };

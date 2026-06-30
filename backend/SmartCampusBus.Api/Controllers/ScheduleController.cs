@@ -2,10 +2,13 @@ using Microsoft.AspNetCore.Mvc;
 using SmartCampusBus.Api.Models;
 using SmartCampusBus.Api.Services;
 
+using Microsoft.AspNetCore.Authorization;
+
 namespace SmartCampusBus.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize(Roles = "admin")]
 public class ScheduleController : ControllerBase
 {
     private readonly IScheduleService _scheduleService;

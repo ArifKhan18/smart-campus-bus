@@ -16,6 +16,8 @@
 
     <!-- Stylesheets -->
     <link rel="stylesheet" href="../css/style.css">
+    <!-- Theme Script -->
+    <script src="../js/theme.js"></script>
 </head>
 
 <body>
@@ -24,11 +26,14 @@
         <div class="page-wrapper__bg-glow page-wrapper__bg-glow--top-right"></div>
         <div class="page-wrapper__bg-glow page-wrapper__bg-glow--bottom-left"></div>
 
-        <!-- Back Link -->
-        <a href="../index.html" class="back-link" id="back-link">
-            <span class="back-link__arrow">←</span>
-            Back to Home
-        </a>
+        <!-- Top Links -->
+        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 1200px; padding: 1.5rem; position: absolute; top: 0; left: 50%; transform: translateX(-50%);">
+            <a href="../index.html" class="back-link" id="back-link" style="position: static; margin-bottom: 0;">
+                <span class="back-link__arrow">←</span>
+                Back to Home
+            </a>
+            <button id="theme-toggle-btn" class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme" style="background:var(--bg-surface); color:var(--text-primary); border:1px solid var(--border-card); border-radius:50%; width:36px; height:36px; cursor:pointer; font-size:1.1rem; transition:all 0.2s;">☀️</button>
+        </div>
 
         <!-- Role Selection Content -->
         <div class="role-select" id="role-select">

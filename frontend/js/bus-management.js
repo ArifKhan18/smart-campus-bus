@@ -3,7 +3,8 @@
 // ========================================
 
 import { db } from "./firebase-config.js";
-import { collection, query, where, doc, getDocs, setDoc, updateDoc, deleteDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { ApiService } from "./api.js";
 
 // State
 let allBuses = [];
@@ -252,55 +253,30 @@ async function handleBusSubmit(e) {
             if (driver) driverName = driver.name;
         }
 
-        const capacity = capacityVal ? parseInt(capacityVal) : null;
-        
+        const busData = {
+            busName,
+            busNumber,
+            capacity: capacityVal ? parseInt(capacityVal) : null,
+            assignedDriver: driverId || null,
+            assignedDriverName: driverName
+        };
+
         if (busId) {
             // Update
-            const status = document.getElementById('bus-status').value;
-            const docRef = doc(db, "buses", busId);
-            
-            await updateDoc(docRef, {
-                busName,
-                busNumber,
-                capacity,
-                assignedDriver: driverId || null,
-                assignedDriverName: driverName,
-                status,
-                updatedAt: serverTimestamp()
+            busData.status = document.getElementById('bus-status').value;
+            await ApiService.fetchWithAuth(`/Bus/${busId}`, {
+                method: 'PUT',
+                body: JSON.stringify(busData)
             });
-            
-            // Also update driver's assignedBus field if a driver was selected
-            if (driverId) {
-                await updateDoc(doc(db, "users", driverId), {
-                    assignedBus: busName
-                });
-            }
-            
             if(window.showToast) window.showToast("Bus updated successfully!", "success");
         } else {
             // Add
-            // We use doc() without ID to auto-generate one
-            const newDocRef = doc(collection(db, "buses"));
-            
-            await setDoc(newDocRef, {
-                busName,
-                busNumber,
-                capacity,
-                assignedDriver: driverId || null,
-                assignedDriverName: driverName,
-                status: "inactive", // Default status
-                createdAt: serverTimestamp(),
-                updatedAt: serverTimestamp()
+            busData.status = "inactive";
+            await ApiService.fetchWithAuth('/Bus', {
+                method: 'POST',
+                body: JSON.stringify(busData)
             });
-            
-            // Also update driver's assignedBus field if a driver was selected
-            if (driverId) {
-                await updateDoc(doc(db, "users", driverId), {
-                    assignedBus: busName
-                });
-            }
-            
-            if(window.showToast) window.showToast("New bus added successfully!", "success");
+            if(window.showToast) window.showToast("Bus added successfully!", "success");
         }
         
         closeModal();
@@ -316,18 +292,15 @@ async function handleBusSubmit(e) {
 
 // ── Delete Logic ──
 window.deleteBus = async function(busId) {
-    if (!confirm("Are you sure you want to delete this bus? This action cannot be undone.")) return;
+    if (!confirm("Are you sure you want to delete this bus?")) return;
     
     try {
-        const docRef = doc(db, "buses", busId);
-        
-        // Optional: clear driver's assignedBus if needed
-        // For simplicity, we just delete the bus document
-        
-        await deleteDoc(docRef);
+        await ApiService.fetchWithAuth(`/Bus/${busId}`, {
+            method: 'DELETE'
+        });
         if(window.showToast) window.showToast("Bus deleted successfully!", "success");
     } catch (error) {
         console.error("Error deleting bus:", error);
-        if(window.showToast) window.showToast(`Error: ${error.message}`, "error");
+        if(window.showToast) window.showToast("Error deleting bus", "error");
     }
 };

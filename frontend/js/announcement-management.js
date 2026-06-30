@@ -3,8 +3,8 @@
 // ========================================
 
 import { auth, db } from "./firebase-config.js";
-import { collection, query, orderBy, onSnapshot, doc, setDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
+import { collection, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { ApiService } from "./api.js";
 let allAnnouncements = [];
 let unsubscribeAnnouncements = null;
 
@@ -167,7 +167,7 @@ function setupEventListeners() {
 
             try {
                 const isEdit = !!inputId.value;
-                const id = isEdit ? inputId.value : doc(collection(db, "announcements")).id;
+                const id = isEdit ? inputId.value : null;
                 
                 const annData = {
                     title: inputTitle.value.trim(),
@@ -176,17 +176,17 @@ function setupEventListeners() {
                     message: inputMessage.value.trim()
                 };
                 
-                if (!isEdit) {
-                    annData.createdAt = serverTimestamp();
-                    // Assuming current user is an admin since they are here
-                    if (auth.currentUser) {
-                        annData.createdBy = auth.currentUser.uid;
-                        const adminNameEl = document.getElementById('admin-name');
-                        annData.createdByName = adminNameEl ? adminNameEl.textContent : "Admin";
-                    }
+                if (isEdit) {
+                    await ApiService.fetchWithAuth(`/Announcement/${id}`, {
+                        method: 'PUT',
+                        body: JSON.stringify(annData)
+                    });
+                } else {
+                    await ApiService.fetchWithAuth('/Announcement', {
+                        method: 'POST',
+                        body: JSON.stringify(annData)
+                    });
                 }
-                
-                await setDoc(doc(db, "announcements", id), annData, { merge: true });
                 
                 if (typeof window.showToast === 'function') {
                     window.showToast(`Announcement ${isEdit ? 'updated' : 'created'} successfully!`, 'success');
@@ -236,7 +236,9 @@ async function deleteAnnouncement(id, title) {
     if (!confirm(`Are you sure you want to delete the announcement "${title}"?`)) return;
     
     try {
-        await deleteDoc(doc(db, "announcements", id));
+        await ApiService.fetchWithAuth(`/Announcement/${id}`, {
+            method: 'DELETE'
+        });
         if (typeof window.showToast === 'function') {
             window.showToast("Announcement deleted", 'success');
         }

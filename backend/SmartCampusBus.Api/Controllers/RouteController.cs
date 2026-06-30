@@ -1,10 +1,13 @@
 using Microsoft.AspNetCore.Mvc;
 using SmartCampusBus.Api.Services;
 
+using Microsoft.AspNetCore.Authorization;
+
 namespace SmartCampusBus.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize(Roles = "admin")]
 public class RouteController : ControllerBase
 {
     private readonly IRouteService _routeService;
