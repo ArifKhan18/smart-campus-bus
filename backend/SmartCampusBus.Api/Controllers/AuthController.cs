@@ -18,6 +18,20 @@ public class AuthController : ControllerBase
         _emailService = emailService;
     }
 
+    // Any authenticated user can get their own profile
+    [HttpGet("me")]
+    [Authorize]
+    public async Task<IActionResult> GetMe()
+    {
+        var uid = User.FindFirst("user_id")?.Value;
+        if (string.IsNullOrEmpty(uid)) return Unauthorized();
+
+        var user = await _authService.GetUserAsync(uid);
+        if (user == null) return NotFound(new { message = "User not found" });
+
+        return Ok(user);
+    }
+
     [HttpGet("user/{uid}")]
     [Authorize(Roles = "admin")]
     public async Task<IActionResult> GetUser(string uid)

@@ -178,7 +178,7 @@
         
         async function redirectBasedOnRole() {
             try {
-                const userData = await ApiService.fetchWithAuth(`/Auth/user/${currentUser.uid}`);
+                const userData = await ApiService.fetchWithAuth('/Auth/me');
                 if (userData.role === 'admin') window.location.href = 'admin-dashboard.html';
                 else if (userData.role === 'driver') window.location.href = 'driver-dashboard.html';
                 else window.location.href = 'student-dashboard.html';
