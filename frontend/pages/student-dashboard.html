@@ -771,23 +771,24 @@
                 border-radius: 0;
                 margin: -1rem -0.75rem;
                 width: calc(100% + 1.5rem);
-                height: auto; /* Flow naturally for the list */
-                display: flex;
-                flex-direction: column;
-                background: var(--bg-primary); /* Match the dark background */
+                height: auto;
+                display: block; /* Fix flex circular dependency causing 0 height */
+                background: var(--bg-primary);
             }
             .chat-sidebar {
                 width: 100%;
                 border-right: none;
-                display: flex;
-                flex-direction: column;
+                display: block; /* Fix flex circular dependency */
                 background: var(--bg-primary);
             }
             .chat-sidebar__header {
-                display: none; /* Hide header to match user's expected design */
+                display: none;
             }
             .chat-room-list {
-                overflow-y: visible; /* Let the whole page scroll */
+                flex: none; /* Prevent collapse */
+                height: auto; /* Take content height */
+                overflow: visible;
+                padding-bottom: 2rem; /* Add some padding at bottom */
             }
             .chat-window {
                 display: none;
@@ -805,6 +806,8 @@
                 width: 100vw;
                 height: auto;
                 z-index: 90;
+                display: flex; /* Restore flex for the chat window */
+                flex-direction: column;
                 background: var(--bg-surface);
             }
             .chat-layout.chat-mobile-active .chat-sidebar {
