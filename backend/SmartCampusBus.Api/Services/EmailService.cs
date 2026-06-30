@@ -12,22 +12,28 @@ public interface IEmailService
 
 public class EmailService : IEmailService
 {
-    private readonly string _resendApiKey;
+    private readonly string _brevoApiKey;
     private readonly string _senderEmail;
+    private readonly string _senderName;
     private readonly HttpClient _httpClient;
 
     public EmailService(IConfiguration configuration)
     {
-        _resendApiKey = configuration["EmailSettings:ResendApiKey"] ?? "";
-        _senderEmail = configuration["EmailSettings:SenderEmail"] ?? "onboarding@resend.dev";
+        _brevoApiKey = configuration["EmailSettings:BrevoApiKey"] ?? "";
+        _senderEmail = configuration["EmailSettings:SenderEmail"] ?? "";
+        _senderName = "Smart Campus Bus";
         _httpClient = new HttpClient();
     }
 
     public async Task SendOtpEmailAsync(string toEmail, string otpCode, string userName)
     {
-        if (string.IsNullOrEmpty(_resendApiKey))
+        if (string.IsNullOrEmpty(_brevoApiKey))
         {
-            throw new Exception("Resend API Key is not configured. Set EmailSettings:ResendApiKey.");
+            throw new Exception("Brevo API Key is not configured. Set EmailSettings:BrevoApiKey.");
+        }
+        if (string.IsNullOrEmpty(_senderEmail))
+        {
+            throw new Exception("Sender Email is not configured. Set EmailSettings:SenderEmail.");
         }
 
         var htmlBody = $@"
@@ -56,25 +62,25 @@ public class EmailService : IEmailService
 
         var payload = new
         {
-            from = $"Smart Campus Bus <{_senderEmail}>",
-            to = new[] { toEmail },
+            sender = new { name = _senderName, email = _senderEmail },
+            to = new[] { new { email = toEmail, name = userName } },
             subject = "Verify your account - Smart Campus Bus",
-            html = htmlBody
+            htmlContent = htmlBody
         };
 
         var json = JsonSerializer.Serialize(payload);
-        var request = new HttpRequestMessage(HttpMethod.Post, "https://api.resend.com/emails")
+        var request = new HttpRequestMessage(HttpMethod.Post, "https://api.brevo.com/v3/smtp/email")
         {
             Content = new StringContent(json, Encoding.UTF8, "application/json")
         };
-        request.Headers.Add("Authorization", $"Bearer {_resendApiKey}");
+        request.Headers.Add("api-key", _brevoApiKey);
 
         var response = await _httpClient.SendAsync(request);
         var responseBody = await response.Content.ReadAsStringAsync();
 
         if (!response.IsSuccessStatusCode)
         {
-            throw new Exception($"Resend API error ({response.StatusCode}): {responseBody}");
+            throw new Exception($"Brevo API error ({response.StatusCode}): {responseBody}");
         }
     }
 }
