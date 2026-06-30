@@ -757,26 +757,23 @@
         }
         @media (max-width: 768px) {
             .chat-layout {
-                position: fixed;
-                top: 70px;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                z-index: 40;
-                margin: 0;
-                width: 100%;
-                height: calc(100vh - 70px);
+                gap: 0;
                 border: none;
                 border-radius: 0;
+                margin: -1rem -0.75rem; /* Remove admin-content padding */
+                width: calc(100% + 1.5rem);
+                height: calc(100vh - 90px); /* Adjust based on header height */
                 display: flex;
-                flex-direction: row; /* Fix: use row so items stretch vertically */
-                background: var(--bg-primary);
+                flex-direction: row;
+                background: var(--bg-surface);
             }
             .chat-sidebar {
                 width: 100%;
                 height: 100%;
-                flex: 1; /* Fix: ensure it grows to fill */
+                flex: 1;
                 border-right: none;
+                display: flex;
+                flex-direction: column;
             }
             .chat-window {
                 display: none; /* Hide chat window by default on mobile */
