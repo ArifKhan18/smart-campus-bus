@@ -9,6 +9,7 @@ namespace SmartCampusBus.Api.Controllers;
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
 {
+    private readonly IAuthService _authService;
     private readonly IEmailService _emailService;
 
     public AuthController(IAuthService authService, IEmailService emailService)
