@@ -129,6 +129,12 @@ function initNavigation() {
         if(sectionBusDetails) sectionBusDetails.style.display = 'none';
         
         currentSelectedBusId = null;
+
+        // Close mobile sidebar if open
+        const sidebar = document.querySelector('.admin-sidebar');
+        const overlay = document.querySelector('.sidebar-overlay');
+        if (sidebar) sidebar.classList.remove('open');
+        if (overlay) overlay.classList.remove('open');
     }
 
     if (navDashboard) {
