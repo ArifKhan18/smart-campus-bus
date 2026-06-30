@@ -3,7 +3,7 @@
 // ========================================
 
 import { db } from "./firebase-config.js";
-import { collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { collection, query, where, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { ApiService } from "./api.js";
 
 // State
