@@ -762,20 +762,22 @@
                 border-radius: 0;
                 margin: -1rem -0.75rem; /* Remove admin-content padding */
                 width: calc(100% + 1.5rem);
-                min-height: calc(100vh - 90px); /* FORCE height */
+                height: calc(100vh - 90px) !important; /* Explicit height is required for flex children to grow in some browsers */
                 display: flex;
                 flex-direction: column; /* Stack vertically */
                 background: var(--bg-surface);
             }
             .chat-sidebar {
                 width: 100%;
-                flex: 1; /* Force sidebar to grow */
+                height: 100% !important; /* Force explicit height */
+                flex: 1 1 100%; 
                 border-right: none;
                 display: flex;
                 flex-direction: column;
             }
             .chat-room-list {
-                flex: 1; /* Force list to take all remaining space */
+                flex: 1 1 auto;
+                height: 100%; /* Force explicit height */
                 overflow-y: auto;
             }
             .chat-window {
