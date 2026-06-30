@@ -4,7 +4,7 @@
 
 import { auth } from "./firebase-config.js";
 
-const API_BASE_URL = "https://localhost:7277/api"; 
+const API_BASE_URL = "https://smart-campus-bus-api.onrender.com/api"; 
 
 export class ApiService {
     /**
