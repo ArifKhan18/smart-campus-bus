@@ -769,16 +769,22 @@
                 gap: 0;
                 border: none;
                 border-radius: 0;
-                margin: -1rem -0.75rem;
-                width: calc(100% + 1.5rem);
+                margin: 0; /* Remove negative margins that might cause clipping */
+                width: 100%;
                 height: auto;
-                display: block; /* Fix flex circular dependency causing 0 height */
+                min-height: 500px; /* Guarantee a minimum height so it never collapses */
+                display: flex;
+                flex-direction: column;
                 background: var(--bg-primary);
+                overflow: visible !important; /* Prevent any hiding of content */
             }
             .chat-sidebar {
                 width: 100%;
+                height: auto;
+                flex: none;
                 border-right: none;
-                display: block; /* Fix flex circular dependency */
+                display: flex;
+                flex-direction: column;
                 background: var(--bg-primary);
             }
             .chat-sidebar__header {
@@ -787,8 +793,8 @@
             .chat-room-list {
                 flex: none; /* Prevent collapse */
                 height: auto; /* Take content height */
-                overflow: visible;
-                padding-bottom: 2rem; /* Add some padding at bottom */
+                overflow: visible !important;
+                padding-bottom: 2rem; 
             }
             .chat-window {
                 display: none;
