@@ -1003,6 +1003,7 @@ function openChatRoom(busId, busName) {
     chatWindow.innerHTML = `
         <div class="chat-header">
             <h3 style="margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+                <button class="chat-mobile-back" id="chat-mobile-back" aria-label="Back to bus list">←</button>
                 🚌 <span>${busName} - Live Chat</span>
             </h3>
         </div>
@@ -1016,6 +1017,18 @@ function openChatRoom(busId, busName) {
             </button>
         </div>
     `;
+
+    // Add mobile active class to layout to show chat window
+    const chatLayout = document.querySelector('.chat-layout');
+    if (chatLayout) chatLayout.classList.add('chat-mobile-active');
+
+    // Handle internal back button
+    const backBtn = document.getElementById('chat-mobile-back');
+    if (backBtn) {
+        backBtn.addEventListener('click', () => {
+            if (chatLayout) chatLayout.classList.remove('chat-mobile-active');
+        });
+    }
     
     const inputEl = document.getElementById('chat-input');
     const sendBtn = document.getElementById('chat-send-btn');
