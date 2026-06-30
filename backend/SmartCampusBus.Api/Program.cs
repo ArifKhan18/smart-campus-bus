@@ -48,6 +48,7 @@ builder.Services.AddScoped<SmartCampusBus.Api.Services.IBusService, SmartCampusB
 builder.Services.AddScoped<SmartCampusBus.Api.Services.IRouteService, SmartCampusBus.Api.Services.RouteService>();
 builder.Services.AddScoped<SmartCampusBus.Api.Services.IScheduleService, SmartCampusBus.Api.Services.ScheduleService>();
 builder.Services.AddScoped<SmartCampusBus.Api.Services.IAnnouncementService, SmartCampusBus.Api.Services.AnnouncementService>();
+builder.Services.AddScoped<SmartCampusBus.Api.Services.IEmailService, SmartCampusBus.Api.Services.EmailService>();
 
 // ── Authentication & Authorization ──
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

@@ -8,6 +8,8 @@ public interface IAuthService
     Task<User?> GetUserAsync(string uid);
     Task<bool> UpdateUserStatusAsync(string uid, string status);
     Task<List<User>> GetUsersByRoleAsync(string role, string? statusFilter = null);
+    Task SaveOtpAsync(string uid, string otpCode, DateTime expiresAt);
+    Task<bool> VerifyOtpAsync(string uid, string otpCode);
 }
 
 public class AuthService : IAuthService
@@ -92,5 +94,68 @@ public class AuthService : IAuthService
         }
 
         return users.OrderByDescending(u => u.CreatedAt).ToList();
+    }
+
+    public async Task SaveOtpAsync(string uid, string otpCode, DateTime expiresAt)
+    {
+        var docRef = _firestoreDb.Collection(UsersCollection).Document(uid);
+        var snapshot = await docRef.GetSnapshotAsync();
+        if (!snapshot.Exists) return;
+
+        var updates = new Dictionary<string, object>
+        {
+            { "otpCode", otpCode },
+            { "otpExpiresAt", Timestamp.FromDateTime(DateTime.SpecifyKind(expiresAt, DateTimeKind.Utc)) }
+        };
+
+        await docRef.UpdateAsync(updates);
+    }
+
+    public async Task<bool> VerifyOtpAsync(string uid, string otpCode)
+    {
+        var docRef = _firestoreDb.Collection(UsersCollection).Document(uid);
+        var snapshot = await docRef.GetSnapshotAsync();
+        
+        if (!snapshot.Exists) return false;
+
+        var dict = snapshot.ToDictionary();
+        var storedCode = dict.GetValueOrDefault("otpCode")?.ToString();
+        var expiresAtTs = dict.GetValueOrDefault("otpExpiresAt") as Timestamp?;
+
+        if (string.IsNullOrEmpty(storedCode) || storedCode != otpCode || expiresAtTs == null)
+        {
+            return false;
+        }
+
+        if (expiresAtTs.Value.ToDateTime() < DateTime.UtcNow)
+        {
+            return false; // Expired
+        }
+
+        // OTP is valid. Clear it and update Firebase Auth
+        var updates = new Dictionary<string, object>
+        {
+            { "otpCode", FieldValue.Delete },
+            { "otpExpiresAt", FieldValue.Delete },
+            { "isEmailVerified", true }
+        };
+        await docRef.UpdateAsync(updates);
+
+        // Update Firebase Auth directly
+        try
+        {
+            var userArgs = new FirebaseAdmin.Auth.UserRecordArgs
+            {
+                Uid = uid,
+                EmailVerified = true
+            };
+            await FirebaseAdmin.Auth.FirebaseAuth.DefaultInstance.UpdateUserAsync(userArgs);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error updating Firebase Auth: {ex.Message}");
+        }
+
+        return true;
     }
 }

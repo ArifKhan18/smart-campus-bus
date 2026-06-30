@@ -254,9 +254,12 @@ async function handleLoginSubmit(role) {
                 } 
                 // 3.5 Verify Email (Skip for admins to prevent lockout if manually added)
                 else if (!user.emailVerified && role !== 'admin') {
-                    await auth.signOut();
-                    if(window.showToast) window.showToast("Please verify your email address before logging in. Check your inbox.", 'warning', 5000);
-                    else alert("Please verify your email address before logging in.");
+                    if(window.showToast) window.showToast("Please verify your email address. Redirecting...", 'warning', 3000);
+                    else alert("Please verify your email address.");
+                    setTimeout(() => {
+                        window.location.href = "verify-otp.html";
+                    }, 1000);
+                    return;
                 }
                 // 4. Verify Driver Approval Status
                 else if (role === 'driver' && profile.status === 'pending') {
@@ -373,13 +376,8 @@ async function handleRegisterSubmit(role) {
             const userCredential = await createUserWithEmailAndPassword(auth, email.value, password.value);
             const user = userCredential.user;
 
-            // 2. Send Verification Email
-            try {
-                await sendEmailVerification(user);
-                console.log("Verification email sent");
-            } catch (err) {
-                console.error("Error sending verification email", err);
-            }
+            // 2. Remove Firebase's default email verification link
+            console.log("Registration successful, redirecting to OTP verification.");
 
             // 3. Create User Profile in Firestore
             const status = role === "driver" ? "pending" : "active";
@@ -394,27 +392,13 @@ async function handleRegisterSubmit(role) {
                 createdAt: serverTimestamp()
             });
 
-            // 4. Handle Post-Registration Logic based on Role
-            if (role === "driver") {
-                // Sign out driver since they are pending approval
-                await auth.signOut();
-                if(window.showToast) window.showToast("Account created successfully! Waiting for admin approval. Please check your email to verify.", 'success', 6000);
-                else alert("Account created successfully! Waiting for admin approval. Please check your email to verify.");
-                
-                setTimeout(() => {
-                    window.location.href = `login.html?role=${role}`;
-                }, 2000);
-            } else {
-                // Student - Keep logged in and redirect? No, sign out so they must verify email
-                await auth.signOut();
-                if(window.showToast) window.showToast("Account created successfully! Please check your email to verify before logging in.", 'success', 6000);
-                else alert("Account created successfully! Please check your email to verify before logging in.");
-                
-                setTimeout(() => {
-                    window.location.href = `login.html?role=${role}`;
-                }, 2000);
-            }
-            // Don't reset UI to prevent duplicate clicks while redirecting
+            // 4. Redirect to OTP Verification page (Do NOT sign out yet)
+            if(window.showToast) window.showToast("Account created! Please verify your email.", 'success', 3000);
+            
+            setTimeout(() => {
+                window.location.href = "verify-otp.html";
+            }, 1000);
+            
             return;
             
         } catch (error) {

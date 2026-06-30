@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Account - Smart Campus Bus</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/style.css">
+    
+    <style>
+        /* OTP specific styling */
+        .otp-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 30px 0;
+        }
+        
+        .otp-input {
+            width: 45px;
+            height: 55px;
+            font-size: 24px;
+            text-align: center;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+        
+        .otp-input:focus {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.2);
+            outline: none;
+        }
+        
+        .otp-input::-webkit-outer-spin-button,
+        .otp-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
+        .resend-box {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        
+        .resend-box button {
+            background: none;
+            border: none;
+            color: var(--accent-primary);
+            font-weight: 600;
+            cursor: pointer;
+            padding: 0;
+            margin-left: 5px;
+        }
+        
+        .resend-box button:disabled {
+            color: var(--text-secondary);
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body class="auth-page">
+
+    <!-- Theme Toggle -->
+    <div class="theme-toggle" id="theme-toggle">
+        <span class="theme-icon">🌙</span>
+    </div>
+
+    <!-- Background Shapes -->
+    <div class="bg-shape bg-shape--1"></div>
+    <div class="bg-shape bg-shape--2"></div>
+
+    <div class="auth-container">
+        <!-- Illustration Side -->
+        <div class="auth-illustration">
+            <div class="auth-illustration__content">
+                <h2>Check Your Email</h2>
+                <p>We've sent a 6-digit verification code to your email address.</p>
+                <div class="auth-illustration__graphic" style="font-size: 100px; text-align: center; margin-top: 30px;">
+                    ✉️
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Side -->
+        <div class="auth-form-section">
+            <div class="auth-form-wrapper">
+                <div class="auth-header text-center" style="margin-bottom: 2rem;">
+                    <h1>Verify Account</h1>
+                    <p id="user-email-display" style="color: var(--accent-primary); font-weight: 500;">user@example.com</p>
+                </div>
+
+                <form class="auth-form" id="otp-form">
+                    
+                    <div class="otp-container">
+                        <input type="number" class="otp-input" maxlength="1" required>
+                        <input type="number" class="otp-input" maxlength="1" required disabled>
+                        <input type="number" class="otp-input" maxlength="1" required disabled>
+                        <input type="number" class="otp-input" maxlength="1" required disabled>
+                        <input type="number" class="otp-input" maxlength="1" required disabled>
+                        <input type="number" class="otp-input" maxlength="1" required disabled>
+                    </div>
+
+                    <button type="submit" class="btn btn--primary btn--block btn--lg" id="btn-verify" style="margin-top: 10px;">
+                        Verify Account
+                    </button>
+                    
+                    <div class="resend-box">
+                        Didn't receive the code? 
+                        <button type="button" id="btn-resend">Resend Code</button>
+                        <span id="resend-timer" style="display: none; margin-left: 5px;">(60s)</span>
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 20px;">
+                        <a href="#" id="btn-logout" style="color: var(--text-secondary); text-decoration: none; font-size: 0.9rem;">Wrong email? Log out</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="../js/firebase-config.js"></script>
+    <script type="module" src="../js/api.js"></script>
+    <script type="module" src="../js/theme.js"></script>
+    
+    <!-- OTP Specific Logic -->
+    <script type="module">
+        import { auth } from "../js/firebase-config.js";
+        import { ApiService } from "../js/api.js";
+        import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+        
+        const inputs = document.querySelectorAll('.otp-input');
+        const form = document.getElementById('otp-form');
+        const btnVerify = document.getElementById('btn-verify');
+        const btnResend = document.getElementById('btn-resend');
+        const btnLogout = document.getElementById('btn-logout');
+        const resendTimer = document.getElementById('resend-timer');
+        const emailDisplay = document.getElementById('user-email-display');
+        
+        let currentUser = null;
+        
+        // ── Auth State Listener ──
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                emailDisplay.textContent = user.email;
+                
+                // If already verified, redirect based on role
+                if (user.emailVerified) {
+                    redirectBasedOnRole();
+                } else {
+                    // Send initial OTP automatically if they just arrived
+                    if (!sessionStorage.getItem('otp_sent_once')) {
+                        sendOtpRequest();
+                        sessionStorage.setItem('otp_sent_once', 'true');
+                    }
+                }
+            } else {
+                window.location.href = '../index.html#how-it-works';
+            }
+        });
+        
+        async function redirectBasedOnRole() {
+            try {
+                const userData = await ApiService.fetchWithAuth(`/Auth/user/${currentUser.uid}`);
+                if (userData.role === 'admin') window.location.href = 'admin-dashboard.html';
+                else if (userData.role === 'driver') window.location.href = 'driver-dashboard.html';
+                else window.location.href = 'student-dashboard.html';
+            } catch (error) {
+                console.error("Error fetching role:", error);
+                alert("Could not load user profile.");
+            }
+        }
+        
+        // ── Input Handling (Auto Focus Next) ──
+        inputs.forEach((input, index) => {
+            input.addEventListener('input', (e) => {
+                if (input.value.length > 1) {
+                    input.value = input.value.slice(0, 1);
+                }
+                
+                if (input.value.length === 1 && index < inputs.length - 1) {
+                    inputs[index + 1].disabled = false;
+                    inputs[index + 1].focus();
+                }
+            });
+            
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && !input.value && index > 0) {
+                    inputs[index - 1].focus();
+                }
+            });
+            
+            // Handle paste of 6 digits
+            input.addEventListener('paste', (e) => {
+                e.preventDefault();
+                const pastedData = e.clipboardData.getData('text').slice(0, 6).replace(/[^0-9]/g, '');
+                if (pastedData) {
+                    for (let i = 0; i < pastedData.length; i++) {
+                        if (i < inputs.length) {
+                            inputs[i].disabled = false;
+                            inputs[i].value = pastedData[i];
+                            if (i === pastedData.length - 1 || i === inputs.length - 1) {
+                                inputs[i].focus();
+                            }
+                        }
+                    }
+                }
+            });
+        });
+        
+        // ── Submit OTP ──
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            let code = '';
+            inputs.forEach(input => code += input.value);
+            
+            if (code.length !== 6) {
+                alert('Please enter all 6 digits.');
+                return;
+            }
+            
+            btnVerify.textContent = 'Verifying...';
+            btnVerify.disabled = true;
+            
+            try {
+                await ApiService.fetchWithAuth('/Auth/verify-otp', {
+                    method: 'POST',
+                    body: JSON.stringify({ code })
+                });
+                
+                // Force Firebase to refresh token so emailVerified = true is recognized
+                await currentUser.reload();
+                
+                alert("Account successfully verified!");
+                redirectBasedOnRole();
+                
+            } catch (error) {
+                console.error(error);
+                alert(error.message || 'Invalid code.');
+                inputs.forEach(input => input.value = '');
+                inputs[0].focus();
+            } finally {
+                btnVerify.textContent = 'Verify Account';
+                btnVerify.disabled = false;
+            }
+        });
+        
+        // ── Resend OTP ──
+        async function sendOtpRequest() {
+            try {
+                await ApiService.fetchWithAuth('/Auth/send-otp', { method: 'POST' });
+                startResendTimer();
+            } catch (error) {
+                console.error(error);
+                alert("Error sending OTP. Please try again.");
+            }
+        }
+        
+        btnResend.addEventListener('click', sendOtpRequest);
+        
+        function startResendTimer() {
+            btnResend.disabled = true;
+            resendTimer.style.display = 'inline';
+            let seconds = 60;
+            
+            const interval = setInterval(() => {
+                seconds--;
+                resendTimer.textContent = `(${seconds}s)`;
+                
+                if (seconds <= 0) {
+                    clearInterval(interval);
+                    btnResend.disabled = false;
+                    resendTimer.style.display = 'none';
+                }
+            }, 1000);
+        }
+        
+        // ── Logout ──
+        btnLogout.addEventListener('click', async (e) => {
+            e.preventDefault();
+            await signOut(auth);
+        });
+        
+    </script>
+</body>
+</html>

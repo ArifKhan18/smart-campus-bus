@@ -7,17 +7,18 @@ namespace SmartCampusBus.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles = "admin")]
 public class AuthController : ControllerBase
 {
-    private readonly IAuthService _authService;
+    private readonly IEmailService _emailService;
 
-    public AuthController(IAuthService authService)
+    public AuthController(IAuthService authService, IEmailService emailService)
     {
         _authService = authService;
+        _emailService = emailService;
     }
 
     [HttpGet("user/{uid}")]
+    [Authorize(Roles = "admin")]
     public async Task<IActionResult> GetUser(string uid)
     {
         var user = await _authService.GetUserAsync(uid);
@@ -31,6 +32,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpGet("users/role/{role}")]
+    [Authorize(Roles = "admin")]
     public async Task<IActionResult> GetUsersByRole(string role, [FromQuery] string? status = null)
     {
         var users = await _authService.GetUsersByRoleAsync(role, status);
@@ -39,6 +41,7 @@ public class AuthController : ControllerBase
 
     // This endpoint will be primarily used by Admins in Phase 3
     [HttpPut("user/{uid}/status")]
+    [Authorize(Roles = "admin")]
     public async Task<IActionResult> UpdateUserStatus(string uid, [FromBody] UpdateStatusDto request)
     {
         if (string.IsNullOrEmpty(request.Status) || 
@@ -56,6 +59,47 @@ public class AuthController : ControllerBase
 
         return Ok(new { message = $"User status updated to {request.Status}" });
     }
+
+    [HttpPost("send-otp")]
+    [Authorize]
+    public async Task<IActionResult> SendOtp()
+    {
+        var uid = User.FindFirst("user_id")?.Value;
+        if (string.IsNullOrEmpty(uid)) return Unauthorized();
+
+        var user = await _authService.GetUserAsync(uid);
+        if (user == null) return NotFound(new { message = "User not found" });
+
+        var random = new Random();
+        var otpCode = random.Next(100000, 999999).ToString();
+        var expiresAt = DateTime.UtcNow.AddMinutes(10);
+
+        await _authService.SaveOtpAsync(uid, otpCode, expiresAt);
+        await _emailService.SendOtpEmailAsync(user.Email, otpCode, user.Name);
+
+        return Ok(new { message = "OTP sent successfully" });
+    }
+
+    [HttpPost("verify-otp")]
+    [Authorize]
+    public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpDto request)
+    {
+        var uid = User.FindFirst("user_id")?.Value;
+        if (string.IsNullOrEmpty(uid)) return Unauthorized();
+
+        var isValid = await _authService.VerifyOtpAsync(uid, request.Code);
+        if (!isValid)
+        {
+            return BadRequest(new { message = "Invalid or expired OTP." });
+        }
+
+        return Ok(new { message = "Email verified successfully." });
+    }
+}
+
+public class VerifyOtpDto
+{
+    public string Code { get; set; } = string.Empty;
 }
 
 public class UpdateStatusDto
