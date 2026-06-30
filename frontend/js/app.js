@@ -3,25 +3,15 @@
 // ========================================
 
 import { app, auth, db } from "./firebase-config.js";
-import { initAuthGuard } from "./auth-guard.js";
 
 // ── App Initialization ──
-document.addEventListener("DOMContentLoaded", async () => {
+document.addEventListener("DOMContentLoaded", () => {
     console.log("🚌 Smart Campus Bus App Initialized");
 
     // Initialize animations
     initCounterAnimation();
     initScrollAnimations();
     initHeaderScroll();
-
-    // Check if user is already logged in
-    const authData = await initAuthGuard(false);
-    if (authData && authData.profile) {
-        const role = authData.profile.role;
-        if (role === 'admin') window.location.href = 'pages/admin-dashboard.html';
-        else if (role === 'driver') window.location.href = 'pages/driver-dashboard.html';
-        else window.location.href = 'pages/student-dashboard.html';
-    }
 });
 
 // ── Counter Animation (Hero Stats) ──

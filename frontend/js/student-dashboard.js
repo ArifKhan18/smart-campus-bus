@@ -131,57 +131,67 @@ function initNavigation() {
         currentSelectedBusId = null;
     }
 
-    function switchTab(tabId, title, pushState = true) {
-        resetTabs();
-        
-        const navLink = document.getElementById(`nav-${tabId}`);
-        if(navLink) navLink.classList.add('active');
-        
-        const section = document.getElementById(`section-${tabId}`);
-        if(section) section.style.display = 'block';
-        
-        pageTitle.textContent = title;
-        
-        // Close mobile sidebar
-        const sidebar = document.querySelector('.admin-sidebar');
-        const overlay = document.querySelector('.sidebar-overlay');
-        if (sidebar) sidebar.classList.remove('open');
-        if (overlay) overlay.classList.remove('open');
-        
-        // History API
-        if (pushState) {
-            history.pushState({ tab: tabId, title: title }, "", `#${tabId}`);
-        }
+    if (navDashboard) {
+        navDashboard.addEventListener('click', (e) => {
+            e.preventDefault();
+            resetTabs();
+            navDashboard.classList.add('active');
+            sectionDashboard.style.display = 'block';
+            pageTitle.textContent = "Student Portal";
+        });
     }
 
-    if (navDashboard) navDashboard.addEventListener('click', (e) => { e.preventDefault(); switchTab('dashboard', 'Student Portal'); });
-    if (navBuses) navBuses.addEventListener('click', (e) => { e.preventDefault(); switchTab('buses', 'Available Buses'); });
-    if (navRoutes) navRoutes.addEventListener('click', (e) => { e.preventDefault(); switchTab('routes', 'Routes & Stops'); });
-    if (navSchedules) navSchedules.addEventListener('click', (e) => { e.preventDefault(); switchTab('schedules', 'Schedules'); });
-    
+    if (navBuses) {
+        navBuses.addEventListener('click', (e) => {
+            e.preventDefault();
+            resetTabs();
+            navBuses.classList.add('active');
+            sectionBuses.style.display = 'block';
+            pageTitle.textContent = "Available Buses";
+        });
+    }
+
+    if (navRoutes) {
+        navRoutes.addEventListener('click', (e) => {
+            e.preventDefault();
+            resetTabs();
+            navRoutes.classList.add('active');
+            sectionRoutes.style.display = 'block';
+            pageTitle.textContent = "Routes & Stops";
+        });
+    }
+
+    if (navSchedules) {
+        navSchedules.addEventListener('click', (e) => {
+            e.preventDefault();
+            resetTabs();
+            navSchedules.classList.add('active');
+            sectionSchedules.style.display = 'block';
+            pageTitle.textContent = "Schedules";
+        });
+    }
+
     const navChat = document.getElementById('nav-chat');
-    if (navChat) navChat.addEventListener('click', (e) => { e.preventDefault(); switchTab('chat', 'Bus Chat'); });
-    
+    if (navChat) {
+        navChat.addEventListener('click', (e) => {
+            e.preventDefault();
+            resetTabs();
+            navChat.classList.add('active');
+            if(sectionChat) sectionChat.style.display = 'block';
+            pageTitle.textContent = "Bus Chat";
+        });
+    }
+
     const navAnnouncements = document.getElementById('nav-announcements');
-    if (navAnnouncements) navAnnouncements.addEventListener('click', (e) => { e.preventDefault(); switchTab('announcements', 'Campus Announcements'); });
-
-    // Handle hardware back button
-    window.addEventListener('popstate', (e) => {
-        if (e.state && e.state.tab) {
-            switchTab(e.state.tab, e.state.title, false);
-            
-            // If we are back on the chat tab, hide the chat window to show the bus list again on mobile
-            if (e.state.tab === 'chat') {
-                const chatLayout = document.querySelector('.chat-layout');
-                if (chatLayout) chatLayout.classList.remove('chat-mobile-active');
-            }
-        } else {
-            switchTab('dashboard', 'Student Portal', false);
-        }
-    });
-
-    // Push initial state
-    history.replaceState({ tab: 'dashboard', title: 'Student Portal' }, "", "#dashboard");
+    if (navAnnouncements) {
+        navAnnouncements.addEventListener('click', (e) => {
+            e.preventDefault();
+            resetTabs();
+            navAnnouncements.classList.add('active');
+            if(sectionAnnouncements) sectionAnnouncements.style.display = 'block';
+            pageTitle.textContent = "Campus Announcements";
+        });
+    }
 }
 
 // ── Data Listeners ──
@@ -987,7 +997,6 @@ function openChatRoom(busId, busName) {
     chatWindow.innerHTML = `
         <div class="chat-header">
             <h3 style="margin: 0; display: flex; align-items: center; gap: 0.5rem;">
-                <button class="chat-mobile-back" id="chat-mobile-back" aria-label="Back to bus list">←</button>
                 🚌 <span>${busName} - Live Chat</span>
             </h3>
         </div>
@@ -1001,21 +1010,6 @@ function openChatRoom(busId, busName) {
             </button>
         </div>
     `;
-
-    // Add mobile active class to layout
-    const chatLayout = document.querySelector('.chat-layout');
-    if (chatLayout) chatLayout.classList.add('chat-mobile-active');
-
-    // Push state for mobile back button support
-    history.pushState({ tab: 'chat', chatBusId: busId, title: 'Chat - ' + busName }, "", "#chat-room");
-
-    // Handle internal back button
-    const backBtn = document.getElementById('chat-mobile-back');
-    if (backBtn) {
-        backBtn.addEventListener('click', () => {
-            history.back(); // This will trigger popstate which handles the UI change
-        });
-    }
     
     const inputEl = document.getElementById('chat-input');
     const sendBtn = document.getElementById('chat-send-btn');
