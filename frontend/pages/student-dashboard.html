@@ -849,10 +849,16 @@
     <div class="admin-layout">
         <!-- Sidebar -->
         <aside class="admin-sidebar">
-            <a href="../index.html" class="logo">
-                <span class="logo__icon">🚌</span>
-                <span class="logo__text">SmartBus</span>
-            </a>
+            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <div class="logo">
+                    <span class="logo__icon">🚌</span>
+                    <span class="logo__text">SmartBus</span>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button id="theme-toggle-btn" class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme" style="background:none; border:none; color:var(--text-primary); cursor:pointer; font-size:1.2rem;">☀️</button>
+                    <button class="mobile-close-btn" onclick="document.querySelector('.admin-sidebar').classList.remove('open'); document.querySelector('.sidebar-overlay').classList.remove('open');" style="background:none; border:none; color:var(--text-primary); cursor:pointer; font-size:1.5rem; display: none;">×</button>
+                </div>
+            </div>
             
             <nav class="admin-nav">
                 <a href="#" class="admin-nav__link active" id="nav-dashboard">
@@ -888,12 +894,10 @@
             <header class="admin-header">
                 <div class="admin-header__title">
                     <button class="mobile-toggle" onclick="document.querySelector('.admin-sidebar').classList.toggle('open'); document.querySelector('.sidebar-overlay').classList.toggle('open');">☰</button>
-                    Student Dashboard
+                    <span id="page-title">Student Dashboard</span>
                 </div>
 
-                <div style="display: flex; align-items: center; gap: 1rem;">
-                    <!-- Theme Toggle -->
-                    <button id="theme-toggle-btn" class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme">☀️</button>
+                <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
                     
                     <!-- Notification Bell -->
                     <div class="notification-container">
@@ -917,16 +921,19 @@
                             </div>
                         </div>
                     </div>
-
-                    <div style="display: flex; align-items: center; gap: 1rem; background: rgba(255, 255, 255, 0.03); padding: 0.5rem 1rem; border-radius: 30px; border: 1px solid rgba(255, 255, 255, 0.05);">
-                        <span class="admin-user__avatar">🎓</span>
-                        <span class="admin-user__name" id="user-name">Loading...</span>
-                    </div>
                 </div>
             </header>
             
             <!-- Dashboard Section -->
             <section id="section-dashboard">
+                <!-- User Welcome Card -->
+                <div class="welcome-card" style="display: flex; align-items: center; gap: 1rem; background: rgba(255, 255, 255, 0.03); padding: 1rem 1.5rem; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.05); margin-bottom: 2rem;">
+                    <span style="font-size: 2rem;">🎓</span>
+                    <div>
+                        <h2 style="margin: 0; font-size: 1.5rem; color: var(--text-primary);" id="welcome-message">Welcome!</h2>
+                        <span style="color: var(--text-muted); font-size: 0.9rem;" id="user-name">Loading...</span>
+                    </div>
+                </div>
             
             <div id="email-verification-banner" style="display: none;">
                 <p>⚠️ Your email is not verified. Please check your inbox.</p>

@@ -614,10 +614,15 @@
     <div class="admin-layout">
         <!-- Sidebar -->
         <aside class="admin-sidebar">
-            <a href="../index.html" class="logo">
-                <span class="logo__icon">🚌</span>
-                <span class="logo__text">SmartBus</span>
-            </a>
+            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <div class="logo">
+                    <span class="logo__icon">🚌</span>
+                    <span class="logo__text">SmartBus</span>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button class="mobile-close-btn" onclick="document.querySelector('.admin-sidebar').classList.remove('open'); document.querySelector('.sidebar-overlay').classList.remove('open');" style="background:none; border:none; color:var(--text-primary); cursor:pointer; font-size:1.5rem; display: none;">×</button>
+                </div>
+            </div>
             
             <nav class="admin-nav">
                 <a href="#" class="admin-nav__link active" id="nav-drivers">
@@ -653,13 +658,9 @@
             <header class="admin-header">
                 <div class="admin-header__title">
                     <button class="mobile-toggle" onclick="document.querySelector('.admin-sidebar').classList.toggle('open'); document.querySelector('.sidebar-overlay').classList.toggle('open');">☰</button>
-                    Admin Dashboard
+                    <span id="page-title">Admin Dashboard</span>
                 </div>
-                <div style="display: flex; align-items: center; gap: 1rem;">
-                    <button id="theme-toggle-btn" class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme">☀️</button>
-                    <div class="admin-user">
-                    <span class="admin-user__avatar">🛡️</span>
-                    <span class="admin-user__name" id="admin-name">Loading...</span>
+                <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
                 </div>
             </header>
 

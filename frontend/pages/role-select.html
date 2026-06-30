@@ -27,7 +27,7 @@
         <div class="page-wrapper__bg-glow page-wrapper__bg-glow--bottom-left"></div>
 
         <!-- Top Links -->
-        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 1200px; padding: 1.5rem; position: absolute; top: 0; left: 50%; transform: translateX(-50%);">
+        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 1200px; padding: 1.5rem; position: absolute; top: 0; left: 50%; transform: translateX(-50%); z-index: 100;">
             <a href="../index.html" class="back-link" id="back-link" style="position: static; margin-bottom: 0;">
                 <span class="back-link__arrow">←</span>
                 Back to Home
@@ -38,10 +38,10 @@
         <!-- Role Selection Content -->
         <div class="role-select" id="role-select">
             <!-- Logo -->
-            <a href="../index.html" class="role-select__logo" id="role-select-logo">
+            <div class="role-select__logo" id="role-select-logo">
                 <span class="logo__icon">🚌</span>
                 <span class="logo__text">SmartBus</span>
-            </a>
+            </div>
 
             <!-- Heading -->
             <h1 class="role-select__heading" id="role-select-heading">Choose Your Role</h1>

@@ -2,7 +2,7 @@
 // Smart Campus Bus — Theme Toggle
 // ========================================
 
-(function() {
+(function () {
     // Check saved theme or default to system preference
     const savedTheme = localStorage.getItem('scb-theme');
     if (savedTheme) {
@@ -20,12 +20,12 @@
     });
 
     // Global toggle function
-    window.toggleTheme = function() {
+    window.toggleTheme = function () {
         const current = document.documentElement.getAttribute('data-theme') || 'light';
         const next = current === 'dark' ? 'light' : 'dark';
         document.documentElement.setAttribute('data-theme', next);
         localStorage.setItem('scb-theme', next);
-        
+
         // Update toggle button icon if present
         const btn = document.getElementById('theme-toggle-btn');
         if (btn) {
