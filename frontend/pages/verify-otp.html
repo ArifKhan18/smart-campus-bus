@@ -18,15 +18,16 @@
         }
         
         .otp-input {
-            width: 45px;
-            height: 55px;
+            width: 50px;
+            height: 60px;
             font-size: 24px;
+            font-weight: 600;
             text-align: center;
             border: 2px solid var(--border-color);
             border-radius: 8px;
-            background: var(--bg-secondary);
+            background: var(--bg-surface);
             color: var(--text-primary);
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
         }
         
         .otp-input:focus {
@@ -34,11 +35,11 @@
             box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.2);
             outline: none;
         }
-        
-        .otp-input::-webkit-outer-spin-button,
-        .otp-input::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
+
+        .otp-input:disabled {
+            background: var(--bg-secondary);
+            opacity: 0.6;
+            cursor: not-allowed;
         }
         
         .resend-box {
@@ -93,12 +94,12 @@
                 <form class="auth-form" id="otp-form">
                     
                     <div class="otp-container">
-                        <input type="number" class="otp-input" maxlength="1" required>
-                        <input type="number" class="otp-input" maxlength="1" required disabled>
-                        <input type="number" class="otp-input" maxlength="1" required disabled>
-                        <input type="number" class="otp-input" maxlength="1" required disabled>
-                        <input type="number" class="otp-input" maxlength="1" required disabled>
-                        <input type="number" class="otp-input" maxlength="1" required disabled>
+                        <input type="text" inputmode="numeric" class="otp-input" maxlength="1" required>
+                        <input type="text" inputmode="numeric" class="otp-input" maxlength="1" required disabled>
+                        <input type="text" inputmode="numeric" class="otp-input" maxlength="1" required disabled>
+                        <input type="text" inputmode="numeric" class="otp-input" maxlength="1" required disabled>
+                        <input type="text" inputmode="numeric" class="otp-input" maxlength="1" required disabled>
+                        <input type="text" inputmode="numeric" class="otp-input" maxlength="1" required disabled>
                     </div>
 
                     <button type="submit" class="auth__submit" id="btn-verify" style="margin-top: 10px; background-color: var(--accent-primary);">
@@ -254,9 +255,14 @@
             try {
                 await ApiService.fetchWithAuth('/Auth/send-otp', { method: 'POST' });
                 startResendTimer();
+                if(window.showToast) window.showToast("OTP sent! Check your email.", 'success');
             } catch (error) {
-                console.error(error);
-                alert("Error sending OTP. Please try again.");
+                console.error("OTP Send Error:", error);
+                alert("Error sending OTP: " + (error.message || "Unknown error"));
+                
+                // Allow resend immediately if failed
+                sessionStorage.removeItem('otp_sent_once');
+                btnResend.disabled = false;
             }
         }
         
