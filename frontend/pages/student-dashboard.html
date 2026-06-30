@@ -767,34 +767,32 @@
         @media (max-width: 768px) {
             .chat-layout {
                 gap: 0;
-                border: none;
-                border-radius: 0;
-                margin: 0; /* Remove negative margins that might cause clipping */
-                width: 100%;
-                height: auto;
-                min-height: 500px; /* Guarantee a minimum height so it never collapses */
-                display: flex;
-                flex-direction: column;
-                background: var(--bg-primary);
-                overflow: visible !important; /* Prevent any hiding of content */
+                border: none !important;
+                border-radius: 0 !important;
+                margin: 0 !important;
+                width: 100% !important;
+                height: auto !important;
+                min-height: 100vh;
+                display: block !important; /* Absolutely force block layout */
+                background: var(--bg-primary) !important;
+                overflow: visible !important; 
+                padding-top: 1rem;
             }
             .chat-sidebar {
-                width: 100%;
-                height: auto;
-                flex: none;
-                border-right: none;
-                display: flex;
-                flex-direction: column;
-                background: var(--bg-primary);
+                width: 100% !important;
+                height: auto !important;
+                display: block !important; /* Force block */
+                border-right: none !important;
+                background: transparent !important;
             }
             .chat-sidebar__header {
-                display: none;
+                display: none !important;
             }
             .chat-room-list {
-                flex: none; /* Prevent collapse */
-                height: auto; /* Take content height */
+                height: auto !important;
+                display: block !important; /* Force block */
                 overflow: visible !important;
-                padding-bottom: 2rem; 
+                padding-bottom: 4rem !important; 
             }
             .chat-window {
                 display: none;
