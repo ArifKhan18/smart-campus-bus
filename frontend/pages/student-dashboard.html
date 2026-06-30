@@ -107,7 +107,6 @@
             .admin-content {
                 margin-left: 0;
                 padding: 1rem 0.75rem;
-                padding-top: 80px; /* Space for fixed header */
             }
             .mobile-toggle {
                 display: block;
@@ -120,17 +119,9 @@
                 gap: 0.75rem;
             }
             .admin-header {
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                background: var(--bg-primary);
-                z-index: 100;
-                padding: 1rem 0.75rem;
-                margin: 0;
                 flex-direction: row;
                 gap: 0.5rem;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                margin-bottom: 1.5rem;
             }
         }
         @media (max-width: 480px) {
@@ -747,70 +738,6 @@
         }
         .load-more-btn:hover {
             background: var(--border-subtle);
-        }
-
-        /* Mobile Chat layout */
-        .chat-mobile-back {
-            display: none;
-            background: none;
-            border: none;
-            color: var(--text-primary);
-            font-size: 1.2rem;
-            cursor: pointer;
-            margin-right: 0.5rem;
-            padding: 0.2rem 0.5rem;
-            border-radius: 4px;
-        }
-        .chat-mobile-back:hover {
-            background: var(--bg-surface-hover);
-        }
-        @media (max-width: 768px) {
-            .chat-layout {
-                gap: 0;
-                border: none;
-                border-radius: 0;
-                height: calc(100vh - 120px); /* Let it be a fixed box like desktop */
-                margin: 0;
-                background: var(--bg-primary);
-            }
-            .chat-sidebar {
-                width: 100%;
-                border-right: none;
-                background: var(--bg-primary);
-            }
-            .chat-sidebar__header {
-                display: none;
-            }
-            .chat-window {
-                display: none;
-                width: 100%;
-            }
-            
-            /* When chat is active on mobile, make it full screen */
-            .chat-layout.chat-mobile-active {
-                position: fixed;
-                top: 70px; /* Below admin header */
-                bottom: 0;
-                left: 0;
-                right: 0;
-                margin: 0;
-                width: 100vw;
-                height: auto;
-                z-index: 90;
-                display: flex; /* Restore flex for the chat window */
-                flex-direction: column;
-                background: var(--bg-surface);
-            }
-            .chat-layout.chat-mobile-active .chat-sidebar {
-                display: none;
-            }
-            .chat-layout.chat-mobile-active .chat-window {
-                display: flex;
-                height: 100%;
-            }
-            .chat-mobile-back {
-                display: block;
-            }
         }
 
         /* Bus Stop List Styles */
