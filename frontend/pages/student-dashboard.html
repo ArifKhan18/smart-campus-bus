@@ -674,6 +674,9 @@
                 <a href="#" class="admin-nav__link" id="nav-chat">
                     <span>💬</span> Bus Chat
                 </a>
+                <a href="#" class="admin-nav__link" id="nav-announcements">
+                    <span>📢</span> Announcements
+                </a>
             </nav>
             
             <div style="margin-top: auto;">
@@ -724,6 +727,17 @@
             <div id="email-verification-banner" style="display: none;">
                 <p>⚠️ Your email is not verified. Please check your inbox.</p>
                 <button id="resend-verification-btn" class="btn btn--outline btn--sm" style="border-color: var(--accent-warning); color: var(--accent-warning);">Resend Email</button>
+            </div>
+            
+            <div id="urgent-announcement-banner" style="display: none; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-left: 4px solid #ef4444; padding: 1rem; border-radius: 8px; margin-bottom: 2rem;">
+                <div style="display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.5rem;">
+                    <span style="font-size: 1.2rem;">📢</span>
+                    <h3 id="urgent-announcement-title" style="margin: 0; color: #ef4444; font-size: 1.1rem;">Urgent Announcement</h3>
+                </div>
+                <p id="urgent-announcement-message" style="margin: 0; color: var(--text-light); line-height: 1.4;"></p>
+                <div style="margin-top: 0.5rem; text-align: right;">
+                    <button class="btn btn--outline btn--sm" id="btn-view-all-announcements" style="border-color: rgba(239, 68, 68, 0.5); color: #ef4444; padding: 0.3rem 0.8rem; font-size: 0.8rem;">View All Announcements</button>
+                </div>
             </div>
 
             <div class="welcome-card">
@@ -878,6 +892,21 @@
                 </div>
             </section>
             
+            <!-- Announcements Section -->
+            <section id="section-announcements" style="display: none;">
+                <div style="margin-bottom: 2rem;">
+                    <h2 style="font-size: 1.5rem; color: var(--text-light); font-weight: 600; margin-bottom: 0.5rem;">Campus Announcements</h2>
+                    <p style="color: var(--text-muted);">Stay updated with the latest notices and schedule changes.</p>
+                </div>
+                
+                <div class="driver-grid" id="student-announcement-grid">
+                    <!-- Loading State -->
+                    <div class="empty-state">
+                        <div style="width: 40px; height: 40px; border: 3px solid rgba(108, 99, 255, 0.3); border-top-color: var(--accent-primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1rem;"></div>
+                        <p>Loading announcements...</p>
+                    </div>
+                </div>
+            </section>
         </main>
     </div>
 

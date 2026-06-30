@@ -519,6 +519,12 @@
                 <a href="#" class="admin-nav__link" id="nav-schedules">
                     <span>📅</span> Schedules
                 </a>
+                <a href="#" class="admin-nav__link" id="nav-announcements">
+                    <span>📢</span> Announcements
+                </a>
+                <a href="#" class="admin-nav__link" id="nav-analytics">
+                    <span>📊</span> Analytics
+                </a>
             </nav>
             
             <div style="margin-top: auto;">
@@ -678,6 +684,78 @@
                     <div class="empty-state">
                         <div style="width: 40px; height: 40px; border: 3px solid rgba(108, 99, 255, 0.3); border-top-color: var(--accent-primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1rem;"></div>
                         <p>Loading schedules...</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Announcements Section -->
+            <section class="admin-section" id="section-announcements" style="display: none;">
+                <div class="admin-section__header">
+                    <h2 class="admin-section__title">Announcements</h2>
+                    <button class="btn btn--primary" id="btn-add-announcement">
+                        <span>➕</span> Create Announcement
+                    </button>
+                </div>
+
+                <!-- Announcement Stats Overview -->
+                <div class="admin-stats" style="margin-bottom: 2rem;">
+                    <div class="stat-card">
+                        <span class="stat-card__title">Total Announcements</span>
+                        <span class="stat-card__value" id="announcement-stat-total">0</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-card__title">Urgent Active</span>
+                        <span class="stat-card__value text-warning" id="announcement-stat-urgent">0</span>
+                    </div>
+                </div>
+
+                <!-- Announcement Grid -->
+                <div class="driver-grid" id="announcement-grid">
+                    <!-- Loading State -->
+                    <div class="empty-state">
+                        <div style="width: 40px; height: 40px; border: 3px solid rgba(108, 99, 255, 0.3); border-top-color: var(--accent-primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1rem;"></div>
+                        <p>Loading announcements...</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Analytics Section -->
+            <section class="admin-section" id="section-analytics" style="display: none;">
+                <div class="admin-section__header">
+                    <h2 class="admin-section__title">Analytics Dashboard</h2>
+                </div>
+
+                <div class="admin-stats" style="margin-bottom: 2rem;">
+                    <div class="stat-card">
+                        <span class="stat-card__title">Total Students</span>
+                        <span class="stat-card__value text-success" id="analytics-total-students">0</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-card__title">Active Drivers</span>
+                        <span class="stat-card__value text-warning" id="analytics-active-drivers">0</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-card__title">Total Buses</span>
+                        <span class="stat-card__value text-primary" id="analytics-total-buses">0</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-card__title">Active Routes</span>
+                        <span class="stat-card__value text-success" id="analytics-active-routes">0</span>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 2rem; margin-bottom: 2rem;">
+                    <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 1.5rem;">
+                        <h3 style="color: var(--text-muted); font-size: 1rem; margin-bottom: 1rem; font-weight: 500;">User Role Distribution</h3>
+                        <div style="position: relative; height: 300px; width: 100%;">
+                            <canvas id="chart-user-roles"></canvas>
+                        </div>
+                    </div>
+                    <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 1.5rem;">
+                        <h3 style="color: var(--text-muted); font-size: 1rem; margin-bottom: 1rem; font-weight: 500;">Driver Status Overview</h3>
+                        <div style="position: relative; height: 300px; width: 100%;">
+                            <canvas id="chart-driver-status"></canvas>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -924,6 +1002,9 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
     
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
     <!-- Scripts -->
     <script type="module" src="../js/firebase-config.js"></script>
     <script type="module" src="../js/auth-guard.js"></script>
@@ -931,6 +1012,62 @@
     <script type="module" src="../js/bus-management.js"></script>
     <script type="module" src="../js/route-management.js"></script>
     <script type="module" src="../js/schedule-management.js"></script>
+    <script type="module" src="../js/announcement-management.js"></script>
+    <script type="module" src="../js/analytics.js"></script>
+    
+    <!-- Announcement Modal -->
+    <div class="modal-overlay" id="announcement-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="announcement-modal-title">Create Announcement</h3>
+                <button class="modal-close" id="announcement-modal-close">&times;</button>
+            </div>
+            <form id="announcement-form">
+                <div class="modal-body">
+                    <input type="hidden" id="announcement-id">
+                    <div class="form-group">
+                        <label class="form-group__label">Title</label>
+                        <div class="form-group__input-wrapper">
+                            <input type="text" id="announcement-title" class="form-group__input" placeholder="e.g. Schedule Change" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-group__label">Type</label>
+                        <div class="form-group__input-wrapper">
+                            <select id="announcement-type" class="form-group__input" required>
+                                <option value="notice">📋 Notice</option>
+                                <option value="alert">⚠️ Alert</option>
+                                <option value="schedule_change">📅 Schedule Change</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-group__label">Priority</label>
+                        <div class="form-group__input-wrapper">
+                            <select id="announcement-priority" class="form-group__input" required>
+                                <option value="normal">Normal</option>
+                                <option value="urgent">Urgent</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-group__label">Message</label>
+                        <div class="form-group__input-wrapper">
+                            <textarea id="announcement-message" class="form-group__input" rows="4" placeholder="Type your announcement here..." required></textarea>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn--outline" id="announcement-modal-cancel">Cancel</button>
+                    <button type="submit" class="btn btn--primary">Save Announcement</button>
+                </div>
+            </form>
+        </div>
+    </div>
     
     <script>
         // Inline toast logic

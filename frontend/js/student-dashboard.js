@@ -17,6 +17,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         initDataListeners();
         initNotifications();
         initChat(authData.user, authData.profile);
+        initAnnouncements();
         fetchDashboardStats();
         
         // Setup Logout
@@ -103,6 +104,7 @@ function initNavigation() {
     const sectionRoutes = document.getElementById('section-routes');
     const sectionSchedules = document.getElementById('section-schedules');
     const sectionChat = document.getElementById('section-chat');
+    const sectionAnnouncements = document.getElementById('section-announcements');
     
     const pageTitle = document.getElementById('page-title');
 
@@ -113,12 +115,15 @@ function initNavigation() {
         if(navSchedules) navSchedules.classList.remove('active');
         const navChat = document.getElementById('nav-chat');
         if(navChat) navChat.classList.remove('active');
+        const navAnnouncements = document.getElementById('nav-announcements');
+        if(navAnnouncements) navAnnouncements.classList.remove('active');
         
         if(sectionDashboard) sectionDashboard.style.display = 'none';
         if(sectionBuses) sectionBuses.style.display = 'none';
         if(sectionRoutes) sectionRoutes.style.display = 'none';
         if(sectionSchedules) sectionSchedules.style.display = 'none';
         if(sectionChat) sectionChat.style.display = 'none';
+        if(sectionAnnouncements) sectionAnnouncements.style.display = 'none';
         
         const sectionBusDetails = document.getElementById('section-bus-details');
         if(sectionBusDetails) sectionBusDetails.style.display = 'none';
@@ -174,6 +179,17 @@ function initNavigation() {
             navChat.classList.add('active');
             if(sectionChat) sectionChat.style.display = 'block';
             pageTitle.textContent = "Bus Chat";
+        });
+    }
+
+    const navAnnouncements = document.getElementById('nav-announcements');
+    if (navAnnouncements) {
+        navAnnouncements.addEventListener('click', (e) => {
+            e.preventDefault();
+            resetTabs();
+            navAnnouncements.classList.add('active');
+            if(sectionAnnouncements) sectionAnnouncements.style.display = 'block';
+            pageTitle.textContent = "Campus Announcements";
         });
     }
 }
@@ -1228,4 +1244,118 @@ async function markMessageAsSeen(busId, msgId, currentReadBy) {
             // Ignore minor errors in read receipts
         }
     }
+}
+
+// ── Phase 21: Announcements ──
+
+let studentAnnouncements = [];
+let unsubscribeStudentAnnouncements = null;
+
+window.goToAnnouncements = function() {
+    const navAnn = document.getElementById('nav-announcements');
+    if (navAnn) navAnn.click();
+};
+
+function initAnnouncements() {
+    const btnViewAll = document.getElementById('btn-view-all-announcements');
+    if (btnViewAll) {
+        btnViewAll.addEventListener('click', () => {
+            window.goToAnnouncements();
+        });
+    }
+
+    const q = query(collection(db, "announcements"), orderBy("createdAt", "desc"));
+    
+    unsubscribeStudentAnnouncements = onSnapshot(q, (snapshot) => {
+        studentAnnouncements = [];
+        snapshot.forEach((docSnap) => {
+            studentAnnouncements.push({ id: docSnap.id, ...docSnap.data() });
+        });
+        
+        renderStudentAnnouncements();
+        updateDashboardBanner();
+    });
+}
+
+function updateDashboardBanner() {
+    const banner = document.getElementById('urgent-announcement-banner');
+    const titleEl = document.getElementById('urgent-announcement-title');
+    const msgEl = document.getElementById('urgent-announcement-message');
+    
+    if (!banner || !titleEl || !msgEl) return;
+    
+    const urgentAnns = studentAnnouncements.filter(a => a.priority === 'urgent');
+    
+    if (urgentAnns.length > 0) {
+        const latest = urgentAnns[0];
+        titleEl.textContent = latest.title;
+        msgEl.innerHTML = (latest.message || '').replace(/\\n/g, '<br>');
+        banner.style.display = 'block';
+    } else {
+        banner.style.display = 'none';
+    }
+}
+
+function renderStudentAnnouncements() {
+    const grid = document.getElementById('student-announcement-grid');
+    if (!grid) return;
+    
+    if (studentAnnouncements.length === 0) {
+        grid.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state__icon">📢</div>
+                <p>No announcements at this time.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    grid.innerHTML = '';
+    
+    studentAnnouncements.forEach(ann => {
+        const card = document.createElement('div');
+        card.className = 'bus-card';
+        
+        let icon = '📢';
+        let typeColor = 'var(--text-muted)';
+        
+        if (ann.type === 'notice') { icon = '📋'; typeColor = '#3b82f6'; }
+        else if (ann.type === 'alert') { icon = '⚠️'; typeColor = '#ef4444'; }
+        else if (ann.type === 'schedule_change') { icon = '📅'; typeColor = '#f59e0b'; }
+        
+        let priorityBadge = '';
+        if (ann.priority === 'urgent') {
+            priorityBadge = `<span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; border: 1px solid rgba(239, 68, 68, 0.4); margin-left: auto;">URGENT</span>`;
+        }
+        
+        let dateStr = 'Just now';
+        if (ann.createdAt && typeof ann.createdAt.toDate === 'function') {
+            dateStr = ann.createdAt.toDate().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        }
+        
+        card.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; width: 100%;">
+                <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; width: 100%;">
+                    <span style="font-size: 1.2rem;">${icon}</span>
+                    <h3 style="margin: 0; font-size: 1.1rem; color: var(--text-light); word-break: break-word; flex: 1;">${ann.title}</h3>
+                    ${priorityBadge}
+                </div>
+            </div>
+            
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem; line-height: 1.4; word-break: break-word;">
+                ${(ann.message || '').replace(/\\n/g, '<br>')}
+            </p>
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 0.8rem; margin-top: auto;">
+                <span style="color: ${typeColor}; font-size: 0.8rem; font-weight: 500;">
+                    ${ann.type === 'schedule_change' ? 'Schedule Change' : (ann.type === 'alert' ? 'Alert' : 'Notice')} • ${dateStr}
+                </span>
+                <span style="color: var(--text-muted); font-size: 0.75rem;">
+                    Posted by Admin
+                </span>
+            </div>
+        `;
+        
+        grid.appendChild(card);
+    });
 }
