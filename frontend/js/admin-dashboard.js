@@ -101,57 +101,69 @@ document.addEventListener("DOMContentLoaded", () => {
         if (overlay) overlay.classList.remove('open');
     }
 
+    window.switchSection = function(sectionName, updateHistory = true) {
+        resetTabs();
+        const nav = document.getElementById('nav-' + sectionName);
+        const section = document.getElementById('section-' + sectionName);
+        
+        if (nav) nav.classList.add('active');
+        if (section) section.style.display = 'block';
+        
+        if (updateHistory) {
+            history.pushState({ section: sectionName }, "", "#" + sectionName);
+        }
+    };
+
+    // Set initial state
+    history.replaceState({ section: 'drivers' }, "", "#drivers");
+
+    window.addEventListener('popstate', (e) => {
+        if (e.state && e.state.section) {
+            switchSection(e.state.section, false);
+        } else {
+            switchSection('drivers', false);
+        }
+    });
+
     if (navDrivers) {
         navDrivers.addEventListener('click', (e) => {
             e.preventDefault();
-            resetTabs();
-            navDrivers.classList.add('active');
-            sectionDrivers.style.display = 'block';
+            switchSection('drivers');
         });
     }
 
     if (navBuses) {
         navBuses.addEventListener('click', (e) => {
             e.preventDefault();
-            resetTabs();
-            navBuses.classList.add('active');
-            sectionBuses.style.display = 'block';
+            switchSection('buses');
         });
     }
 
     if (navRoutes) {
         navRoutes.addEventListener('click', (e) => {
             e.preventDefault();
-            resetTabs();
-            navRoutes.classList.add('active');
-            sectionRoutes.style.display = 'block';
+            switchSection('routes');
         });
     }
 
     if (navSchedules) {
         navSchedules.addEventListener('click', (e) => {
             e.preventDefault();
-            resetTabs();
-            navSchedules.classList.add('active');
-            sectionSchedules.style.display = 'block';
+            switchSection('schedules');
         });
     }
 
     if (navAnnouncements) {
         navAnnouncements.addEventListener('click', (e) => {
             e.preventDefault();
-            resetTabs();
-            navAnnouncements.classList.add('active');
-            sectionAnnouncements.style.display = 'block';
+            switchSection('announcements');
         });
     }
 
     if (navAnalytics) {
         navAnalytics.addEventListener('click', (e) => {
             e.preventDefault();
-            resetTabs();
-            navAnalytics.classList.add('active');
-            sectionAnalytics.style.display = 'block';
+            switchSection('analytics');
         });
     }
 });

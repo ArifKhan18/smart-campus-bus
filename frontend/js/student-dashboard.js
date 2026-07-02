@@ -140,47 +140,65 @@ function initNavigation() {
         if (overlay) overlay.classList.remove('open');
     }
 
+    window.switchSection = function(sectionName, title, updateHistory = true) {
+        resetTabs();
+        const nav = document.getElementById('nav-' + sectionName);
+        const section = document.getElementById('section-' + sectionName);
+        
+        if(nav) nav.classList.add('active');
+        if(section) section.style.display = 'block';
+        if(title && pageTitle) pageTitle.textContent = title;
+        
+        if (sectionName === 'dashboard' || sectionName === 'buses') {
+            const notifContainer = document.getElementById('notification-container-main');
+            if (notifContainer) notifContainer.style.display = 'flex';
+        }
+        
+        if (updateHistory) {
+            history.pushState({ section: sectionName, title: title }, "", "#" + sectionName);
+        }
+    };
+
+    // Set initial state
+    history.replaceState({ section: 'dashboard', title: 'Student Portal' }, "", "#dashboard");
+
+    window.addEventListener('popstate', (e) => {
+        if (e.state && e.state.section) {
+            if (e.state.section === 'bus-details') {
+                openBusDetails(e.state.busId, false);
+            } else {
+                switchSection(e.state.section, e.state.title, false);
+            }
+        } else {
+            switchSection('dashboard', 'Student Portal', false);
+        }
+    });
+
     if (navDashboard) {
         navDashboard.addEventListener('click', (e) => {
             e.preventDefault();
-            resetTabs();
-            navDashboard.classList.add('active');
-            sectionDashboard.style.display = 'block';
-            pageTitle.textContent = "Student Portal";
-            const notifContainer = document.getElementById('notification-container-main');
-            if (notifContainer) notifContainer.style.display = 'flex';
+            switchSection('dashboard', "Student Portal");
         });
     }
 
     if (navBuses) {
         navBuses.addEventListener('click', (e) => {
             e.preventDefault();
-            resetTabs();
-            navBuses.classList.add('active');
-            sectionBuses.style.display = 'block';
-            pageTitle.textContent = "Available Buses";
-            const notifContainer = document.getElementById('notification-container-main');
-            if (notifContainer) notifContainer.style.display = 'flex';
+            switchSection('buses', "Available Buses");
         });
     }
 
     if (navRoutes) {
         navRoutes.addEventListener('click', (e) => {
             e.preventDefault();
-            resetTabs();
-            navRoutes.classList.add('active');
-            sectionRoutes.style.display = 'block';
-            pageTitle.textContent = "Routes & Stops";
+            switchSection('routes', "Routes & Stops");
         });
     }
 
     if (navSchedules) {
         navSchedules.addEventListener('click', (e) => {
             e.preventDefault();
-            resetTabs();
-            navSchedules.classList.add('active');
-            sectionSchedules.style.display = 'block';
-            pageTitle.textContent = "Schedules";
+            switchSection('schedules', "Schedules");
         });
     }
 
@@ -188,10 +206,7 @@ function initNavigation() {
     if (navChat) {
         navChat.addEventListener('click', (e) => {
             e.preventDefault();
-            resetTabs();
-            navChat.classList.add('active');
-            if(sectionChat) sectionChat.style.display = 'block';
-            pageTitle.textContent = "Bus Chat";
+            switchSection('chat', "Bus Chat");
         });
     }
 
@@ -199,10 +214,7 @@ function initNavigation() {
     if (navAnnouncements) {
         navAnnouncements.addEventListener('click', (e) => {
             e.preventDefault();
-            resetTabs();
-            navAnnouncements.classList.add('active');
-            if(sectionAnnouncements) sectionAnnouncements.style.display = 'block';
-            pageTitle.textContent = "Campus Announcements";
+            switchSection('announcements', "Campus Announcements");
         });
     }
 }
@@ -356,7 +368,7 @@ function renderBuses() {
 }
 
 // ── Bus Details & Map Logic ──
-function openBusDetails(busId) {
+window.openBusDetails = function(busId, updateHistory = true) {
     currentSelectedBusId = busId;
     const bus = allBuses.find(b => b.id === busId);
     if (!bus) return;
@@ -372,10 +384,13 @@ function openBusDetails(busId) {
     
     // Setup Back Button
     document.getElementById('btn-back-buses').onclick = () => {
-        sectionDetails.style.display = 'none';
-        document.getElementById('section-buses').style.display = 'block';
-        currentSelectedBusId = null;
+        history.back(); // Use history API instead of direct toggle
     };
+
+    if (updateHistory) {
+        history.pushState({ section: 'bus-details', busId: busId }, "", "#bus-details");
+    }
+
     
     // Map Logic
     const overlay = document.getElementById('map-overlay');
