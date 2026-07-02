@@ -155,22 +155,48 @@ function initNavigation() {
         }
         
         if (updateHistory) {
-            history.pushState({ section: sectionName, title: title }, "", "#" + sectionName);
+            history.replaceState({ section: sectionName, title: title }, "", "#" + sectionName);
         }
     };
 
     // Set initial state
-    history.replaceState({ section: 'dashboard', title: 'Student Portal' }, "", "#dashboard");
+    history.replaceState({ isRoot: true }, "", window.location.pathname);
+    history.pushState({ section: 'dashboard', title: 'Student Portal' }, "", "#dashboard");
 
     window.addEventListener('popstate', (e) => {
-        if (e.state && e.state.section) {
-            if (e.state.section === 'bus-details') {
-                openBusDetails(e.state.busId, false);
+        const state = e.state;
+        if (!state) return;
+
+        if (state.isRoot) {
+            if (window.innerWidth <= 768) {
+                // Mobile: Open sidebar
+                const sidebar = document.querySelector('.admin-sidebar');
+                const overlay = document.querySelector('.sidebar-overlay');
+                if (sidebar) sidebar.classList.add('open');
+                if (overlay) overlay.classList.add('open');
+                
+                // Find active section to push it back
+                let currentSection = 'dashboard';
+                const activeNav = document.querySelector('.nav__link.active') || document.querySelector('.admin-sidebar .nav-link.active') || document.querySelector('.sidebar-nav .nav-link.active');
+                if (activeNav) currentSection = activeNav.id.replace('nav-', '');
+                history.pushState({ section: currentSection }, "", "#" + currentSection);
             } else {
-                switchSection(e.state.section, e.state.title, false);
+                history.back(); // Let desktop user exit
             }
+            return;
+        }
+
+        // Clean up any overlays/layouts
+        const chatLayout = document.querySelector('.chat-layout');
+        if (chatLayout) chatLayout.classList.remove('chat-mobile-active');
+
+        if (state.section === 'bus-details') {
+            openBusDetails(state.busId, false);
+        } else if (state.section === 'chat-inbox') {
+            switchSection('chat', 'Bus Chat', false);
+            if (window.openChatRoom) window.openChatRoom(state.busId, state.busName, false);
         } else {
-            switchSection('dashboard', 'Student Portal', false);
+            switchSection(state.section, state.title, false);
         }
     });
 
@@ -1001,7 +1027,7 @@ function initChat(user, profile) {
             item.addEventListener('click', () => {
                 document.querySelectorAll('.chat-room-item').forEach(el => el.classList.remove('active'));
                 item.classList.add('active');
-                openChatRoom(busId, busName);
+                if (window.openChatRoom) window.openChatRoom(busId, busName);
             });
             
             chatRoomList.appendChild(item);
@@ -1022,7 +1048,7 @@ async function ensureChatRoomExists(busId, busName) {
     }
 }
 
-function openChatRoom(busId, busName) {
+window.openChatRoom = function(busId, busName, updateHistory = true) {
     currentChatBusId = busId;
     chatMessageLimit = 50;
     
@@ -1052,9 +1078,13 @@ function openChatRoom(busId, busName) {
     // Handle internal back button
     const backBtn = document.getElementById('chat-mobile-back');
     if (backBtn) {
-        backBtn.addEventListener('click', () => {
-            if (chatLayout) chatLayout.classList.remove('chat-mobile-active');
-        });
+        backBtn.onclick = () => {
+            history.back(); // Use history API instead of direct toggle
+        };
+    }
+
+    if (updateHistory) {
+        history.pushState({ section: 'chat-inbox', busId: busId, busName: busName }, "", "#chat-inbox");
     }
     
     const inputEl = document.getElementById('chat-input');

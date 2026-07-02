@@ -110,16 +110,39 @@ document.addEventListener("DOMContentLoaded", () => {
         if (section) section.style.display = 'block';
         
         if (updateHistory) {
-            history.pushState({ section: sectionName }, "", "#" + sectionName);
+            history.replaceState({ section: sectionName }, "", "#" + sectionName);
         }
     };
 
     // Set initial state
-    history.replaceState({ section: 'drivers' }, "", "#drivers");
+    history.replaceState({ isRoot: true }, "", window.location.pathname);
+    history.pushState({ section: 'drivers' }, "", "#drivers");
 
     window.addEventListener('popstate', (e) => {
-        if (e.state && e.state.section) {
-            switchSection(e.state.section, false);
+        const state = e.state;
+        if (!state) return;
+
+        if (state.isRoot) {
+            if (window.innerWidth <= 768) {
+                // Mobile: Open sidebar
+                const sidebar = document.querySelector('.admin-sidebar');
+                const overlay = document.querySelector('.sidebar-overlay');
+                if (sidebar) sidebar.classList.add('open');
+                if (overlay) overlay.classList.add('open');
+                
+                // Find active section to push it back
+                let currentSection = 'drivers';
+                const activeNav = document.querySelector('.nav__link.active') || document.querySelector('.admin-sidebar .nav-link.active') || document.querySelector('.sidebar-nav .nav-link.active');
+                if (activeNav) currentSection = activeNav.id.replace('nav-', '');
+                history.pushState({ section: currentSection }, "", "#" + currentSection);
+            } else {
+                history.back(); // Let desktop user exit
+            }
+            return;
+        }
+
+        if (state.section) {
+            switchSection(state.section, false);
         } else {
             switchSection('drivers', false);
         }
