@@ -2019,42 +2019,42 @@ button {
 
     /* Chat Layout Mobile Fix */
     .chat-layout {
-        flex-direction: column !important;
-        height: 75vh !important;
+        flex-direction: row !important;
+        gap: 0 !important;
+        height: calc(100vh - 120px) !important;
         min-height: unset !important;
         margin-bottom: 20px;
     }
     .chat-sidebar {
         width: 100% !important;
         border-right: none !important;
-        border-bottom: 1px solid var(--border-subtle);
-        max-height: 80px;
-        overflow-y: hidden;
+        border-bottom: none !important;
+        max-height: none !important;
+        overflow-y: auto !important;
+        flex-shrink: 0;
     }
     .chat-sidebar__header {
-        display: none;
-    }
-    .chat-sidebar ul {
-        display: flex;
-        overflow-x: auto;
-        white-space: nowrap;
-        padding: 5px;
-        gap: 10px;
-    }
-    .chat-sidebar ul li {
-        flex: 0 0 auto;
-        border-bottom: none !important;
-        border-right: 1px solid var(--border-subtle);
-        padding: 10px 15px !important;
-        border-radius: var(--radius-md);
+        display: block !important;
     }
     .chat-window {
+        display: none !important;
+        width: 100% !important;
         min-height: 0 !important;
         height: 100% !important;
         max-height: unset !important;
         flex: 1;
-        display: flex;
         flex-direction: column;
+        flex-shrink: 0;
+    }
+    
+    .chat-layout.chat-mobile-active .chat-sidebar {
+        display: none !important;
+    }
+    .chat-layout.chat-mobile-active .chat-window {
+        display: flex !important;
+    }
+    .chat-mobile-back {
+        display: flex !important;
     }
     .chat-messages {
         min-height: 0 !important;

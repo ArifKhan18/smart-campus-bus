@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         setupDashboard(authData.user, authData.profile);
         initNavigation();
         initDataListeners();
-        initNotifications();
+        initNotifications(authData.user);
         initChat(authData.user, authData.profile);
         initAnnouncements();
         fetchDashboardStats();
@@ -128,6 +128,9 @@ function initNavigation() {
         const sectionBusDetails = document.getElementById('section-bus-details');
         if(sectionBusDetails) sectionBusDetails.style.display = 'none';
         
+        const notifContainer = document.getElementById('notification-container-main');
+        if (notifContainer) notifContainer.style.display = 'none';
+
         currentSelectedBusId = null;
 
         // Close mobile sidebar if open
@@ -144,6 +147,8 @@ function initNavigation() {
             navDashboard.classList.add('active');
             sectionDashboard.style.display = 'block';
             pageTitle.textContent = "Student Portal";
+            const notifContainer = document.getElementById('notification-container-main');
+            if (notifContainer) notifContainer.style.display = 'flex';
         });
     }
 
@@ -154,6 +159,8 @@ function initNavigation() {
             navBuses.classList.add('active');
             sectionBuses.style.display = 'block';
             pageTitle.textContent = "Available Buses";
+            const notifContainer = document.getElementById('notification-container-main');
+            if (notifContainer) notifContainer.style.display = 'flex';
         });
     }
 
@@ -790,7 +797,9 @@ function renderSchedules() {
 let localNotifications = [];
 let isMuted = localStorage.getItem('smartbus_notifications_muted') === 'true';
 
-function initNotifications() {
+function initNotifications(user) {
+    const userCreationTime = user && user.metadata && user.metadata.creationTime ? new Date(user.metadata.creationTime).getTime() : 0;
+
     const bellBtn = document.getElementById('notification-bell');
     const dropdown = document.getElementById('notification-dropdown');
     const muteToggle = document.getElementById('mute-notifications-toggle');
@@ -841,6 +850,9 @@ function initNotifications() {
                 const data = change.doc.data();
                 if (data.timestamp) {
                     const notifDate = data.timestamp.toDate ? data.timestamp.toDate() : new Date();
+                    
+                    if (notifDate.getTime() < userCreationTime) return;
+
                     const clearedTime = parseInt(localStorage.getItem('smartbus_notifications_cleared') || '0');
                     
                     if (notifDate.getTime() > clearedTime) {
