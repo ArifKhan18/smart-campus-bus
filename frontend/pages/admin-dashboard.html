@@ -620,6 +620,7 @@
                     <span class="logo__text">SmartBus</span>
                 </div>
                 <div style="display: flex; gap: 10px;">
+                    <button id="theme-toggle-btn" class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme" style="background:none; border:none; color:var(--text-primary); cursor:pointer; font-size:1.2rem;">☀️</button>
                     <button class="mobile-close-btn" onclick="document.querySelector('.admin-sidebar').classList.remove('open'); document.querySelector('.sidebar-overlay').classList.remove('open');" style="background:none; border:none; color:var(--text-primary); cursor:pointer; font-size:1.5rem; display: none;">×</button>
                 </div>
             </div>
@@ -664,26 +665,6 @@
                 </div>
             </header>
 
-            <!-- Stats Overview -->
-            <div class="admin-stats">
-                <div class="stat-card">
-                    <span class="stat-card__title">Total Drivers</span>
-                    <span class="stat-card__value" id="stat-total">0</span>
-                </div>
-                <div class="stat-card">
-                    <span class="stat-card__title">Pending Approvals</span>
-                    <span class="stat-card__value text-warning" id="stat-pending">0</span>
-                </div>
-                <div class="stat-card">
-                    <span class="stat-card__title">Approved Drivers</span>
-                    <span class="stat-card__value text-success" id="stat-approved">0</span>
-                </div>
-                <div class="stat-card">
-                    <span class="stat-card__title">Rejected Applications</span>
-                    <span class="stat-card__value text-danger" id="stat-rejected">0</span>
-                </div>
-            </div>
-
             <!-- Driver Management Section -->
             <section class="admin-section" id="section-drivers">
                 <div class="admin-section__header">
@@ -693,6 +674,26 @@
                         <button class="filter-tab" data-filter="pending">Pending</button>
                         <button class="filter-tab" data-filter="active">Approved</button>
                         <button class="filter-tab" data-filter="rejected">Rejected</button>
+                    </div>
+                </div>
+
+                <!-- Stats Overview -->
+                <div class="admin-stats" style="margin-bottom: 2rem;">
+                    <div class="stat-card">
+                        <span class="stat-card__title">Total Drivers</span>
+                        <span class="stat-card__value" id="stat-total">0</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-card__title">Pending Approvals</span>
+                        <span class="stat-card__value text-warning" id="stat-pending">0</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-card__title">Approved Drivers</span>
+                        <span class="stat-card__value text-success" id="stat-approved">0</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-card__title">Rejected Applications</span>
+                        <span class="stat-card__value text-danger" id="stat-rejected">0</span>
                     </div>
                 </div>
 

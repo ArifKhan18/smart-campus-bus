@@ -93,6 +93,12 @@ document.addEventListener("DOMContentLoaded", () => {
         if (sectionSchedules) sectionSchedules.style.display = 'none';
         if (sectionAnnouncements) sectionAnnouncements.style.display = 'none';
         if (sectionAnalytics) sectionAnalytics.style.display = 'none';
+
+        // Close mobile sidebar if open
+        const sidebar = document.querySelector('.admin-sidebar');
+        const overlay = document.querySelector('.sidebar-overlay');
+        if (sidebar) sidebar.classList.remove('open');
+        if (overlay) overlay.classList.remove('open');
     }
 
     if (navDrivers) {
