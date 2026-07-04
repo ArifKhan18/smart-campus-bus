@@ -56,32 +56,85 @@ Our stack is divided into a lightweight frontend and a robust backend API.
 
 ```text
 smart-campus-bus/
-├── README.md                   # Project documentation
-├── Agent.md                    # Detailed developer logic & architectural roadmap
-│
-├── frontend/                   # Client-Side Application
-│   ├── index.html              # Landing Page
-│   ├── package.json            # Node.js dependencies (Playwright for testing)
-│   ├── playwright.config.ts    # E2E test configuration
-│   ├── css/                    # Stylesheets
-│   ├── js/                     # Core Logic (App, API, Auth, Maps)
-│   │   ├── api.js, auth.js, auth-guard.js, firebase-config.js
-│   │   ├── student-dashboard.js, driver-dashboard.js, admin-dashboard.js
-│   │   ├── bus-management.js, route-management.js, schedule-management.js
-│   │   └── analytics.js, report-management.js, announcement-management.js
-│   ├── pages/                  # HTML Pages (Login, Dashboards, Role Select, OTP)
-│   └── tests/                  # Playwright E2E test scripts
-│
-└── backend/                    # Server-Side Application (ASP.NET Core)
-    ├── SmartCampusBus.Api/     # Main API Project
-    │   ├── Program.cs          # Application Entry Point & DI Config
-    │   ├── Dockerfile          # Docker container configuration
-    │   ├── appsettings.json    # Environment & DB configurations
-    │   ├── Controllers/        # API Endpoints (Auth, Bus, Route, etc.)
-    │   ├── Models/             # Data structures and DTOs
-    │   ├── Services/           # Business Logic (EmailService, AuthService, etc.)
-    │   └── Config/             # Setup files (FirebaseSetup.cs)
-    └── SmartCampusBus.Tests/   # Backend Unit and Integration tests
+├── README.md                           # Main project documentation
+├── Agent.md                            # Detailed developer logic & architectural roadmap
+├── backend/                            # Server-Side Application (ASP.NET Core)
+│   ├── SmartCampusBus.Api/             # Main API Project
+│   │   ├── Config/                     # Configuration files
+│   │   │   └── FirebaseConfig.cs       # Initializes Firebase Admin SDK credentials
+│   │   ├── Controllers/                # API Endpoints
+│   │   │   ├── AnnouncementController.cs # Handles Announcement CRUD operations
+│   │   │   ├── AuthController.cs       # Handles User Authentication (Login/Register)
+│   │   │   ├── BusController.cs        # Handles Bus CRUD operations
+│   │   │   ├── RouteController.cs      # Handles Route CRUD operations
+│   │   │   └── ScheduleController.cs   # Handles Schedule CRUD operations
+│   │   ├── Models/                     # Data Models & DTOs
+│   │   │   ├── Announcement.cs         # Announcement data structure
+│   │   │   ├── Bus.cs                  # Bus data structure
+│   │   │   ├── Route.cs                # Route data structure
+│   │   │   ├── RouteStop.cs            # Route Stop data structure
+│   │   │   ├── Schedule.cs             # Schedule data structure
+│   │   │   └── User.cs                 # User data structure
+│   │   ├── Properties/
+│   │   │   └── launchSettings.json     # Debug/run configurations for Visual Studio
+│   │   ├── Services/                   # Business Logic
+│   │   │   ├── AnnouncementService.cs  # Logic for Announcements
+│   │   │   ├── AuthService.cs          # Logic for User Auth & Roles
+│   │   │   ├── BusService.cs           # Logic for Bus Management
+│   │   │   ├── EmailService.cs         # Logic for sending OTP via Brevo API
+│   │   │   ├── RouteService.cs         # Logic for Routes
+│   │   │   └── ScheduleService.cs      # Logic for Schedules
+│   │   ├── appsettings.Development.json # Environment specific configs
+│   │   ├── appsettings.json            # Main Database & API keys config
+│   │   ├── Dockerfile                  # Instructions to build the Docker image
+│   │   ├── Program.cs                  # Entry point & Dependency Injection setup
+│   │   ├── SmartCampusBus.Api.csproj   # C# Project dependencies file
+│   │   └── SmartCampusBus.Api.http     # HTTP test requests file
+│   └── SmartCampusBus.Tests/           # Unit Testing Project
+│       ├── BusServiceTests.cs          # Tests for Bus Service logic
+│       ├── SmartCampusBus.Tests.csproj # Testing dependencies
+│       └── UnitTest1.cs                # Basic test template
+└── frontend/                           # Client-Side Application
+    ├── css/                            # Stylesheets
+    │   └── style.css                   # Main design and layout styling
+    ├── js/                             # Core JavaScript Logic
+    │   ├── admin-dashboard.js          # Logic for Admin dashboard interface
+    │   ├── analytics.js                # Logic for rendering Admin analytics charts
+    │   ├── announcement-management.js  # UI logic for managing announcements
+    │   ├── api.js                      # Centralized API fetch requests
+    │   ├── app.js                      # General app logic & animations
+    │   ├── auth-guard.js               # Route protection (redirects unauthenticated users)
+    │   ├── auth.js                     # Login & Registration logic
+    │   ├── bus-management.js           # UI logic for managing buses (Admin)
+    │   ├── dashboard.js                # Shared dashboard functionalities
+    │   ├── driver-dashboard.js         # Logic for Driver interface (Starting trips, GPS)
+    │   ├── firebase-config.js          # Firebase client initialization
+    │   ├── report-management.js        # Logic for generating Admin reports
+    │   ├── role-select.js              # Logic for Role Selection page
+    │   ├── route-management.js         # UI logic for mapping and managing routes (Admin)
+    │   ├── schedule-management.js      # UI logic for managing schedules (Admin)
+    │   ├── student-dashboard.js        # Logic for Student interface (Live tracking, Maps)
+    │   ├── temp_check.js               # Temporary checks or admin validations
+    │   ├── theme.js                    # Light/Dark mode toggling logic
+    │   └── user-management.js          # Logic for approving/rejecting users (Admin)
+    ├── pages/                          # HTML View Pages
+    │   ├── admin-dashboard.html        # Secure control panel for Administrators
+    │   ├── dashboard.html              # Base dashboard template
+    │   ├── driver-dashboard.html       # Portal for drivers to manage trips
+    │   ├── login.html                  # User login page
+    │   ├── register.html               # New user registration page
+    │   ├── role-select.html            # Screen to choose Student/Driver/Admin
+    │   ├── student-dashboard.html      # Portal for students to track buses
+    │   ├── verify-otp.html             # Screen for Email OTP verification
+    │   └── components/                 
+    │       └── toast.html              # Reusable popup notification UI
+    ├── tests/                          # E2E Tests with Playwright
+    │   ├── example.spec.ts             # Demo UI tests
+    │   └── ui.spec.ts                  # Application specific UI tests
+    ├── index.html                      # Main landing homepage
+    ├── package-lock.json               # Locked versions of Node packages
+    ├── package.json                    # Node.js dependencies (Playwright)
+    └── playwright.config.ts            # Configuration for E2E testing
 ```
 
 ---
