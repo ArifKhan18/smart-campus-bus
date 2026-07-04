@@ -1093,34 +1093,22 @@
                 </div>
 
                 <!-- Live ETA Info (Phase 17 & 18) -->
-                <div class="eta-panel" id="eta-panel" style="display: none; flex-direction: column; align-items: stretch;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.5rem;">
-                        <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 500;" id="eta-last-updated">Last Updated: --</span>
-                        <button id="btn-calc-my-location" class="btn btn--sm btn--outline" style="font-size: 0.75rem; padding: 0.3rem 0.6rem; border-color: var(--accent-primary); color: var(--accent-primary); display: flex; align-items: center; gap: 0.3rem;"><span>📍</span> Calculate from My Location</button>
+                <div class="eta-panel" id="eta-panel" style="display: none;">
+                    <div class="eta-item">
+                        <span class="eta-item__label">Nearest Stop</span>
+                        <span class="eta-item__value" id="eta-stop-name">Calculating...</span>
                     </div>
-                    
-                    <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1.5rem;">
-                        <div class="eta-item">
-                            <span class="eta-item__label" id="eta-dest-label">Destination</span>
-                            <span class="eta-item__value" id="eta-stop-name" style="font-size: 1rem;">Calculating...</span>
-                        </div>
-                        <div class="eta-item">
-                            <span class="eta-item__label">Distance</span>
-                            <span class="eta-item__value">
-                                <span id="eta-distance">--</span>
-                            </span>
-                        </div>
-                        <div class="eta-item">
-                            <span class="eta-item__label">ETA</span>
-                            <span class="eta-item__value highlight">
-                                <span id="eta-time">--</span>
-                            </span>
-                        </div>
+                    <div class="eta-item">
+                        <span class="eta-item__label">Distance</span>
+                        <span class="eta-item__value">
+                            <span id="eta-distance">--</span>
+                        </span>
                     </div>
-
-                    <div style="margin-top: 1rem; padding-top: 0.5rem; border-top: 1px solid var(--border-subtle); display: flex; flex-direction: column; gap: 0.4rem;">
-                        <span style="font-size: 0.85rem; color: var(--text-muted);">🚌 <span id="bus-passed-status">Calculating bus position...</span></span>
-                        <span style="font-size: 0.85rem; color: var(--text-primary); font-weight: 500;">➡️ Next Stop: <span id="bus-next-stop">--</span></span>
+                    <div class="eta-item">
+                        <span class="eta-item__label">ETA</span>
+                        <span class="eta-item__value highlight">
+                            <span id="eta-time">--</span>
+                        </span>
                     </div>
                 </div>
 
