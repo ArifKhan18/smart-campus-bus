@@ -16,11 +16,13 @@ let activeTripId = null;
 let gpsWatchId = null;
 let lastGpsUpdateTime = 0;
 const GPS_UPDATE_INTERVAL_MS = 5000; // 5 seconds
+let pendingTripStart = false; // Flag to indicate we are connecting to GPS to start a trip
 
 // DOM Elements
 const btnStart = document.getElementById('btn-start-trip');
 const btnStop = document.getElementById('btn-stop-trip');
 const btnDelay = document.getElementById('btn-delay-bus');
+const btnCancelConnecting = document.getElementById('btn-cancel-connecting');
 const statusText = document.getElementById('trip-status');
 const assignedBusEl = document.getElementById('assigned-bus');
 const scheduleListEl = document.getElementById('duty-schedule-list');
@@ -52,6 +54,15 @@ document.addEventListener("DOMContentLoaded", async () => {
         if(btnStart) btnStart.addEventListener("click", startTrip);
         if(btnStop) btnStop.addEventListener("click", stopTrip);
         if(btnDelay) btnDelay.addEventListener("click", delayBus);
+        if(btnCancelConnecting) {
+            btnCancelConnecting.addEventListener("click", () => {
+                if (pendingTripStart) {
+                    showErrorPopup("Trip start cancelled.");
+                    resetStartButton();
+                    stopGpsTracking();
+                }
+            });
+        }
     }
 });
 
@@ -189,19 +200,12 @@ function checkActiveTrips() {
             // Resume GPS if page was reloaded during active trip
             if (!gpsWatchId) startGpsTracking();
         } else {
-            // Reset to default state
-            activeTripId = null;
-            if(btnStart) btnStart.style.display = 'flex';
-            if(btnStop) btnStop.style.display = 'none';
-            if(btnDelay) btnDelay.classList.add('hidden');
-            if(statusText) {
-                statusText.textContent = 'Ready for next trip';
-                statusText.style.color = 'var(--text-muted)';
-                statusText.style.borderColor = 'rgba(255, 255, 255, 0.05)';
-                statusText.style.background = 'rgba(255, 255, 255, 0.03)';
-            }
-            // Stop GPS if it was running
-            if (gpsWatchId) stopGpsTracking();
+            // Stop GPS if it was running and we aren't trying to start
+            if (gpsWatchId && !pendingTripStart) stopGpsTracking();
+            
+            if (pendingTripStart) return; // Don't reset UI if connecting to GPS
+            
+            resetStartButton();
         }
     });
 }
@@ -209,42 +213,26 @@ function checkActiveTrips() {
 async function startTrip() {
     if (!assignedBusId || !currentDriverUser) return;
     
-    // Disable button to prevent double-clicks
+    // UI changes for connecting state
     btnStart.disabled = true;
+    btnStart.innerHTML = `
+        <span class="btn-icon">⏳</span>
+        <span class="btn-text" style="font-size: 1rem;">CONNECTING</span>
+    `;
+    btnStart.style.background = '#f59e0b';
+    btnStart.style.boxShadow = '0 10px 30px rgba(245, 158, 11, 0.3)';
     
-    try {
-        // 1. Create Trip Record
-        const tripData = {
-            driverId: currentDriverUser.uid,
-            busId: assignedBusId,
-            status: 'active',
-            startTime: serverTimestamp()
-        };
-        const docRef = await addDoc(collection(db, "trips"), tripData);
-        activeTripId = docRef.id;
-        
-        // 2. Update Bus Status to 'running'
-        await updateDoc(doc(db, "buses", assignedBusId), {
-            status: 'running'
-        });
-        
-        // 3. Add Notification
-        await addDoc(collection(db, "notifications"), {
-            busId: assignedBusId,
-            type: 'bus_started',
-            message: `${assignedBusName} has started its trip.`,
-            timestamp: serverTimestamp()
-        });
-        
-        // 4. Start GPS Tracking (Phase 14)
-        startGpsTracking();
-        
-    } catch (error) {
-        console.error("Error starting trip:", error);
-        alert("Failed to start trip.");
-    } finally {
-        btnStart.disabled = false;
+    if (statusText) {
+        statusText.textContent = 'Connecting to GPS...';
+        statusText.style.color = '#f59e0b';
+        statusText.style.borderColor = 'rgba(245, 158, 11, 0.2)';
+        statusText.style.background = 'rgba(245, 158, 11, 0.05)';
     }
+    
+    if (btnCancelConnecting) btnCancelConnecting.style.display = 'block';
+    
+    // 1. Start GPS Tracking with connecting flag
+    startGpsTracking(true);
 }
 
 async function delayBus() {
@@ -320,12 +308,10 @@ function formatTime12Hour(time24) {
     return `${formattedHour}:${minutes} ${ampm}`;
 }
 
-let mockGpsInterval = null; // Phase 14: Mock GPS fallback
-
-function startGpsTracking() {
+function startGpsTracking(isStartingTrip = false) {
+    if (isStartingTrip) pendingTripStart = true;
     if (!navigator.geolocation) {
-        updateGpsUiError("Browser does not support GPS. Starting mock GPS...");
-        startMockGps();
+        updateGpsUiError("Browser does not support GPS.");
         return;
     }
     if (gpsStatusDiv) gpsStatusDiv.classList.add('visible');
@@ -340,9 +326,9 @@ function startGpsTracking() {
         handleGpsSuccess,
         handleGpsError,
         {
-            enableHighAccuracy: false, // Set to false to allow network/IP based location on desktops without GPS chips
+            enableHighAccuracy: true, // Force high accuracy / fresh GPS
             timeout: 20000, // Increase timeout to 20s
-            maximumAge: 10000 // Allow 10s old cached locations
+            maximumAge: 0 // Do not allow cached locations!
         }
     );
 }
@@ -351,10 +337,6 @@ function stopGpsTracking() {
     if (gpsWatchId) {
         navigator.geolocation.clearWatch(gpsWatchId);
         gpsWatchId = null;
-    }
-    if (mockGpsInterval) {
-        clearInterval(mockGpsInterval);
-        mockGpsInterval = null;
     }
     
     if (gpsStatusDiv) gpsStatusDiv.classList.remove('visible');
@@ -373,8 +355,13 @@ async function processLocationUpdate(latitude, longitude, accuracy) {
     
     // Update UI immediately
     if (gpsDot) { gpsDot.classList.remove('error'); gpsDot.classList.add('active'); }
-    if (gpsText) gpsText.textContent = mockGpsInterval ? "GPS Active (Mock Mode)" : "GPS Active";
+    if (gpsText) gpsText.textContent = "GPS Active";
     if (gpsDetails) gpsDetails.textContent = `Accuracy: ±${Math.round(accuracy)}m | Updated: ${new Date().toLocaleTimeString()}`;
+    
+    if (pendingTripStart) {
+        pendingTripStart = false;
+        await confirmTripStart();
+    }
     
     // Throttle Firestore updates (e.g. every 5 seconds)
     if (now - lastGpsUpdateTime < GPS_UPDATE_INTERVAL_MS) {
@@ -415,29 +402,13 @@ function handleGpsError(error) {
     }
     console.warn(`GPS Error Code: ${error.code}, Message: ${error.message}`);
     
-    updateGpsUiError(msg + " Starting mock GPS...");
+    updateGpsUiError(msg);
     
-    // Fallback to mock GPS for testing on Desktop
-    if (!mockGpsInterval) {
-        startMockGps();
+    if (pendingTripStart) {
+        showErrorPopup(msg + " Cannot start trip.");
+        resetStartButton();
+        stopGpsTracking();
     }
-}
-
-// ── Mock GPS Logic for Testing ──
-function startMockGps() {
-    console.log("Starting Mock GPS from Nabinagar towards BUBT...");
-    let mockLat = 23.9056; // Nabinagar start location
-    let mockLng = 90.2676;
-    
-    // Send immediate update
-    processLocationUpdate(mockLat, mockLng, 10);
-    
-    // Then update every 5 seconds, moving the bus towards BUBT
-    mockGpsInterval = setInterval(() => {
-        mockLat -= 0.0005; // move South towards BUBT
-        mockLng += 0.0005; // move East towards BUBT
-        processLocationUpdate(mockLat, mockLng, 10);
-    }, GPS_UPDATE_INTERVAL_MS);
 }
 
 function updateGpsUiError(msg) {
@@ -445,5 +416,117 @@ function updateGpsUiError(msg) {
     if (gpsDot) { gpsDot.classList.remove('active'); gpsDot.classList.add('error'); }
     if (gpsText) gpsText.textContent = "GPS Error";
     if (gpsDetails) gpsDetails.textContent = msg;
+}
+
+// ── Added Helper Functions ──
+
+async function confirmTripStart() {
+    if (btnCancelConnecting) btnCancelConnecting.style.display = 'none';
+    try {
+        // 1. Create Trip Record
+        const tripData = {
+            driverId: currentDriverUser.uid,
+            busId: assignedBusId,
+            status: 'active',
+            startTime: serverTimestamp()
+        };
+        const docRef = await addDoc(collection(db, "trips"), tripData);
+        activeTripId = docRef.id;
+        
+        // 2. Update Bus Status to 'running'
+        await updateDoc(doc(db, "buses", assignedBusId), {
+            status: 'running'
+        });
+        
+        // 3. Send Notification
+        await addDoc(collection(db, "notifications"), {
+            busId: assignedBusId,
+            type: 'bus_started',
+            message: `${assignedBusName} has started its trip.`,
+            timestamp: serverTimestamp()
+        });
+        
+    } catch (error) {
+        console.error("Error confirming trip start:", error);
+        resetStartButton();
+        showErrorPopup("Failed to start trip due to database error.");
+        stopGpsTracking();
+    }
+}
+
+function resetStartButton() {
+    pendingTripStart = false;
+    activeTripId = null;
+    if(btnStart) {
+        btnStart.disabled = false;
+        btnStart.style.display = 'flex';
+        btnStart.innerHTML = `
+            <span class="btn-icon">▶</span>
+            <span class="btn-text">START</span>
+        `;
+        btnStart.style.background = ''; // reset to class default
+        btnStart.style.boxShadow = '';
+    }
+    if (btnCancelConnecting) btnCancelConnecting.style.display = 'none';
+    if(btnStop) btnStop.style.display = 'none';
+    if(btnDelay) btnDelay.classList.add('hidden');
+    if(statusText) {
+        statusText.textContent = 'Ready for next trip';
+        statusText.style.color = 'var(--text-muted)';
+        statusText.style.borderColor = 'rgba(255, 255, 255, 0.05)';
+        statusText.style.background = 'rgba(255, 255, 255, 0.03)';
+    }
+}
+
+function showErrorPopup(message) {
+    const popup = document.createElement('div');
+    popup.style.position = 'fixed';
+    popup.style.top = '20px';
+    popup.style.left = '50%';
+    popup.style.transform = 'translateX(-50%)';
+    popup.style.background = 'rgba(239, 68, 68, 0.95)';
+    popup.style.color = '#fff';
+    popup.style.padding = '15px 25px';
+    popup.style.borderRadius = '12px';
+    popup.style.boxShadow = '0 10px 25px rgba(239, 68, 68, 0.4)';
+    popup.style.zIndex = '9999';
+    popup.style.display = 'flex';
+    popup.style.alignItems = 'center';
+    popup.style.gap = '10px';
+    popup.style.fontFamily = "'Inter', sans-serif";
+    popup.style.fontWeight = '500';
+    popup.style.animation = 'slideDown 0.3s ease-out';
+    
+    popup.innerHTML = `
+        <span style="font-size: 1.5rem;">⚠️</span>
+        <span>${message}</span>
+        <button style="background:transparent;border:none;color:#fff;font-size:1.2rem;cursor:pointer;margin-left:10px;">&times;</button>
+    `;
+    
+    if (!document.getElementById('popup-styles')) {
+        const style = document.createElement('style');
+        style.id = 'popup-styles';
+        style.textContent = `
+            @keyframes slideDown {
+                from { top: -50px; opacity: 0; }
+                to { top: 20px; opacity: 1; }
+            }
+            @keyframes fadeOut {
+                to { opacity: 0; transform: translate(-50%, -20px); }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    document.body.appendChild(popup);
+    
+    const closeBtn = popup.querySelector('button');
+    const closePopup = () => {
+        popup.style.animation = 'fadeOut 0.3s ease-in forwards';
+        setTimeout(() => popup.remove(), 300);
+    };
+    
+    closeBtn.addEventListener('click', closePopup);
+    setTimeout(closePopup, 5000); // auto close after 5 seconds
 }
 

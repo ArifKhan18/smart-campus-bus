@@ -391,7 +391,8 @@
             <div class="logo-area">
                 <div class="logo-icon">🚌</div>
                 <div class="driver-greeting">
-                    <span class="greeting-text">Hello Driver</span>
+                    <span class="greeting-text">Hello,</span>
+                    <h2 class="driver-name" id="user-name">Driver</h2>
                 </div>
             </div>
             <div style="display: flex; align-items: center; gap: 10px;">
@@ -406,6 +407,10 @@
                 <button id="btn-start-trip" class="round-btn btn-start">
                     <span class="btn-icon">▶</span>
                     <span class="btn-text">START</span>
+                </button>
+                
+                <button id="btn-cancel-connecting" style="margin-top: 15px; background: transparent; border: 1px solid #ef4444; color: #ef4444; border-radius: 20px; padding: 8px 24px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: none; font-family: 'Inter', sans-serif;">
+                    ✕ CANCEL
                 </button>
                 
                 <button id="btn-stop-trip" class="round-btn btn-stop">
