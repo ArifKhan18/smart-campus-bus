@@ -4,7 +4,10 @@
 
 import { auth } from "./firebase-config.js";
 
-const API_BASE_URL = "https://smart-campus-bus-api.onrender.com/api"; 
+const isLocalhost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+export const API_BASE_URL = isLocalhost 
+    ? "http://localhost:5196/api" 
+    : "https://smart-campus-bus-api.onrender.com/api";
 
 export class ApiService {
     /**

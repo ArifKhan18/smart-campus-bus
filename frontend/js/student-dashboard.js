@@ -4,8 +4,9 @@
 
 import { db } from "./firebase-config.js";
 import { initAuthGuard, logoutUser } from "./auth-guard.js";
-import { sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { sendEmailVerification, updatePassword, deleteUser, reauthenticateWithCredential, EmailAuthProvider } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { collection, query, where, onSnapshot, orderBy, limit, addDoc, serverTimestamp, getDocs, doc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { API_BASE_URL } from "./api.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
     // Require authentication, allow only students
@@ -18,6 +19,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         initNotifications(authData.user);
         initChat(authData.user, authData.profile);
         initAnnouncements();
+        initSettings(authData.user, authData.profile);
         fetchDashboardStats();
         
         // Setup Logout
@@ -117,6 +119,8 @@ function initNavigation() {
         if(navChat) navChat.classList.remove('active');
         const navAnnouncements = document.getElementById('nav-announcements');
         if(navAnnouncements) navAnnouncements.classList.remove('active');
+        const navSettings = document.getElementById('nav-settings');
+        if(navSettings) navSettings.classList.remove('active');
         
         if(sectionDashboard) sectionDashboard.style.display = 'none';
         if(sectionBuses) sectionBuses.style.display = 'none';
@@ -124,6 +128,8 @@ function initNavigation() {
         if(sectionSchedules) sectionSchedules.style.display = 'none';
         if(sectionChat) sectionChat.style.display = 'none';
         if(sectionAnnouncements) sectionAnnouncements.style.display = 'none';
+        const sectionSettings = document.getElementById('section-settings');
+        if(sectionSettings) sectionSettings.style.display = 'none';
         
         const sectionBusDetails = document.getElementById('section-bus-details');
         if(sectionBusDetails) sectionBusDetails.style.display = 'none';
@@ -241,6 +247,14 @@ function initNavigation() {
         navAnnouncements.addEventListener('click', (e) => {
             e.preventDefault();
             switchSection('announcements', "Campus Announcements");
+        });
+    }
+
+    const navSettings = document.getElementById('nav-settings');
+    if (navSettings) {
+        navSettings.addEventListener('click', (e) => {
+            e.preventDefault();
+            switchSection('settings', "Account Settings");
         });
     }
 }
@@ -1434,4 +1448,250 @@ function renderStudentAnnouncements() {
         
         grid.appendChild(card);
     });
+}
+
+// ── Settings Logic ──
+function initSettings(user, profile) {
+    const formProfile = document.getElementById('settings-profile-form');
+    const formPassword = document.getElementById('settings-password-form');
+    const btnDelete = document.getElementById('btn-delete-account');
+
+    // Populate initial data
+    const inputName = document.getElementById('settings-name');
+    const inputUsername = document.getElementById('settings-username');
+    const inputEmail = document.getElementById('settings-email');
+    const labelCurrentUsername = document.getElementById('current-username-display');
+
+    if (inputName) inputName.value = profile.name || '';
+    if (inputUsername) inputUsername.value = profile.username || '';
+    if (inputEmail) inputEmail.value = profile.email || '';
+    if (labelCurrentUsername) labelCurrentUsername.textContent = profile.username ? `@${profile.username}` : '';
+    
+    if (inputUsername) {
+        let timeout = null;
+        inputUsername.addEventListener("input", (e) => {
+            // Force lowercase and remove invalid chars
+            let val = e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '');
+            e.target.value = val;
+
+            clearTimeout(timeout);
+            const statusSpan = document.getElementById("username-settings-status");
+            const errorMsg = document.getElementById("error-settings-username");
+            const group = document.getElementById("form-group-settings-username");
+            
+            // If it's their current username, it's valid
+            if (val === profile.username) {
+                statusSpan.textContent = "✅";
+                errorMsg.style.display = "none";
+                group.classList.remove("form-group--error");
+                inputUsername.dataset.isValid = "true";
+                return;
+            }
+
+            statusSpan.textContent = "⏳";
+            errorMsg.style.display = "none";
+            group.classList.remove("form-group--error");
+
+            timeout = setTimeout(async () => {
+                const username = val;
+                if (!username || username.length < 3) {
+                    statusSpan.textContent = "❌";
+                    errorMsg.textContent = "Username must be at least 3 characters";
+                    errorMsg.style.display = "block";
+                    group.classList.add("form-group--error");
+                    inputUsername.dataset.isValid = "false";
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`${API_BASE_URL}/Auth/check-username?username=${encodeURIComponent(username)}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.exists) {
+                            statusSpan.textContent = "❌";
+                            errorMsg.textContent = "Username is already taken";
+                            errorMsg.style.display = "block";
+                            group.classList.add("form-group--error");
+                            inputUsername.dataset.isValid = "false";
+                        } else {
+                            statusSpan.textContent = "✅";
+                            errorMsg.style.display = "none";
+                            group.classList.remove("form-group--error");
+                            inputUsername.dataset.isValid = "true";
+                        }
+                    } else {
+                        statusSpan.textContent = "❌";
+                        inputUsername.dataset.isValid = "false";
+                    }
+                } catch (e) {
+                    console.error("Error checking username:", e);
+                    statusSpan.textContent = "❌";
+                    inputUsername.dataset.isValid = "false";
+                }
+            }, 500);
+        });
+    }
+
+    if (formProfile) {
+        formProfile.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-update-profile');
+            const originalText = btn.textContent;
+            btn.textContent = 'Updating...';
+            btn.disabled = true;
+
+            const newName = inputName.value.trim();
+            const newUsername = inputUsername.value.trim();
+
+            if (!newName || !newUsername) {
+                if (window.showToast) window.showToast("Name and username are required", 'error');
+                btn.textContent = originalText;
+                btn.disabled = false;
+                return;
+            }
+
+            if (inputUsername.dataset.isValid === "false") {
+                if (window.showToast) window.showToast("Please provide a valid, unique username", 'error');
+                btn.textContent = originalText;
+                btn.disabled = false;
+                return;
+            }
+
+            try {
+                // Get fresh token
+                const token = await user.getIdToken(true);
+                
+                const response = await fetch(`${API_BASE_URL}/Auth/profile`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        Name: newName,
+                        Username: newUsername
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    if (window.showToast) window.showToast(result.message || "Profile updated successfully!", 'success');
+                    
+                    // Update local UI state
+                    profile.name = newName;
+                    profile.username = newUsername;
+                    if (labelCurrentUsername) labelCurrentUsername.textContent = `@${newUsername}`;
+                    
+                    const nameEl = document.getElementById("user-name");
+                    const welcomeEl = document.getElementById("welcome-message");
+                    if (nameEl) nameEl.textContent = profile.name;
+                    if (welcomeEl) welcomeEl.textContent = `Welcome, ${profile.name}!`;
+
+                } else {
+                    throw new Error(result.error || result.message || "Failed to update profile");
+                }
+
+            } catch (error) {
+                console.error("Profile update error:", error);
+                if (window.showToast) window.showToast(error.message, 'error');
+            }
+
+            btn.textContent = originalText;
+            btn.disabled = false;
+        });
+    }
+
+    if (formPassword) {
+        formPassword.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const currentPwd = document.getElementById('settings-current-password').value;
+            const newPwd = document.getElementById('settings-new-password').value;
+            const confirmPwd = document.getElementById('settings-confirm-password').value;
+            
+            if (newPwd !== confirmPwd) {
+                if (window.showToast) window.showToast("New passwords do not match", 'error');
+                return;
+            }
+
+            const btn = document.getElementById('btn-update-password');
+            const originalText = btn.textContent;
+            btn.textContent = 'Updating...';
+            btn.disabled = true;
+
+            try {
+                // 1. Re-authenticate user
+                const credential = EmailAuthProvider.credential(user.email, currentPwd);
+                await reauthenticateWithCredential(user, credential);
+                
+                // 2. Update password
+                await updatePassword(user, newPwd);
+                
+                if (window.showToast) window.showToast("Password updated successfully!", 'success');
+                formPassword.reset();
+            } catch (error) {
+                console.error("Password update error:", error);
+                let msg = "Failed to update password";
+                if (error.code === 'auth/invalid-credential') msg = "Incorrect current password";
+                if (error.code === 'auth/weak-password') msg = "New password is too weak";
+                if (window.showToast) window.showToast(msg, 'error');
+            }
+
+            btn.textContent = originalText;
+            btn.disabled = false;
+        });
+    }
+
+    if (btnDelete) {
+        btnDelete.addEventListener('click', async () => {
+            const confirmed = confirm("Are you sure you want to delete your account? This action cannot be undone.");
+            if (!confirmed) return;
+
+            const password = prompt("Please enter your password to confirm account deletion:");
+            if (!password) return;
+
+            const originalText = btnDelete.textContent;
+            btnDelete.textContent = 'Deleting...';
+            btnDelete.disabled = true;
+
+            try {
+                // 1. Re-authenticate
+                const credential = EmailAuthProvider.credential(user.email, password);
+                await reauthenticateWithCredential(user, credential);
+                
+                // 2. Get token
+                const token = await user.getIdToken(true);
+                
+                // 3. Call backend delete endpoint
+                const response = await fetch(`${API_BASE_URL}/Auth/account`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    const result = await response.json();
+                    throw new Error(result.error || "Failed to delete account from server");
+                }
+                
+                // 4. Delete Firebase Auth user
+                await deleteUser(user);
+                
+                if (window.showToast) window.showToast("Account deleted successfully.", 'success');
+                setTimeout(() => {
+                    window.location.href = "login.html";
+                }, 1500);
+
+            } catch (error) {
+                console.error("Account deletion error:", error);
+                let msg = error.message || "Failed to delete account";
+                if (error.code === 'auth/invalid-credential') msg = "Incorrect password";
+                if (window.showToast) window.showToast(msg, 'error');
+                
+                btnDelete.textContent = originalText;
+                btnDelete.disabled = false;
+            }
+        });
+    }
 }
