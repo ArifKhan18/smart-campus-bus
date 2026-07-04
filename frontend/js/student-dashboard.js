@@ -8,32 +8,6 @@ import { sendEmailVerification, updatePassword, deleteUser, reauthenticateWithCr
 import { collection, query, where, onSnapshot, orderBy, limit, addDoc, serverTimestamp, getDocs, doc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { API_BASE_URL } from "./api.js";
 
-let currentUserUid = null;
-let currentUserProfile = null;
-
-async function updateUserLastSeen(key) {
-    if (!currentUserUid) return;
-    const now = Date.now();
-    
-    if (currentUserProfile) {
-        if (!currentUserProfile.lastSeen) currentUserProfile.lastSeen = {};
-        currentUserProfile.lastSeen[key] = now;
-    }
-    
-    try {
-        await updateDoc(doc(db, "users", currentUserUid), {
-            [`lastSeen.${key}`]: now
-        });
-    } catch (e) {
-        console.error("Failed to update last seen in DB", e);
-    }
-}
-
-function getUserLastSeen(key) {
-    if (!currentUserProfile || !currentUserProfile.lastSeen) return 0;
-    return currentUserProfile.lastSeen[key] || 0;
-}
-
 document.addEventListener("DOMContentLoaded", async () => {
     // Require authentication, allow only students
     const authData = await initAuthGuard(true, ['student']);
@@ -63,18 +37,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 function setupDashboard(user, profile) {
-    currentUserUid = user.uid;
-    currentUserProfile = profile;
-    
-    // Listen for profile changes from DB for cross-device sync
-    onSnapshot(doc(db, "users", currentUserUid), (docSnap) => {
-        if (docSnap.exists()) {
-            currentUserProfile = docSnap.data();
-            updateNavBadges();
-            if (typeof renderNotifications === 'function') renderNotifications(); // refresh UI
-        }
-    });
-
     // Populate user info
     const nameEl = document.getElementById("user-name");
     const welcomeEl = document.getElementById("welcome-message");
@@ -210,25 +172,25 @@ function initNavigation() {
         }
         
         if (sectionName === 'report') {
-            updateUserLastSeen('report_last_seen');
+            localStorage.setItem('report_last_seen', Date.now().toString());
             const badge = document.getElementById('badge-report');
             if (badge) badge.style.display = 'none';
         }
         
         if (sectionName === 'announcements') {
-            updateUserLastSeen('announcements_last_seen');
+            localStorage.setItem('announcements_last_seen', Date.now().toString());
             const badge = document.getElementById('badge-announcements');
             if (badge) badge.style.display = 'none';
         }
         
         if (sectionName === 'routes') {
-            updateUserLastSeen('routes_last_seen');
+            localStorage.setItem('routes_last_seen', Date.now().toString());
             const badge = document.getElementById('badge-routes');
             if (badge) badge.style.display = 'none';
         }
         
         if (sectionName === 'schedules') {
-            updateUserLastSeen('schedules_last_seen');
+            localStorage.setItem('schedules_last_seen', Date.now().toString());
             const badge = document.getElementById('badge-schedules');
             if (badge) badge.style.display = 'none';
         }
@@ -391,7 +353,7 @@ function listenToRoutes() {
     onSnapshot(q, (snapshot) => {
         allRoutes = [];
         let hasNewRoutes = false;
-        const lastSeen = getUserLastSeen('routes_last_seen');
+        const lastSeen = parseInt(localStorage.getItem('routes_last_seen') || '0', 10);
         
         snapshot.forEach((doc) => {
             const data = doc.data();
@@ -422,7 +384,7 @@ function listenToSchedules() {
     onSnapshot(q, (snapshot) => {
         allSchedules = [];
         let hasNewSchedules = false;
-        const lastSeen = getUserLastSeen('schedules_last_seen');
+        const lastSeen = parseInt(localStorage.getItem('schedules_last_seen') || '0', 10);
         
         snapshot.forEach((doc) => {
             const data = doc.data();
@@ -1105,7 +1067,7 @@ function initNotifications(user) {
         clearBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             localNotifications = [];
-            updateUserLastSeen('smartbus_notifications_cleared');
+            localStorage.setItem('smartbus_notifications_cleared', Date.now().toString());
             renderNotifications();
             const badge = document.getElementById('notification-badge');
             if (badge) {
@@ -1133,7 +1095,7 @@ function initNotifications(user) {
                 badge.style.display = 'none';
                 badge.textContent = '0';
             }
-            updateUserLastSeen('smartbus_notifications_last_seen');
+            localStorage.setItem('smartbus_notifications_last_seen', Date.now().toString());
         });
         
         document.addEventListener('click', (e) => {
@@ -1154,8 +1116,8 @@ function initNotifications(user) {
                     
                     if (notifDate.getTime() < userCreationTime) return;
 
-                    const clearedTime = getUserLastSeen('smartbus_notifications_cleared');
-                    const lastSeenTime = getUserLastSeen('smartbus_notifications_last_seen');
+                    const clearedTime = parseInt(localStorage.getItem('smartbus_notifications_cleared') || '0');
+                    const lastSeenTime = parseInt(localStorage.getItem('smartbus_notifications_last_seen') || '0');
                     
                     if (notifDate.getTime() > clearedTime) {
                         const isNew = notifDate.getTime() > lastSeenTime;
@@ -1256,7 +1218,7 @@ function updateChatBadges() {
         const busId = item.dataset.busId;
         if (!busId) return;
         
-        const lastSeen = getUserLastSeen(`chat_last_seen_${busId}`);
+        const lastSeen = parseInt(localStorage.getItem(`chat_last_seen_${busId}`) || '0', 10);
         const lastMsgTime = chatRoomMetas[busId] || 0;
         
         let badge = item.querySelector('.chat-bus-badge');
@@ -1364,7 +1326,7 @@ window.openChatRoom = function(busId, busName, updateHistory = true) {
     chatMessageLimit = 50;
     
     // Update local storage last seen time
-    updateUserLastSeen(`chat_last_seen_${busId}`);
+    localStorage.setItem(`chat_last_seen_${busId}`, Date.now().toString());
     updateChatBadges();
     
     const chatWindow = document.getElementById('chat-window');
@@ -1594,7 +1556,7 @@ async function sendMessage(busId, text) {
         }, { merge: true });
         
         // Update local storage since we sent the message
-        updateUserLastSeen(`chat_last_seen_${busId}`);
+        localStorage.setItem(`chat_last_seen_${busId}`, Date.now().toString());
         updateChatBadges();
         
     } catch (e) {
@@ -1671,7 +1633,7 @@ function initAnnouncements() {
     unsubscribeStudentAnnouncements = onSnapshot(q, (snapshot) => {
         studentAnnouncements = [];
         let hasNewAnnouncements = false;
-        const lastSeen = getUserLastSeen('announcements_last_seen');
+        const lastSeen = parseInt(localStorage.getItem('announcements_last_seen') || '0', 10);
         
         snapshot.forEach((docSnap) => {
             const data = docSnap.data();
@@ -2099,7 +2061,7 @@ function initReportAdmin(user, profile) {
             });
             
             let hasUnreadFeedback = false;
-            const lastSeenReport = getUserLastSeen('report_last_seen');
+            const lastSeenReport = parseInt(localStorage.getItem('report_last_seen') || '0', 10);
             
             reports.forEach(report => {
                 if (report.adminFeedback && report.updatedAt) {
