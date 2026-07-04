@@ -556,6 +556,12 @@ function updateLiveBusLocation(busId) {
     const bus = allBuses.find(b => b.id === busId);
     if (!bus || !currentMap || !currentBusMarker) return;
     
+    // Dynamically update the status badge on the map page
+    const statusBadgeEl = document.getElementById('detail-bus-status');
+    if (statusBadgeEl) {
+        statusBadgeEl.innerHTML = getStatusBadge(bus.status);
+    }
+    
     const overlay = document.getElementById('map-overlay');
     
     // Check if running and has valid GPS coordinates
