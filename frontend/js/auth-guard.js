@@ -21,6 +21,16 @@ export function initAuthGuard(requireAuth = true, allowedRoles = []) {
                     if (docSnap.exists()) {
                         currentProfile = docSnap.data();
                         
+                        // Check if user is blocked
+                        if (currentProfile.status === 'blocked') {
+                            if (requireAuth) {
+                                alert("Your account has been blocked by the administrator.");
+                                await logoutUser();
+                                window.location.href = "login.html";
+                            }
+                            return resolve(null);
+                        }
+
                         // Check role authorization if specified
                         if (allowedRoles.length > 0 && !allowedRoles.includes(currentProfile.role)) {
                             console.warn("Unauthorized role. Redirecting...");

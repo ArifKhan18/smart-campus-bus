@@ -65,33 +65,41 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // Section Toggle Logic
+    const navUsers = document.getElementById('nav-users');
     const navDrivers = document.getElementById('nav-drivers');
     const navBuses = document.getElementById('nav-buses');
     const navRoutes = document.getElementById('nav-routes');
     const navSchedules = document.getElementById('nav-schedules');
     const navAnnouncements = document.getElementById('nav-announcements');
+    const navReports = document.getElementById('nav-reports');
     const navAnalytics = document.getElementById('nav-analytics');
 
+    const sectionUsers = document.getElementById('section-users');
     const sectionDrivers = document.getElementById('section-drivers');
     const sectionBuses = document.getElementById('section-buses');
     const sectionRoutes = document.getElementById('section-routes');
     const sectionSchedules = document.getElementById('section-schedules');
     const sectionAnnouncements = document.getElementById('section-announcements');
+    const sectionReports = document.getElementById('section-reports');
     const sectionAnalytics = document.getElementById('section-analytics');
 
     function resetTabs() {
+        if (navUsers) navUsers.classList.remove('active');
         if (navDrivers) navDrivers.classList.remove('active');
         if (navBuses) navBuses.classList.remove('active');
         if (navRoutes) navRoutes.classList.remove('active');
         if (navSchedules) navSchedules.classList.remove('active');
         if (navAnnouncements) navAnnouncements.classList.remove('active');
+        if (navReports) navReports.classList.remove('active');
         if (navAnalytics) navAnalytics.classList.remove('active');
 
+        if (sectionUsers) sectionUsers.style.display = 'none';
         if (sectionDrivers) sectionDrivers.style.display = 'none';
         if (sectionBuses) sectionBuses.style.display = 'none';
         if (sectionRoutes) sectionRoutes.style.display = 'none';
         if (sectionSchedules) sectionSchedules.style.display = 'none';
         if (sectionAnnouncements) sectionAnnouncements.style.display = 'none';
+        if (sectionReports) sectionReports.style.display = 'none';
         if (sectionAnalytics) sectionAnalytics.style.display = 'none';
 
         // Close mobile sidebar if open
@@ -148,6 +156,13 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
+    if (navUsers) {
+        navUsers.addEventListener('click', (e) => {
+            e.preventDefault();
+            switchSection('users');
+        });
+    }
+
     if (navDrivers) {
         navDrivers.addEventListener('click', (e) => {
             e.preventDefault();
@@ -180,6 +195,13 @@ document.addEventListener("DOMContentLoaded", () => {
         navAnnouncements.addEventListener('click', (e) => {
             e.preventDefault();
             switchSection('announcements');
+        });
+    }
+
+    if (navReports) {
+        navReports.addEventListener('click', (e) => {
+            e.preventDefault();
+            switchSection('reports');
         });
     }
 

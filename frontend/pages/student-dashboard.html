@@ -902,6 +902,9 @@
                 <a href="#" class="admin-nav__link" id="nav-settings">
                     <span>⚙️</span> Settings
                 </a>
+                <a href="#" class="admin-nav__link" id="nav-report">
+                    <span>🚩</span> Report Admin
+                </a>
             </nav>
             
             <div style="margin-top: auto;">
@@ -1213,6 +1216,47 @@
                         <button type="button" class="btn btn--outline" style="border-color: #ef4444; color: #ef4444;" id="btn-delete-account">Delete Account</button>
                     </div>
 
+                </div>
+            </section>
+            
+            <!-- Report Admin Section -->
+            <section id="section-report" style="display: none;">
+                <div style="margin-bottom: 2rem;">
+                    <h2 style="font-size: 1.5rem; color: var(--text-light); font-weight: 600; margin-bottom: 0.5rem;">Report to Admin</h2>
+                    <p style="color: var(--text-muted);">Have an issue or a suggestion? Let the admin know by submitting a report.</p>
+                </div>
+
+                <div class="settings-card" style="background: var(--bg-surface); border: 1px solid var(--border-card); border-radius: 16px; padding: 2rem; max-width: 800px; margin-bottom: 2rem;">
+                    <form id="report-admin-form">
+                        <div class="form-group" style="margin-bottom: 1.5rem;">
+                            <label class="form-group__label" style="display: block; margin-bottom: 0.5rem; color: var(--text-primary); font-weight: 500;">Topic</label>
+                            <select id="report-topic" class="form-group__input" required style="width: 100%; padding: 0.8rem 1rem; border-radius: 12px; background: var(--bg-surface-hover); border: 1px solid var(--border-card); color: var(--text-primary); appearance: none;">
+                                <option value="" disabled selected>Select a topic</option>
+                                <option value="Bus Issue / Delay">Bus Issue / Delay</option>
+                                <option value="Driver Behavior">Driver Behavior</option>
+                                <option value="App Bug / Technical Issue">App Bug / Technical Issue</option>
+                                <option value="Suggestion / Feedback">Suggestion / Feedback</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 1.5rem;">
+                            <label class="form-group__label" style="display: block; margin-bottom: 0.5rem; color: var(--text-primary); font-weight: 500;">Message</label>
+                            <textarea id="report-message" class="form-group__input" rows="5" required placeholder="Describe your issue or suggestion here..." style="width: 100%; padding: 0.8rem 1rem; border-radius: 12px; background: var(--bg-surface-hover); border: 1px solid var(--border-card); color: var(--text-primary); resize: vertical; font-family: inherit;"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn--primary" id="btn-submit-report" style="width: 100%; display: flex; justify-content: center; align-items: center; gap: 0.5rem;">
+                            <span>📤</span> Submit Report
+                        </button>
+                    </form>
+                </div>
+                
+                <div style="max-width: 800px;">
+                    <h3 style="font-size: 1.2rem; color: var(--text-primary); margin-bottom: 1rem;">Your Previous Reports</h3>
+                    <div id="previous-reports-list" style="display: flex; flex-direction: column; gap: 1rem;">
+                        <div class="empty-state" style="padding: 2rem;">
+                            <div style="width: 40px; height: 40px; border: 3px solid rgba(108, 99, 255, 0.3); border-top-color: var(--accent-primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1rem;"></div>
+                            <p style="color: var(--text-muted);">Loading your reports...</p>
+                        </div>
+                    </div>
                 </div>
             </section>
         </main>

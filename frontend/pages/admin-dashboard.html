@@ -626,6 +626,9 @@
             </div>
             
             <nav class="admin-nav">
+                <a href="#" class="admin-nav__link" id="nav-users">
+                    <span>👤</span> User Management
+                </a>
                 <a href="#" class="admin-nav__link active" id="nav-drivers">
                     <span>👥</span> Driver Approvals
                 </a>
@@ -640,6 +643,9 @@
                 </a>
                 <a href="#" class="admin-nav__link" id="nav-announcements">
                     <span>📢</span> Announcements
+                </a>
+                <a href="#" class="admin-nav__link" id="nav-reports">
+                    <span>🚩</span> Student Reports
                 </a>
                 <a href="#" class="admin-nav__link" id="nav-analytics">
                     <span>📊</span> Analytics
@@ -704,6 +710,51 @@
                         <div style="width: 40px; height: 40px; border: 3px solid rgba(108, 99, 255, 0.3); border-top-color: var(--accent-primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1rem;"></div>
                         <p>Loading drivers...</p>
                         <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+                    </div>
+                </div>
+            </section>
+
+            <!-- User Management Section -->
+            <section class="admin-section" id="section-users" style="display: none;">
+                <div class="admin-section__header">
+                    <h2 class="admin-section__title">User Management</h2>
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;">
+                        <input type="text" id="search-users" class="form-group__input" placeholder="Search by name or email..." style="width: 250px; padding: 0.5rem 1rem;">
+                        <div class="filter-tabs" id="user-filter-tabs">
+                            <button class="filter-tab active" data-filter="all">All</button>
+                            <button class="filter-tab" data-filter="student">Students</button>
+                            <button class="filter-tab" data-filter="driver">Drivers</button>
+                            <button class="filter-tab" data-filter="blocked">Blocked</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- User Stats Overview -->
+                <div class="admin-stats" style="margin-bottom: 2rem;">
+                    <div class="stat-card">
+                        <span class="stat-card__title">Total Users</span>
+                        <span class="stat-card__value" id="user-stat-total">0</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-card__title">Students</span>
+                        <span class="stat-card__value text-success" id="user-stat-students">0</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-card__title">Drivers</span>
+                        <span class="stat-card__value text-warning" id="user-stat-drivers">0</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-card__title">Blocked</span>
+                        <span class="stat-card__value text-danger" id="user-stat-blocked">0</span>
+                    </div>
+                </div>
+
+                <!-- User Grid -->
+                <div class="driver-grid" id="user-grid">
+                    <!-- Loading State -->
+                    <div class="empty-state">
+                        <div style="width: 40px; height: 40px; border: 3px solid rgba(108, 99, 255, 0.3); border-top-color: var(--accent-primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1rem;"></div>
+                        <p>Loading users...</p>
                     </div>
                 </div>
             </section>
@@ -836,6 +887,42 @@
                     <div class="empty-state">
                         <div style="width: 40px; height: 40px; border: 3px solid rgba(108, 99, 255, 0.3); border-top-color: var(--accent-primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1rem;"></div>
                         <p>Loading announcements...</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Reports Section -->
+            <section class="admin-section" id="section-reports" style="display: none;">
+                <div class="admin-section__header">
+                    <h2 class="admin-section__title">Student Reports</h2>
+                    <div class="filter-tabs" id="report-filter-tabs">
+                        <button class="filter-tab active" data-filter="all">All</button>
+                        <button class="filter-tab" data-filter="pending">Pending</button>
+                        <button class="filter-tab" data-filter="processing">Processing</button>
+                        <button class="filter-tab" data-filter="completed">Completed</button>
+                        <button class="filter-tab" data-filter="cancelled">Cancelled</button>
+                    </div>
+                </div>
+
+                <div class="admin-stats" style="margin-bottom: 2rem;">
+                    <div class="stat-card">
+                        <span class="stat-card__title">Total Reports</span>
+                        <span class="stat-card__value" id="report-stat-total">0</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-card__title">Pending</span>
+                        <span class="stat-card__value text-warning" id="report-stat-pending">0</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-card__title">Completed</span>
+                        <span class="stat-card__value text-success" id="report-stat-completed">0</span>
+                    </div>
+                </div>
+
+                <div class="driver-grid" id="report-grid">
+                    <div class="empty-state">
+                        <div style="width: 40px; height: 40px; border: 3px solid rgba(108, 99, 255, 0.3); border-top-color: var(--accent-primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1rem;"></div>
+                        <p>Loading reports...</p>
                     </div>
                 </div>
             </section>
@@ -1140,6 +1227,8 @@
     <script type="module" src="../js/schedule-management.js"></script>
     <script type="module" src="../js/announcement-management.js"></script>
     <script type="module" src="../js/analytics.js"></script>
+    <script type="module" src="../js/report-management.js"></script>
+    <script type="module" src="../js/user-management.js"></script>
     
     <!-- Announcement Modal -->
     <div class="modal-overlay" id="announcement-modal">
@@ -1190,6 +1279,37 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn--outline" id="announcement-modal-cancel">Cancel</button>
                     <button type="submit" class="btn btn--primary">Save Announcement</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Report Feedback Modal -->
+    <div class="modal-overlay" id="report-feedback-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="report-feedback-modal-title">Provide Feedback</h3>
+                <button class="modal-close" id="report-feedback-modal-close">&times;</button>
+            </div>
+            <form id="report-feedback-form">
+                <div class="modal-body">
+                    <input type="hidden" id="report-action-id">
+                    <input type="hidden" id="report-action-status">
+                    
+                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 0.5rem;" id="report-feedback-hint">
+                        Leave an optional note for the student. They will see this on their dashboard.
+                    </p>
+                    
+                    <div class="form-group">
+                        <label class="form-group__label">Feedback / Reason (Optional)</label>
+                        <div class="form-group__input-wrapper">
+                            <textarea id="report-feedback-message" class="form-group__input" rows="4" placeholder="e.g. This issue has been fixed in the latest app update..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn--outline" id="report-feedback-modal-cancel">Skip & Save</button>
+                    <button type="submit" class="btn btn--primary" id="report-feedback-modal-submit">Save with Feedback</button>
                 </div>
             </form>
         </div>

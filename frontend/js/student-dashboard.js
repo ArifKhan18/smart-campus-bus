@@ -20,6 +20,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         initChat(authData.user, authData.profile);
         initAnnouncements();
         initSettings(authData.user, authData.profile);
+        initReportAdmin(authData.user, authData.profile);
         fetchDashboardStats();
         
         // Setup Logout
@@ -107,6 +108,7 @@ function initNavigation() {
     const sectionSchedules = document.getElementById('section-schedules');
     const sectionChat = document.getElementById('section-chat');
     const sectionAnnouncements = document.getElementById('section-announcements');
+    const sectionReport = document.getElementById('section-report');
     
     const pageTitle = document.getElementById('page-title');
 
@@ -121,6 +123,8 @@ function initNavigation() {
         if(navAnnouncements) navAnnouncements.classList.remove('active');
         const navSettings = document.getElementById('nav-settings');
         if(navSettings) navSettings.classList.remove('active');
+        const navReport = document.getElementById('nav-report');
+        if(navReport) navReport.classList.remove('active');
         
         if(sectionDashboard) sectionDashboard.style.display = 'none';
         if(sectionBuses) sectionBuses.style.display = 'none';
@@ -130,6 +134,8 @@ function initNavigation() {
         if(sectionAnnouncements) sectionAnnouncements.style.display = 'none';
         const sectionSettings = document.getElementById('section-settings');
         if(sectionSettings) sectionSettings.style.display = 'none';
+        const sectionReport = document.getElementById('section-report');
+        if(sectionReport) sectionReport.style.display = 'none';
         
         const sectionBusDetails = document.getElementById('section-bus-details');
         if(sectionBusDetails) sectionBusDetails.style.display = 'none';
@@ -255,6 +261,14 @@ function initNavigation() {
         navSettings.addEventListener('click', (e) => {
             e.preventDefault();
             switchSection('settings', "Account Settings");
+        });
+    }
+
+    const navReport = document.getElementById('nav-report');
+    if (navReport) {
+        navReport.addEventListener('click', (e) => {
+            e.preventDefault();
+            switchSection('report', "Report Admin");
         });
     }
 }
@@ -1692,6 +1706,170 @@ function initSettings(user, profile) {
                 btnDelete.textContent = originalText;
                 btnDelete.disabled = false;
             }
+        });
+    }
+}
+
+// ── Phase 22: Report Admin Logic ──
+function initReportAdmin(user, profile) {
+    const reportForm = document.getElementById('report-admin-form');
+    const previousReportsList = document.getElementById('previous-reports-list');
+    
+    if (reportForm) {
+        reportForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const topic = document.getElementById('report-topic').value;
+            const message = document.getElementById('report-message').value.trim();
+            const btnSubmit = document.getElementById('btn-submit-report');
+            
+            if (!topic || !message) {
+                if (window.showToast) window.showToast("Please fill in both topic and message.", "error");
+                return;
+            }
+            
+            const originalText = btnSubmit.innerHTML;
+            btnSubmit.innerHTML = '<span>⏳</span> Submitting...';
+            btnSubmit.disabled = true;
+            
+            try {
+                const reportsRef = collection(db, "reports");
+                await addDoc(reportsRef, {
+                    userId: user.uid,
+                    userName: profile.name || "Student",
+                    userEmail: profile.email || user.email,
+                    topic: topic,
+                    message: message,
+                    status: 'pending',
+                    createdAt: serverTimestamp()
+                });
+                
+                if (window.showToast) window.showToast("Report submitted successfully!", "success");
+                reportForm.reset();
+            } catch (error) {
+                console.error("Error submitting report:", error);
+                if (window.showToast) window.showToast("Failed to submit report. Please try again.", "error");
+            } finally {
+                btnSubmit.innerHTML = originalText;
+                btnSubmit.disabled = false;
+            }
+        });
+    }
+
+    if (previousReportsList) {
+        // Removed orderBy to prevent composite index requirement. We sort client-side instead.
+        const q = query(collection(db, "reports"), where("userId", "==", user.uid));
+        onSnapshot(q, (snapshot) => {
+            if (snapshot.empty) {
+                previousReportsList.innerHTML = `
+                    <div class="empty-state" style="padding: 2rem;">
+                        <div class="empty-state__icon">📝</div>
+                        <p style="color: var(--text-muted);">You haven't submitted any reports yet.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            previousReportsList.innerHTML = '';
+            
+            const reports = [];
+            snapshot.forEach(docSnap => {
+                reports.push({ id: docSnap.id, ...docSnap.data() });
+            });
+            
+            // Client-side sort by createdAt descending
+            reports.sort((a, b) => {
+                const timeA = a.createdAt?.toMillis() || 0;
+                const timeB = b.createdAt?.toMillis() || 0;
+                return timeB - timeA;
+            });
+            
+            reports.forEach(report => {
+                const card = document.createElement('div');
+                card.style.cssText = `
+                    padding: 1.5rem; 
+                    background: var(--bg-surface); 
+                    border: 1px solid var(--border-card); 
+                    border-radius: 16px; 
+                    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); 
+                    transition: transform 0.2s ease, box-shadow 0.2s ease;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 1rem;
+                `;
+                
+                // Add hover effect via JS since inline hover isn't possible
+                card.onmouseenter = () => { card.style.transform = 'translateY(-2px)'; card.style.boxShadow = '0 8px 25px rgba(0, 0, 0, 0.1)'; };
+                card.onmouseleave = () => { card.style.transform = 'translateY(0)'; card.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.05)'; };
+                
+                let dateStr = 'Just now';
+                if (report.createdAt && typeof report.createdAt.toDate === 'function') {
+                    dateStr = report.createdAt.toDate().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+                }
+                
+                let statusBadge = '';
+                if (report.status === 'pending') {
+                    statusBadge = '<div style="display: flex; align-items: center; gap: 6px; padding: 4px 12px; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.2); border-radius: 20px; color: var(--accent-warning); font-size: 0.75rem; font-weight: 600;"><span style="width: 6px; height: 6px; background: var(--accent-warning); border-radius: 50%; box-shadow: 0 0 6px var(--accent-warning);"></span> Pending</div>';
+                } else if (report.status === 'completed') {
+                    statusBadge = '<div style="display: flex; align-items: center; gap: 6px; padding: 4px 12px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 20px; color: var(--accent-success); font-size: 0.75rem; font-weight: 600;"><span style="width: 6px; height: 6px; background: var(--accent-success); border-radius: 50%; box-shadow: 0 0 6px var(--accent-success);"></span> Completed</div>';
+                } else if (report.status === 'processing') {
+                    statusBadge = '<div style="display: flex; align-items: center; gap: 6px; padding: 4px 12px; background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 20px; color: #3b82f6; font-size: 0.75rem; font-weight: 600;"><span style="width: 6px; height: 6px; background: #3b82f6; border-radius: 50%; box-shadow: 0 0 6px #3b82f6;"></span> Processing</div>';
+                } else if (report.status === 'cancelled') {
+                    statusBadge = '<div style="display: flex; align-items: center; gap: 6px; padding: 4px 12px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 20px; color: #ef4444; font-size: 0.75rem; font-weight: 600;"><span style="width: 6px; height: 6px; background: #ef4444; border-radius: 50%;"></span> Cancelled</div>';
+                } else {
+                    statusBadge = `<div style="padding: 4px 12px; background: var(--bg-surface-hover); border-radius: 20px; color: var(--text-muted); font-size: 0.75rem;">${report.status || 'Unknown'}</div>`;
+                }
+
+                let topicIcon = '📋';
+                const t = report.topic || '';
+                if (t.includes('Bus')) topicIcon = '🚐';
+                else if (t.includes('Driver')) topicIcon = '👨‍✈️';
+                else if (t.includes('Bug') || t.includes('Technical')) topicIcon = '🐞';
+                else if (t.includes('Suggestion')) topicIcon = '💡';
+
+                let feedbackHtml = '';
+                if (report.adminFeedback) {
+                    feedbackHtml = `
+                        <div style="margin-top: 0.5rem; padding: 1rem; background: linear-gradient(to right, rgba(108, 99, 255, 0.1), rgba(108, 99, 255, 0.02)); border-left: 4px solid var(--accent-primary); border-radius: 8px; position: relative;">
+                            <div style="position: absolute; top: -10px; left: 1rem; background: var(--accent-primary); color: white; padding: 2px 10px; border-radius: 12px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 2px 4px rgba(108,99,255,0.3);">Admin Reply</div>
+                            <p style="color: var(--text-primary); font-size: 0.95rem; margin: 0; margin-top: 0.2rem; line-height: 1.5; font-style: italic;">
+                                "${report.adminFeedback}"
+                            </p>
+                        </div>
+                    `;
+                }
+
+                card.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <div style="width: 48px; height: 48px; border-radius: 14px; background: rgba(108, 99, 255, 0.1); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; border: 1px solid rgba(108, 99, 255, 0.2);">
+                                ${topicIcon}
+                            </div>
+                            <div>
+                                <h4 style="margin: 0; color: var(--text-primary); font-size: 1.15rem; font-weight: 600;">${report.topic}</h4>
+                                <span style="font-size: 0.8rem; color: var(--text-muted); opacity: 0.8;">${dateStr}</span>
+                            </div>
+                        </div>
+                        ${statusBadge}
+                    </div>
+                    
+                    <div style="background: var(--bg-surface-hover); padding: 1.25rem; border-radius: 12px; border: 1px solid var(--border-card);">
+                        <p style="margin: 0; color: var(--text-light); font-size: 0.95rem; line-height: 1.6; word-break: break-word;">
+                            ${(report.message || '').replace(/\n/g, '<br>')}
+                        </p>
+                    </div>
+                    
+                    ${feedbackHtml}
+                `;
+                previousReportsList.appendChild(card);
+            });
+        }, (error) => {
+            console.error("Error fetching reports:", error);
+            // Ignore index errors silently on UI for now, or display generic msg
+            previousReportsList.innerHTML = `
+                <div class="empty-state" style="padding: 2rem;">
+                    <p style="color: var(--text-muted);">Could not load previous reports. (Index might be building)</p>
+                </div>
+            `;
         });
     }
 }
