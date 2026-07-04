@@ -9,8 +9,18 @@ document.addEventListener("DOMContentLoaded", async () => {
     const authData = await initAuthGuard(true);
     
     if (authData) {
-        const role = authData.profile.role;
+        const profile = authData.profile;
+        const role = profile.role;
         
+        const params = new URLSearchParams(window.location.search);
+        const intendedRole = params.get("role");
+
+        // Admin override check
+        if (intendedRole === 'admin' && (profile.adminLevel === 'main' || profile.adminLevel === 'co')) {
+            window.location.replace("admin-dashboard.html");
+            return;
+        }
+
         // Redirect to appropriate dashboard
         if (role === 'admin') {
             window.location.replace("admin-dashboard.html");

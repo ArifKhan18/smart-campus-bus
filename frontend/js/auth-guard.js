@@ -32,10 +32,18 @@ export function initAuthGuard(requireAuth = true, allowedRoles = []) {
                         }
 
                         // Check role authorization if specified
-                        if (allowedRoles.length > 0 && !allowedRoles.includes(currentProfile.role)) {
-                            console.warn("Unauthorized role. Redirecting...");
-                            window.location.href = "../index.html"; // Redirect to home or generic error page
-                            return resolve(null);
+                        if (allowedRoles.length > 0) {
+                            let hasRoleAccess = allowedRoles.includes(currentProfile.role);
+                            // Admin check override
+                            if (allowedRoles.includes('admin') && (currentProfile.adminLevel === 'main' || currentProfile.adminLevel === 'co')) {
+                                hasRoleAccess = true;
+                            }
+                            
+                            if (!hasRoleAccess) {
+                                console.warn("Unauthorized role. Redirecting...");
+                                window.location.href = "../index.html"; // Redirect to home or generic error page
+                                return resolve(null);
+                            }
                         }
                         
                         // Check driver approval status if applicable

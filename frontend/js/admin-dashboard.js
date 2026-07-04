@@ -66,6 +66,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Section Toggle Logic
     const navUsers = document.getElementById('nav-users');
+    const navAdmins = document.getElementById('nav-admins');
     const navDrivers = document.getElementById('nav-drivers');
     const navBuses = document.getElementById('nav-buses');
     const navRoutes = document.getElementById('nav-routes');
@@ -75,6 +76,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const navAnalytics = document.getElementById('nav-analytics');
 
     const sectionUsers = document.getElementById('section-users');
+    const sectionAdmins = document.getElementById('section-admins');
     const sectionDrivers = document.getElementById('section-drivers');
     const sectionBuses = document.getElementById('section-buses');
     const sectionRoutes = document.getElementById('section-routes');
@@ -85,6 +87,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function resetTabs() {
         if (navUsers) navUsers.classList.remove('active');
+        if (navAdmins) navAdmins.classList.remove('active');
         if (navDrivers) navDrivers.classList.remove('active');
         if (navBuses) navBuses.classList.remove('active');
         if (navRoutes) navRoutes.classList.remove('active');
@@ -94,6 +97,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (navAnalytics) navAnalytics.classList.remove('active');
 
         if (sectionUsers) sectionUsers.style.display = 'none';
+        if (sectionAdmins) sectionAdmins.style.display = 'none';
         if (sectionDrivers) sectionDrivers.style.display = 'none';
         if (sectionBuses) sectionBuses.style.display = 'none';
         if (sectionRoutes) sectionRoutes.style.display = 'none';
@@ -160,6 +164,13 @@ document.addEventListener("DOMContentLoaded", () => {
         navUsers.addEventListener('click', (e) => {
             e.preventDefault();
             switchSection('users');
+        });
+    }
+
+    if (navAdmins) {
+        navAdmins.addEventListener('click', (e) => {
+            e.preventDefault();
+            switchSection('admins');
         });
     }
 

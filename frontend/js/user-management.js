@@ -1,46 +1,77 @@
 import { auth, db } from "./firebase-config.js";
 import { collection, getDocs, doc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getCurrentUser } from "./auth-guard.js";
 
 // State
 let allUsers = [];
-let currentFilter = 'all';
-let searchQuery = '';
+let userCurrentFilter = 'all';
+let userSearchQuery = '';
+let adminCurrentFilter = 'all';
+let adminSearchQuery = '';
 let unsubscribeUsers = null;
+let currentUserId = null;
 
 // DOM Elements
 const userGrid = document.getElementById('user-grid');
-const filterTabs = document.querySelectorAll('#user-filter-tabs .filter-tab');
-const searchInput = document.getElementById('search-users');
+const adminGrid = document.getElementById('admin-grid');
+const userFilterTabs = document.querySelectorAll('#user-filter-tabs .filter-tab');
+const adminFilterTabs = document.querySelectorAll('#admin-filter-tabs .filter-tab');
+const userSearchInput = document.getElementById('search-users');
+const adminSearchInput = document.getElementById('search-admins');
 
-// Initialize
 document.addEventListener("DOMContentLoaded", () => {
-    if (document.getElementById('section-users')) {
+    if (document.getElementById('section-users') || document.getElementById('section-admins')) {
+        import("https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js").then(({ onAuthStateChanged }) => {
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    currentUserId = user.uid;
+                    renderUsers();
+                    renderAdmins();
+                }
+            });
+        });
         setupUserManagement();
     }
 });
 
 function setupUserManagement() {
-    // Search input listener
-    if (searchInput) {
-        searchInput.addEventListener('input', (e) => {
-            searchQuery = e.target.value.toLowerCase();
+    // User Section Setup
+    if (userSearchInput) {
+        userSearchInput.addEventListener('input', (e) => {
+            userSearchQuery = e.target.value.toLowerCase();
             renderUsers();
         });
     }
-
-    // Filter tabs setup
-    if (filterTabs.length > 0) {
-        filterTabs.forEach(tab => {
+    if (userFilterTabs.length > 0) {
+        userFilterTabs.forEach(tab => {
             tab.addEventListener('click', () => {
-                filterTabs.forEach(t => t.classList.remove('active'));
+                userFilterTabs.forEach(t => t.classList.remove('active'));
                 tab.classList.add('active');
-                currentFilter = tab.dataset.filter;
+                userCurrentFilter = tab.dataset.filter;
                 renderUsers();
             });
         });
     }
 
-    // Real-time listener for users
+    // Admin Section Setup
+    if (adminSearchInput) {
+        adminSearchInput.addEventListener('input', (e) => {
+            adminSearchQuery = e.target.value.toLowerCase();
+            renderAdmins();
+        });
+    }
+    if (adminFilterTabs.length > 0) {
+        adminFilterTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                adminFilterTabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                adminCurrentFilter = tab.dataset.filter;
+                renderAdmins();
+            });
+        });
+    }
+
+    // Real-time listener for ALL users
     const usersRef = collection(db, "users");
     unsubscribeUsers = onSnapshot(usersRef, (snapshot) => {
         allUsers = [];
@@ -48,7 +79,6 @@ function setupUserManagement() {
             allUsers.push({ id: doc.id, ...doc.data() });
         });
 
-        // Sort by created date descending (newest first)
         allUsers.sort((a, b) => {
             const timeA = a.createdAt?.toMillis() || 0;
             const timeB = b.createdAt?.toMillis() || 0;
@@ -57,17 +87,9 @@ function setupUserManagement() {
 
         updateUserStats();
         renderUsers();
+        renderAdmins();
     }, (error) => {
         console.error("Error fetching users:", error);
-        if (userGrid) {
-            userGrid.innerHTML = `
-                <div class="empty-state">
-                    <div class="empty-state__icon">⚠️</div>
-                    <p>Failed to load users. Check your connection or permissions.</p>
-                    <p style="font-size: 0.8rem; color: #ff4d4d; margin-top: 10px;">${error.message}</p>
-                </div>
-            `;
-        }
     });
 }
 
@@ -78,153 +100,203 @@ function updateUserStats() {
     const blocked = allUsers.filter(u => u.status === 'blocked').length;
 
     const elTotal = document.getElementById('user-stat-total');
-    const elStudents = document.getElementById('user-stat-students');
-    const elDrivers = document.getElementById('user-stat-drivers');
-    const elBlocked = document.getElementById('user-stat-blocked');
-
     if (elTotal) elTotal.textContent = total;
+    const elStudents = document.getElementById('user-stat-students');
     if (elStudents) elStudents.textContent = students;
+    const elDrivers = document.getElementById('user-stat-drivers');
     if (elDrivers) elDrivers.textContent = drivers;
+    const elBlocked = document.getElementById('user-stat-blocked');
     if (elBlocked) elBlocked.textContent = blocked;
+}
+
+// Check if user is some kind of admin
+function isAdminUser(u) {
+    return u.adminLevel === 'main' || u.adminLevel === 'co' || (u.role === 'admin' && u.adminLevel !== null);
 }
 
 function renderUsers() {
     if (!userGrid) return;
 
-    let filteredUsers = allUsers;
+    let filtered = allUsers.filter(u => !isAdminUser(u));
 
-    // Apply Tab Filter
-    if (currentFilter !== 'all') {
-        if (currentFilter === 'blocked') {
-            filteredUsers = filteredUsers.filter(u => u.status === 'blocked');
+    if (userCurrentFilter !== 'all') {
+        if (userCurrentFilter === 'blocked') {
+            filtered = filtered.filter(u => u.status === 'blocked');
         } else {
-            filteredUsers = filteredUsers.filter(u => u.role === currentFilter);
+            filtered = filtered.filter(u => u.role === userCurrentFilter);
         }
     }
 
-    // Apply Search Query
-    if (searchQuery.trim() !== '') {
-        filteredUsers = filteredUsers.filter(u => {
+    if (userSearchQuery.trim() !== '') {
+        filtered = filtered.filter(u => {
             const name = (u.name || '').toLowerCase();
             const email = (u.email || '').toLowerCase();
-            return name.includes(searchQuery) || email.includes(searchQuery);
+            return name.includes(userSearchQuery) || email.includes(userSearchQuery);
         });
     }
 
-    if (filteredUsers.length === 0) {
-        userGrid.innerHTML = `
-            <div class="empty-state">
-                <div class="empty-state__icon">👥</div>
-                <p>No users found matching your criteria.</p>
-            </div>
-        `;
+    if (filtered.length === 0) {
+        userGrid.innerHTML = `<div class="empty-state"><div class="empty-state__icon">👥</div><p>No normal users found.</p></div>`;
         return;
     }
 
     userGrid.innerHTML = '';
-
-    filteredUsers.forEach(user => {
-        const card = document.createElement('div');
-        card.className = 'driver-card'; // Reusing driver-card styling for consistent UI
-
-        const dateStr = user.createdAt ? user.createdAt.toDate().toLocaleDateString() : 'Unknown';
-        
-        let statusBadgeClass = '';
-        let statusText = 'Active';
-        let roleEmoji = user.role === 'admin' ? '👑' : (user.role === 'driver' ? '🚐' : '🎓');
-        
-        // Determine status display
-        if (user.status === 'blocked') {
-            statusBadgeClass = 'status-badge--rejected';
-            statusText = 'Blocked';
-        } else if (user.role === 'driver' && user.status === 'pending') {
-            statusBadgeClass = 'status-badge--pending';
-            statusText = 'Pending';
-        } else if (user.role === 'driver' && user.status === 'rejected') {
-            statusBadgeClass = 'status-badge--rejected';
-            statusText = 'Rejected';
-        } else {
-            statusBadgeClass = 'status-badge--active';
-        }
-
-        // Action Buttons
-        let actionsHtml = '';
-        if (user.role !== 'admin') { // Prevent blocking other admins to avoid lockout
-            if (user.status === 'blocked') {
-                actionsHtml = `
-                    <div class="driver-card__actions">
-                        <button class="btn-action btn-approve" onclick="toggleUserBlock('${user.id}', 'active', '${user.role}')">
-                            <span>✅</span> Unblock User
-                        </button>
-                    </div>
-                `;
-            } else {
-                actionsHtml = `
-                    <div class="driver-card__actions">
-                        <button class="btn-action btn-reject" onclick="if(confirm('Are you sure you want to block this user? They will not be able to log in.')) toggleUserBlock('${user.id}', 'blocked', '${user.role}')">
-                            <span>🚫</span> Block User
-                        </button>
-                    </div>
-                `;
-            }
-        } else {
-            actionsHtml = `
-                <div class="driver-card__actions" style="opacity: 0.5;">
-                    <span style="font-size: 0.85rem; font-style: italic;">Admin users cannot be blocked.</span>
-                </div>
-            `;
-        }
-
-        card.innerHTML = `
-            <div class="driver-card__header">
-                <div class="driver-card__info">
-                    <span class="driver-card__name">${user.name || 'Unknown User'}</span>
-                    <span class="driver-card__email">${user.email || 'No email provided'}</span>
-                </div>
-                <span class="status-badge ${statusBadgeClass}">${statusText}</span>
-            </div>
-            
-            <div class="driver-card__details">
-                <div class="detail-item">
-                    <span class="detail-item__label">Role</span>
-                    <span class="detail-item__value" style="text-transform: capitalize;">${roleEmoji} ${user.role || 'Unknown'}</span>
-                </div>
-                <div class="detail-item" style="text-align: right;">
-                    <span class="detail-item__label">Joined On</span>
-                    <span class="detail-item__value">${dateStr}</span>
-                </div>
-            </div>
-            
-            ${actionsHtml}
-        `;
-
-        userGrid.appendChild(card);
+    filtered.forEach(user => {
+        userGrid.appendChild(createUserCard(user, false));
     });
 }
 
-// Global function to toggle user block status
+function renderAdmins() {
+    if (!adminGrid) return;
+    
+    const currentUserProfile = allUsers.find(u => u.id === currentUserId);
+    const viewerAdminLevel = currentUserProfile?.adminLevel || (currentUserProfile?.role === 'admin' ? 'main' : 'co');
+
+    let filtered = allUsers.filter(u => isAdminUser(u));
+
+    if (adminCurrentFilter !== 'all') {
+        if (adminCurrentFilter === 'main') {
+            filtered = filtered.filter(u => u.adminLevel === 'main' || (u.role === 'admin' && !u.adminLevel));
+        } else if (adminCurrentFilter === 'co') {
+            filtered = filtered.filter(u => u.adminLevel === 'co');
+        }
+    }
+
+    if (adminSearchQuery.trim() !== '') {
+        filtered = filtered.filter(u => {
+            const name = (u.name || '').toLowerCase();
+            const email = (u.email || '').toLowerCase();
+            return name.includes(adminSearchQuery) || email.includes(adminSearchQuery);
+        });
+    }
+
+    if (filtered.length === 0) {
+        adminGrid.innerHTML = `<div class="empty-state"><div class="empty-state__icon">🛡️</div><p>No admins found.</p></div>`;
+        return;
+    }
+
+    adminGrid.innerHTML = '';
+    filtered.forEach(user => {
+        adminGrid.appendChild(createUserCard(user, true, viewerAdminLevel, currentUserId));
+    });
+}
+
+function createUserCard(user, isAdminGrid, viewerAdminLevel = null, currentUserId = null) {
+    const card = document.createElement('div');
+    card.className = 'driver-card';
+    
+    const dateStr = user.createdAt ? user.createdAt.toDate().toLocaleDateString() : 'Unknown';
+    let statusBadgeClass = 'status-badge--active';
+    let statusText = 'Active';
+    let roleEmoji = user.role === 'admin' ? '👑' : (user.role === 'driver' ? '🚐' : '🎓');
+    let displayedRole = user.role || 'Unknown';
+
+    if (isAdminUser(user)) {
+        if (user.adminLevel === 'main' || (user.role === 'admin' && !user.adminLevel)) {
+            roleEmoji = '👑';
+            displayedRole = 'Main Admin' + (user.role && user.role !== 'admin' ? ` (${user.role})` : '');
+        } else {
+            roleEmoji = '🛡️';
+            displayedRole = 'Co-Admin' + (user.role && user.role !== 'admin' ? ` (${user.role})` : '');
+        }
+    }
+
+    if (user.status === 'blocked') {
+        statusBadgeClass = 'status-badge--rejected';
+        statusText = 'Blocked';
+    } else if (user.role === 'driver' && user.status === 'pending') {
+        statusBadgeClass = 'status-badge--pending';
+        statusText = 'Pending';
+    } else if (user.role === 'driver' && user.status === 'rejected') {
+        statusBadgeClass = 'status-badge--rejected';
+        statusText = 'Rejected';
+    }
+
+    let actionsHtml = '';
+
+    if (!isAdminGrid) {
+        // User Grid logic
+        if (user.status === 'blocked') {
+            actionsHtml += `<button class="btn-action btn-approve" onclick="toggleUserBlock('${user.id}', 'active', '${user.role}')"><span>✅</span> Unblock</button>`;
+        } else {
+            actionsHtml += `<button class="btn-action btn-reject" onclick="if(confirm('Block this user?')) toggleUserBlock('${user.id}', 'blocked', '${user.role}')"><span>🚫</span> Block</button>`;
+        }
+        actionsHtml += `<button class="btn-action btn-outline" style="border: 1px solid var(--accent-primary); color: var(--accent-primary); flex: 1;" onclick="if(confirm('Grant Co-Admin access?')) toggleAdminRole('${user.id}', 'co')"><span>🛡️</span> Make Co-Admin</button>`;
+    } else {
+        // Admin Grid logic
+        const isTargetMainAdmin = user.adminLevel === 'main' || (user.role === 'admin' && !user.adminLevel);
+        const isTargetCoAdmin = user.adminLevel === 'co';
+
+        if (isTargetMainAdmin) {
+            actionsHtml += `<div style="width: 100%; text-align: center; color: var(--accent-primary); font-size: 0.85rem; padding: 0.5rem; font-weight: 600;">👑 Main Admin Account</div>`;
+        } else if (isTargetCoAdmin) {
+            // Both Main and Co admins can remove Co-admins
+            if (viewerAdminLevel === 'main') {
+                actionsHtml += `<button class="btn-action btn-approve" style="flex: 1;" onclick="if(confirm('Transfer Main Admin role?')) makeMainAdmin('${user.id}', '${currentUserId}')"><span>👑</span> Make Main</button>`;
+                actionsHtml += `<button class="btn-action btn-reject" style="flex: 1;" onclick="if(confirm('Remove Co-Admin?')) toggleAdminRole('${user.id}', null)"><span>❌</span> Remove Admin</button>`;
+            } else if (viewerAdminLevel === 'co') {
+                actionsHtml += `<button class="btn-action btn-reject" style="flex: 1;" onclick="if(confirm('Remove Co-Admin?')) toggleAdminRole('${user.id}', null)"><span>❌</span> Remove Admin</button>`;
+            }
+        }
+    }
+
+    if (actionsHtml) {
+        actionsHtml = `<div class="driver-card__actions" style="flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem;">${actionsHtml}</div>`;
+    }
+
+    card.innerHTML = `
+        <div class="driver-card__header">
+            <div class="driver-card__info">
+                <span class="driver-card__name">${user.name || 'Unknown User'}</span>
+                <span class="driver-card__email">${user.email || 'No email provided'}</span>
+            </div>
+            <span class="status-badge ${statusBadgeClass}">${statusText}</span>
+        </div>
+        <div class="driver-card__details">
+            <div class="detail-item">
+                <span class="detail-item__label">Role</span>
+                <span class="detail-item__value" style="text-transform: capitalize;">${roleEmoji} ${displayedRole}</span>
+            </div>
+            <div class="detail-item" style="text-align: right;">
+                <span class="detail-item__label">Joined On</span>
+                <span class="detail-item__value">${dateStr}</span>
+            </div>
+        </div>
+        ${actionsHtml}
+    `;
+    return card;
+}
+
 window.toggleUserBlock = async function (userId, newStatus, role) {
     try {
-        const userRef = doc(db, "users", userId);
-        
-        // If unblocking a driver, we can default to 'active' assuming they were approved.
-        // Or if they need approval again, admin can manage that in driver approvals.
-        await updateDoc(userRef, {
-            status: newStatus
-        });
-
+        await updateDoc(doc(db, "users", userId), { status: newStatus });
         const actionText = newStatus === 'blocked' ? 'blocked' : 'unblocked';
-        if (window.showToast) {
-            window.showToast(`User successfully ${actionText}.`, 'success');
-        } else {
-            alert(`User successfully ${actionText}.`);
-        }
+        if (window.showToast) window.showToast(`User successfully ${actionText}.`, 'success');
+        else alert(`User successfully ${actionText}.`);
     } catch (error) {
-        console.error("Error updating user status:", error);
-        if (window.showToast) {
-            window.showToast(`Failed to update status: ${error.message}`, 'error');
-        } else {
-            alert("Failed to update status.");
-        }
+        console.error("Error:", error);
+    }
+};
+
+window.toggleAdminRole = async function (userId, newLevel) {
+    try {
+        await updateDoc(doc(db, "users", userId), { adminLevel: newLevel });
+        const actionText = newLevel === 'co' ? 'granted Co-Admin access' : 'removed from Admins';
+        if (window.showToast) window.showToast(`User successfully ${actionText}.`, 'success');
+        else alert(`User successfully ${actionText}.`);
+    } catch (error) {
+        console.error("Error:", error);
+    }
+};
+
+window.makeMainAdmin = async function (targetUserId, currentUserId) {
+    if (!currentUserId || currentUserId === 'undefined') return alert("Error: Current user ID not found.");
+    try {
+        await updateDoc(doc(db, "users", targetUserId), { adminLevel: 'main' });
+        await updateDoc(doc(db, "users", currentUserId), { adminLevel: 'co' });
+        if (window.showToast) window.showToast("Main Admin role transferred.", 'success');
+        setTimeout(() => window.location.reload(), 2000);
+    } catch (error) {
+        console.error("Error:", error);
     }
 };

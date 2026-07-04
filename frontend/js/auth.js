@@ -296,7 +296,14 @@ async function handleLoginSubmit(role) {
                 const profile = docSnap.data();
 
                 // 3. Verify Role Mismatch
-                if (profile.role !== role) {
+                let hasAccess = false;
+                if (profile.role === role) {
+                    hasAccess = true;
+                } else if (role === 'admin' && (profile.adminLevel === 'main' || profile.adminLevel === 'co')) {
+                    hasAccess = true;
+                }
+
+                if (!hasAccess) {
                     // Sign out because they tried to log in with wrong role
                     await auth.signOut();
                     if(window.showToast) window.showToast(`Error: This account is registered as a ${profile.role}. Please switch roles.`, 'error');
@@ -326,7 +333,7 @@ async function handleLoginSubmit(role) {
                 else {
                     if(window.showToast) window.showToast("Login successful! Redirecting...", 'success');
                     setTimeout(() => {
-                        window.location.href = "dashboard.html";
+                        window.location.href = `dashboard.html?role=${role}`;
                     }, 1000);
                     // Don't reset loading state because we are redirecting
                     return; 

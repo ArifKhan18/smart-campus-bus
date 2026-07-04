@@ -629,6 +629,9 @@
                 <a href="#" class="admin-nav__link" id="nav-users">
                     <span>👤</span> User Management
                 </a>
+                <a href="#" class="admin-nav__link" id="nav-admins">
+                    <span>🛡️</span> Admin Management
+                </a>
                 <a href="#" class="admin-nav__link active" id="nav-drivers">
                     <span>👥</span> Driver Approvals
                 </a>
@@ -755,6 +758,30 @@
                     <div class="empty-state">
                         <div style="width: 40px; height: 40px; border: 3px solid rgba(108, 99, 255, 0.3); border-top-color: var(--accent-primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1rem;"></div>
                         <p>Loading users...</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Admin Management Section -->
+            <section class="admin-section" id="section-admins" style="display: none;">
+                <div class="admin-section__header">
+                    <h2 class="admin-section__title">Admin Management</h2>
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;">
+                        <input type="text" id="search-admins" class="form-group__input" placeholder="Search admins..." style="width: 250px; padding: 0.5rem 1rem;">
+                        <div class="filter-tabs" id="admin-filter-tabs">
+                            <button class="filter-tab active" data-filter="all">All Admins</button>
+                            <button class="filter-tab" data-filter="main">Main Admins</button>
+                            <button class="filter-tab" data-filter="co">Co-Admins</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin Grid -->
+                <div class="driver-grid" id="admin-grid">
+                    <!-- Loading State -->
+                    <div class="empty-state">
+                        <div style="width: 40px; height: 40px; border: 3px solid rgba(108, 99, 255, 0.3); border-top-color: var(--accent-primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1rem;"></div>
+                        <p>Loading admins...</p>
                     </div>
                 </div>
             </section>
