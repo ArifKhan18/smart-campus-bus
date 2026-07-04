@@ -1090,7 +1090,11 @@ function initNotifications(user) {
             e.stopPropagation();
             dropdown.classList.toggle('active');
             // Hide badge when opening
-            document.getElementById('notification-badge').style.display = 'none';
+            const badge = document.getElementById('notification-badge');
+            if (badge) {
+                badge.style.display = 'none';
+                badge.textContent = '0';
+            }
         });
         
         document.addEventListener('click', (e) => {
