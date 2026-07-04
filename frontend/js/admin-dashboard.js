@@ -128,7 +128,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Set initial state
     history.replaceState({ isRoot: true }, "", window.location.pathname);
-    history.pushState({ section: 'drivers' }, "", "#drivers");
+    history.pushState({ section: 'users' }, "", "#users");
 
     window.addEventListener('popstate', (e) => {
         const state = e.state;
@@ -156,7 +156,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (state.section) {
             switchSection(state.section, false);
         } else {
-            switchSection('drivers', false);
+            switchSection('users', false);
         }
     });
 
@@ -261,7 +261,6 @@ function setupDashboard() {
     });
 }
 
-// ── Update Statistics ──
 function updateStats() {
     const total = allDrivers.length;
     const pending = allDrivers.filter(d => d.status === 'pending').length;
@@ -272,6 +271,17 @@ function updateStats() {
     document.getElementById('stat-pending').textContent = pending;
     document.getElementById('stat-approved').textContent = approved;
     document.getElementById('stat-rejected').textContent = rejected;
+
+    // Update Driver Approval Badge
+    const driverBadge = document.getElementById('badge-drivers');
+    if (driverBadge) {
+        if (pending > 0) {
+            driverBadge.textContent = pending;
+            driverBadge.style.display = 'inline-block';
+        } else {
+            driverBadge.style.display = 'none';
+        }
+    }
 }
 
 // ── Render Drivers ──

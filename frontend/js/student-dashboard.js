@@ -163,7 +163,31 @@ function initNavigation() {
         
         if (sectionName === 'dashboard' || sectionName === 'buses') {
             const notifContainer = document.getElementById('notification-container-main');
-            if (notifContainer) notifContainer.style.display = 'flex';
+            if(notifContainer) notifContainer.style.display = 'block';
+        }
+        
+        if (sectionName === 'report') {
+            localStorage.setItem('report_last_seen', Date.now().toString());
+            const badge = document.getElementById('badge-report');
+            if (badge) badge.style.display = 'none';
+        }
+        
+        if (sectionName === 'announcements') {
+            localStorage.setItem('announcements_last_seen', Date.now().toString());
+            const badge = document.getElementById('badge-announcements');
+            if (badge) badge.style.display = 'none';
+        }
+        
+        if (sectionName === 'routes') {
+            localStorage.setItem('routes_last_seen', Date.now().toString());
+            const badge = document.getElementById('badge-routes');
+            if (badge) badge.style.display = 'none';
+        }
+        
+        if (sectionName === 'schedules') {
+            localStorage.setItem('schedules_last_seen', Date.now().toString());
+            const badge = document.getElementById('badge-schedules');
+            if (badge) badge.style.display = 'none';
         }
         
         if (updateHistory) {
@@ -320,9 +344,27 @@ function listenToRoutes() {
     const q = query(collection(db, "routes"));
     onSnapshot(q, (snapshot) => {
         allRoutes = [];
+        let hasNewRoutes = false;
+        const lastSeen = parseInt(localStorage.getItem('routes_last_seen') || '0', 10);
+        
         snapshot.forEach((doc) => {
-            allRoutes.push({ id: doc.id, ...doc.data() });
+            const data = doc.data();
+            allRoutes.push({ id: doc.id, ...data });
+            
+            const itemTime = data.updatedAt?.toMillis ? data.updatedAt.toMillis() : (data.createdAt?.toMillis ? data.createdAt.toMillis() : 0);
+            if (itemTime > lastSeen) hasNewRoutes = true;
         });
+        
+        const badge = document.getElementById('badge-routes');
+        if (badge) {
+            if (hasNewRoutes) {
+                badge.textContent = '!';
+                badge.style.display = 'inline-block';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+        
         renderRoutes();
     }, (error) => {
         console.error("Error fetching routes:", error);
@@ -333,9 +375,26 @@ function listenToSchedules() {
     const q = query(collection(db, "schedules"));
     onSnapshot(q, (snapshot) => {
         allSchedules = [];
+        let hasNewSchedules = false;
+        const lastSeen = parseInt(localStorage.getItem('schedules_last_seen') || '0', 10);
+        
         snapshot.forEach((doc) => {
-            allSchedules.push({ id: doc.id, ...doc.data() });
+            const data = doc.data();
+            allSchedules.push({ id: doc.id, ...data });
+            
+            const itemTime = data.updatedAt?.toMillis ? data.updatedAt.toMillis() : (data.createdAt?.toMillis ? data.createdAt.toMillis() : 0);
+            if (itemTime > lastSeen) hasNewSchedules = true;
         });
+        
+        const badge = document.getElementById('badge-schedules');
+        if (badge) {
+            if (hasNewSchedules) {
+                badge.textContent = '!';
+                badge.style.display = 'inline-block';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
         
         // Sort by time
         allSchedules.sort((a, b) => {
@@ -989,14 +1048,8 @@ function renderNotifications() {
         
         let timeStr = 'Just now';
         if (notif.timestamp) {
-            const now = new Date();
-            const diffMs = now - notif.timestamp;
-            const diffMins = Math.floor(diffMs / 60000);
-            if (diffMins > 60) {
-                timeStr = notif.timestamp.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-            } else if (diffMins > 0) {
-                timeStr = `${diffMins} min ago`;
-            }
+            const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit' };
+            timeStr = notif.timestamp.toLocaleDateString('en-US', options);
         }
         
         item.innerHTML = `
@@ -1017,6 +1070,49 @@ let currentChatUnsubscribe = null;
 let currentUserProfile = null;
 let chatMessagesCache = [];
 let chatMessageLimit = 50;
+
+let chatRoomMetas = {}; // Store lastMessageTime per bus
+
+function updateChatBadges() {
+    let totalUnread = 0;
+    
+    // Update individual bus badges
+    document.querySelectorAll('.chat-room-item').forEach(item => {
+        const busId = item.dataset.busId;
+        if (!busId) return;
+        
+        const lastSeen = parseInt(localStorage.getItem(`chat_last_seen_${busId}`) || '0', 10);
+        const lastMsgTime = chatRoomMetas[busId] || 0;
+        
+        let badge = item.querySelector('.chat-bus-badge');
+        if (!badge) {
+            badge = document.createElement('span');
+            badge.className = 'nav-badge chat-bus-badge';
+            const nameEl = item.querySelector('.chat-room-name');
+            if (nameEl) nameEl.appendChild(badge);
+        }
+        
+        if (lastMsgTime > lastSeen && busId !== currentChatBusId) {
+            badge.textContent = '!';
+            badge.style.display = 'inline-block';
+            badge.style.marginLeft = '8px';
+            totalUnread++;
+        } else {
+            badge.style.display = 'none';
+        }
+    });
+
+    // Update main nav badge
+    const mainBadge = document.getElementById('badge-chat');
+    if (mainBadge) {
+        if (totalUnread > 0) {
+            mainBadge.textContent = totalUnread;
+            mainBadge.style.display = 'inline-block';
+        } else {
+            mainBadge.style.display = 'none';
+        }
+    }
+}
 
 function initChat(user, profile) {
     currentUserProfile = profile;
@@ -1042,12 +1138,13 @@ function initChat(user, profile) {
             
             const item = document.createElement('div');
             item.className = 'chat-room-item';
+            item.dataset.busId = busId; // added dataset for badge update
             if (busId === currentChatBusId) item.classList.add('active');
             
             item.innerHTML = `
                 <div class="chat-room-icon">🚌</div>
                 <div class="chat-room-info">
-                    <div class="chat-room-name">${busName}</div>
+                    <div class="chat-room-name" style="display: flex; align-items: center;">${busName}</div>
                     <div style="font-size: 0.75rem; color: var(--text-muted);">${bus.busNumber}</div>
                 </div>
             `;
@@ -1060,6 +1157,17 @@ function initChat(user, profile) {
             
             chatRoomList.appendChild(item);
         });
+        
+        updateChatBadges(); // Initial badge render
+    });
+
+    // Listen to chatRooms metadata for new message timestamps
+    const qRooms = query(collection(db, "chatRooms"));
+    onSnapshot(qRooms, (snapshot) => {
+        snapshot.docs.forEach(docSnap => {
+            chatRoomMetas[docSnap.id] = docSnap.data().lastMessageTime?.toMillis() || 0;
+        });
+        updateChatBadges();
     });
 }
 
@@ -1079,6 +1187,10 @@ async function ensureChatRoomExists(busId, busName) {
 window.openChatRoom = function(busId, busName, updateHistory = true) {
     currentChatBusId = busId;
     chatMessageLimit = 50;
+    
+    // Update local storage last seen time
+    localStorage.setItem(`chat_last_seen_${busId}`, Date.now().toString());
+    updateChatBadges();
     
     const chatWindow = document.getElementById('chat-window');
     chatWindow.innerHTML = `
@@ -1290,6 +1402,8 @@ async function sendMessage(busId, text) {
     if (!currentUserProfile) return;
     try {
         const messagesRef = collection(db, "chatRooms", busId, "messages");
+        const roomRef = doc(db, "chatRooms", busId);
+        
         await addDoc(messagesRef, {
             text: text,
             senderId: currentUserProfile.uid,
@@ -1299,6 +1413,15 @@ async function sendMessage(busId, text) {
             isDeleted: false,
             readBy: [currentUserProfile.uid]
         });
+        
+        await setDoc(roomRef, {
+            lastMessageTime: serverTimestamp()
+        }, { merge: true });
+        
+        // Update local storage since we sent the message
+        localStorage.setItem(`chat_last_seen_${busId}`, Date.now().toString());
+        updateChatBadges();
+        
     } catch (e) {
         console.error("Error sending message", e);
         alert("Error sending message: " + e.message);
@@ -1372,9 +1495,26 @@ function initAnnouncements() {
     
     unsubscribeStudentAnnouncements = onSnapshot(q, (snapshot) => {
         studentAnnouncements = [];
+        let hasNewAnnouncements = false;
+        const lastSeen = parseInt(localStorage.getItem('announcements_last_seen') || '0', 10);
+        
         snapshot.forEach((docSnap) => {
-            studentAnnouncements.push({ id: docSnap.id, ...docSnap.data() });
+            const data = docSnap.data();
+            studentAnnouncements.push({ id: docSnap.id, ...data });
+            
+            const itemTime = data.updatedAt?.toMillis ? data.updatedAt.toMillis() : (data.createdAt?.toMillis ? data.createdAt.toMillis() : 0);
+            if (itemTime > lastSeen) hasNewAnnouncements = true;
         });
+        
+        const badge = document.getElementById('badge-announcements');
+        if (badge) {
+            if (hasNewAnnouncements) {
+                badge.textContent = '!';
+                badge.style.display = 'inline-block';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
         
         renderStudentAnnouncements();
         updateDashboardBanner();
@@ -1783,7 +1923,17 @@ function initReportAdmin(user, profile) {
                 return timeB - timeA;
             });
             
+            let hasUnreadFeedback = false;
+            const lastSeenReport = parseInt(localStorage.getItem('report_last_seen') || '0', 10);
+            
             reports.forEach(report => {
+                if (report.adminFeedback && report.updatedAt) {
+                    const updatedAt = typeof report.updatedAt.toMillis === 'function' ? report.updatedAt.toMillis() : 0;
+                    if (updatedAt > lastSeenReport) {
+                        hasUnreadFeedback = true;
+                    }
+                }
+                
                 const card = document.createElement('div');
                 card.style.cssText = `
                     padding: 1.5rem; 
@@ -1862,6 +2012,17 @@ function initReportAdmin(user, profile) {
                 `;
                 previousReportsList.appendChild(card);
             });
+            
+            const reportBadge = document.getElementById('badge-report');
+            if (reportBadge) {
+                if (hasUnreadFeedback) {
+                    reportBadge.textContent = '!';
+                    reportBadge.style.display = 'inline-block';
+                } else {
+                    reportBadge.style.display = 'none';
+                }
+            }
+            
         }, (error) => {
             console.error("Error fetching reports:", error);
             // Ignore index errors silently on UI for now, or display generic msg

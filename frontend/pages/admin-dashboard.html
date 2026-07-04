@@ -63,6 +63,16 @@
             background: var(--bg-sidebar-hover);
             color: var(--text-sidebar-active);
         }
+        .nav-badge {
+            background-color: #ef4444;
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 0.15rem 0.5rem;
+            border-radius: 999px;
+            margin-left: auto;
+            line-height: 1;
+        }
         .admin-content {
             flex: 1;
             margin-left: 260px;
@@ -626,14 +636,15 @@
             </div>
             
             <nav class="admin-nav">
-                <a href="#" class="admin-nav__link" id="nav-users">
+                <a href="#" class="admin-nav__link active" id="nav-users">
                     <span>👤</span> User Management
                 </a>
                 <a href="#" class="admin-nav__link" id="nav-admins">
                     <span>🛡️</span> Admin Management
                 </a>
-                <a href="#" class="admin-nav__link active" id="nav-drivers">
+                <a href="#" class="admin-nav__link" id="nav-drivers">
                     <span>👥</span> Driver Approvals
+                    <span id="badge-drivers" class="nav-badge" style="display: none;">0</span>
                 </a>
                 <a href="#" class="admin-nav__link" id="nav-buses">
                     <span>🚐</span> Manage Buses
@@ -649,6 +660,7 @@
                 </a>
                 <a href="#" class="admin-nav__link" id="nav-reports">
                     <span>🚩</span> Student Reports
+                    <span id="badge-reports" class="nav-badge" style="display: none;">0</span>
                 </a>
                 <a href="#" class="admin-nav__link" id="nav-analytics">
                     <span>📊</span> Analytics
@@ -675,7 +687,7 @@
             </header>
 
             <!-- Driver Management Section -->
-            <section class="admin-section" id="section-drivers">
+            <section class="admin-section" id="section-drivers" style="display: none;">
                 <div class="admin-section__header">
                     <h2 class="admin-section__title">Driver Management</h2>
                     <div class="filter-tabs" id="filter-tabs">
@@ -718,7 +730,7 @@
             </section>
 
             <!-- User Management Section -->
-            <section class="admin-section" id="section-users" style="display: none;">
+            <section class="admin-section" id="section-users">
                 <div class="admin-section__header">
                     <h2 class="admin-section__title">User Management</h2>
                     <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;">

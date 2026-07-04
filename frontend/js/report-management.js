@@ -3,7 +3,7 @@
 // ========================================
 
 import { db } from "./firebase-config.js";
-import { collection, query, onSnapshot, orderBy, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { collection, query, onSnapshot, orderBy, doc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 let allReports = [];
 let currentReportFilter = 'all';
@@ -62,6 +62,17 @@ function updateReportStats() {
     if (statTotal) statTotal.textContent = total;
     if (statPending) statPending.textContent = pending;
     if (statResolved) statResolved.textContent = resolved;
+
+    // Update Student Report Badge
+    const reportBadge = document.getElementById('badge-reports');
+    if (reportBadge) {
+        if (pending > 0) {
+            reportBadge.textContent = pending;
+            reportBadge.style.display = 'inline-block';
+        } else {
+            reportBadge.style.display = 'none';
+        }
+    }
 }
 
 function renderReports() {
@@ -220,7 +231,10 @@ document.addEventListener('DOMContentLoaded', () => {
 async function executeReportUpdate(reportId, newStatus, feedbackStr) {
     try {
         const reportRef = doc(db, "reports", reportId);
-        const updateData = { status: newStatus };
+        const updateData = { 
+            status: newStatus,
+            updatedAt: serverTimestamp()
+        };
         if (feedbackStr) {
             updateData.adminFeedback = feedbackStr;
         }
