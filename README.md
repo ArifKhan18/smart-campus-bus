@@ -1,161 +1,188 @@
 # 🚌 Smart Campus Bus Tracking System
 
+![License](https://img.shields.io/badge/License-MIT-blue.svg)
+![Status](https://img.shields.io/badge/Status-Active-success.svg)
+
 Welcome to the **Smart Campus Bus Tracking System**! 🎓
 
-This project is a complete, easy-to-use web application built specifically for university students, drivers, and administrators. Our main goal is to eliminate the guesswork of "Where is the bus?" by providing **Live GPS Tracking**, real-time schedule updates, and instant notifications. 
-
-Whether you are a student waiting for a bus, a driver managing a trip, or an admin overseeing the whole system, this application gives you a dedicated dashboard with everything you need.
+This project is a complete, easy-to-use full-stack application built specifically for university students, drivers, and administrators. Our main goal is to eliminate the guesswork of "Where is the bus?" by providing **Live GPS Tracking**, real-time schedule updates, and instant notifications. 
 
 ---
 
-## 🛠️ Technology Stack (What We Used)
-This project is built using modern, fast, and reliable technologies:
+## ✨ Key Features & User Roles
 
-- **Frontend (What the user sees):**
-  - **HTML5**: The standard building blocks of the web pages.
-  - **CSS3 (Vanilla)**: For beautiful, responsive, and modern styling (no heavy CSS frameworks used, ensuring fast load times).
-  - **JavaScript (ES6+)**: The logic that makes the website interactive.
-  - **Leaflet.js**: A lightweight library used for rendering interactive maps.
-  - **OpenStreetMap**: The free map data provider used to show the live map.
+### 👨‍🎓 Student
+- **Live Tracking**: View the live GPS location of running buses on an interactive map.
+- **Schedules & Routes**: View all available routes, bus stops, and schedules.
+- **Account Verification**: Secure OTP-based email verification upon registration.
+- **Real-Time Data**: Get ETA (Estimated Time of Arrival) and distance.
+- **Notifications**: Receive alerts for delays or emergencies.
+- **Group Chats**: Participate in live group chats for specific buses.
 
-- **Backend & Database (Where data is stored securely):**
-  - **Firebase Authentication**: Manages user logins, signups, and email verification securely.
-  - **Firebase Firestore**: A fast, real-time NoSQL database from Google used to store bus locations, schedules, routes, and chat messages instantly.
+### 🚌 Driver
+- **Trip Management**: Start and stop trips with a single click.
+- **Live Location Broadcast**: Broadcasts GPS location to the server automatically while driving.
+- **Approval System**: Needs Admin approval to activate their account.
+- **Alerts**: Can send delay alerts or emergency notifications to students.
 
----
-
-## 👥 User Roles (Who can do what)
-
-1. **👨‍🎓 Student**:
-   - Can view the live GPS location of running buses on an interactive map.
-   - Can see the ETA (Estimated Time of Arrival) and distance to their location.
-   - Can view all available routes, bus stops, and schedules.
-   - Can participate in live group chats for specific buses.
-   - Can receive real-time notifications for delays or emergencies.
-
-2. **🚌 Driver**:
-   - Needs Admin approval to activate their account.
-   - Can start and stop trips with a single click.
-   - Broadcasts their live GPS location to the server automatically while driving.
-   - Can send delay alerts or emergency notifications to all students on their route.
-   - Multi-language support (English and Bengali) for easier usability.
-
-3. **👨‍💼 Admin**:
-   - The master controller of the system.
-   - Can add, edit, or delete Buses, Routes, and Schedules.
-   - Can approve or reject Driver account registrations.
-   - Can post Campus Announcements.
-   - Has a complete overview of the system's statistics.
+### 👨‍💼 Admin
+- **Dashboard & Analytics**: Complete overview of the system's statistics and usage.
+- **Management**: Add, edit, or delete Buses, Routes, and Schedules.
+- **User Control**: Approve/reject drivers, manage student accounts.
+- **Announcements**: Post campus-wide announcements.
+- **Reports**: Generate and view system reports.
 
 ---
 
-## 📂 Folder Structure
-Here is how the project files are organized. *Each file has a specific purpose:*
+## 🛠️ Technology Stack
+
+Our stack is divided into a lightweight frontend and a robust backend API.
+
+**Frontend:**
+- **HTML5, CSS3 (Vanilla), JS (ES6+)**: Fast, clean, no heavy frameworks.
+- **Leaflet.js & OpenStreetMap**: For interactive, real-time map rendering.
+- **Playwright**: End-to-End (E2E) testing framework.
+
+**Backend & Database:**
+- **C# ASP.NET Core Web API**: High-performance backend handling core logic.
+- **Firebase Firestore**: Real-time NoSQL database.
+- **Firebase Authentication**: Secure user identity management.
+- **Brevo API (EmailService)**: Sends OTPs and transactional emails securely.
+- **Docker**: Containerized backend for easy deployment.
+
+---
+
+## 📂 Complete Folder Structure
 
 ```text
 smart-campus-bus/
-├── README.md                   # The file you are reading right now! Explains the project.
+├── README.md                   # Project documentation
+├── Agent.md                    # Detailed developer logic & architectural roadmap
 │
-├── frontend/                   # All the code for the website's interface
-│   ├── index.html              # The main Landing Page (Homepage)
-│   │
-│   ├── css/                    # Contains all the design and styling files
-│   │   ├── index.css           # Styling specifically for the landing page
-│   │   └── style.css           # Core styling for all the dashboards and inner pages
-│   │
-│   ├── js/                     # The JavaScript files that make the website work
-│   │   ├── api.js              # Configurations for any external API connections
-│   │   ├── app.js              # Interactivity for the landing page (animations, scrolling)
-│   │   ├── auth.js             # Handles User Login, Registration, and Password Reset
-│   │   ├── auth-guard.js       # Security logic (prevents students from accessing admin pages)
-│   │   ├── firebase-config.js  # Connects our website to the Google Firebase Database
-│   │   ├── driver-dashboard.js # All the logic for the Driver's panel (GPS tracking, trip setup)
-│   │   ├── student-dashboard.js# All the logic for the Student's panel (Live maps, ETA, Chat)
-│   │   └── temp_check.js       # Admin panel logic (managing buses, routes, schedules)
-│   │
-│   ├── pages/                  # The different screens/pages of the application
-│   │   ├── login.html          # Where users type email/password to log in
-│   │   ├── register.html       # Where new users create an account
-│   │   ├── role-select.html    # Where users choose if they are a Student or Driver
-│   │   ├── verify-otp.html     # Email verification screen
-│   │   ├── admin-dashboard.html# The secure control panel for Administrators
-│   │   ├── driver-dashboard.html# The interface where drivers manage their trips
-│   │   └── student-dashboard.html# The portal where students track buses
-│   │
-│   └── components/
-│       └── toast.html          # The small popup notifications (e.g., "Login Successful")
+├── frontend/                   # Client-Side Application
+│   ├── index.html              # Landing Page
+│   ├── package.json            # Node.js dependencies (Playwright for testing)
+│   ├── playwright.config.ts    # E2E test configuration
+│   ├── css/                    # Stylesheets
+│   ├── js/                     # Core Logic (App, API, Auth, Maps)
+│   │   ├── api.js, auth.js, auth-guard.js, firebase-config.js
+│   │   ├── student-dashboard.js, driver-dashboard.js, admin-dashboard.js
+│   │   ├── bus-management.js, route-management.js, schedule-management.js
+│   │   └── analytics.js, report-management.js, announcement-management.js
+│   ├── pages/                  # HTML Pages (Login, Dashboards, Role Select, OTP)
+│   └── tests/                  # Playwright E2E test scripts
+│
+└── backend/                    # Server-Side Application (ASP.NET Core)
+    ├── SmartCampusBus.Api/     # Main API Project
+    │   ├── Program.cs          # Application Entry Point & DI Config
+    │   ├── Dockerfile          # Docker container configuration
+    │   ├── appsettings.json    # Environment & DB configurations
+    │   ├── Controllers/        # API Endpoints (Auth, Bus, Route, etc.)
+    │   ├── Models/             # Data structures and DTOs
+    │   ├── Services/           # Business Logic (EmailService, AuthService, etc.)
+    │   └── Config/             # Setup files (FirebaseSetup.cs)
+    └── SmartCampusBus.Tests/   # Backend Unit and Integration tests
 ```
 
 ---
 
-## 🚀 How to Use / Run the Project (For Beginners)
+## 🚀 How to Run the Project Locally
 
-Since this project uses Firebase for its backend, you **do not** need to install complex server software on your computer. It runs directly in your browser!
+Follow these instructions to get both the frontend and backend running on your local machine.
 
-### Step 1: Clone or Download the Project
-1. Download this project as a ZIP file and extract it, OR
-2. If you know Git, run this in your terminal: `git clone https://github.com/ArifKhan18/smart-campus-bus.git`
+### Prerequisites
+- **.NET 8 SDK** (or newer) installed for the backend.
+- **Node.js** installed for frontend testing tools.
+- **Live Server** extension (if using VS Code) for the frontend.
 
-### Step 2: Open the Project
-1. Open the `smart-campus-bus/frontend` folder.
-2. Find the `index.html` file.
-3. Simply **double-click** `index.html` to open it in Google Chrome, Firefox, or Microsoft Edge.
-*(Optional but recommended: If you use VS Code, install the "Live Server" extension, right-click `index.html`, and select "Open with Live Server" for the best experience).*
+### 1. Clone the Repository
+```bash
+git clone https://github.com/ArifKhan18/smart-campus-bus.git
+cd smart-campus-bus
+```
 
-### Step 3: Test it out!
-- Click **Login** from the top menu.
-- If you don't have an account, click **Sign Up** and create a Student or Driver account.
-- Note: New Driver accounts will see an "Awaiting Approval" screen until an Admin approves them from the Admin Dashboard.
+### 2. Backend Setup (ASP.NET Core)
+The backend requires Firebase credentials and Brevo Email API keys to function.
+
+1. Navigate to the backend directory:
+   ```bash
+   cd backend/SmartCampusBus.Api
+   ```
+2. **Add Credentials**:
+   - Place your Firebase `serviceAccountKey.json` inside this folder.
+   - Update `appsettings.json` or `appsettings.Development.json` with your Firebase Project ID and Brevo API Key:
+     ```json
+     {
+       "Firebase": {
+         "ProjectId": "your-firebase-project-id"
+       },
+       "EmailSettings": {
+         "BrevoApiKey": "your-brevo-api-key",
+         "SenderEmail": "no-reply@yourdomain.com"
+       }
+     }
+     ```
+3. **Run the API**:
+   ```bash
+   dotnet restore
+   dotnet run
+   ```
+   *The API will usually run on `https://localhost:5001` or `http://localhost:5000`.*
+
+### 3. Frontend Setup
+1. Open a new terminal and navigate to the `frontend` folder:
+   ```bash
+   cd frontend
+   ```
+2. Open `js/api.js` and ensure the `API_BASE_URL` points to your running backend (e.g., `https://localhost:5001/api`).
+3. Open `index.html` using **Live Server** in VS Code, or simply double-click the file to open in your browser.
+
+*(Optional)* Run E2E Tests:
+```bash
+npm install
+npx playwright test
+```
 
 ---
 
-## 🤝 How to Contribute (For Developers)
+## 🤝 How to Contribute
 
-We welcome contributions! If you want to fix a bug or add a new feature, follow these simple steps:
+We follow a professional Git workflow. If you want to contribute, please adhere to these guidelines:
 
-1. **Fork the Repository**: Click the "Fork" button at the top right of the GitHub page to copy the project to your own account.
-2. **Clone your Fork**: Download your copied version to your computer.
+1. **Fork the Repository**: Copy the project to your own GitHub account.
+2. **Clone your Fork**: `git clone https://github.com/YourUsername/smart-campus-bus.git`
+3. **Create a Feature Branch**: Always branch out from `main`. Use a descriptive name:
    ```bash
-   git clone https://github.com/YourUsername/smart-campus-bus.git
+   git checkout -b feature/user-authentication
+   # or for bug fixes:
+   git checkout -b bugfix/map-rendering-issue
    ```
-3. **Create a Feature Branch**: Always create a new branch for your work.
+4. **Commit Standard**: Write clear, descriptive commit messages.
    ```bash
-   git checkout -b feature/awesome-new-feature
+   git commit -m "feat: added OTP verification using Brevo API"
    ```
-4. **Make your Changes**: Edit the HTML, CSS, or JS files.
-5. **Commit your Changes**: Save your work with a clear message.
-   ```bash
-   git add .
-   git commit -m "Added an awesome new feature"
-   ```
-6. **Push to GitHub**: Send your changes back to your GitHub account.
-   ```bash
-   git push origin feature/awesome-new-feature
-   ```
-7. **Open a Pull Request**: Go to the original project repository on GitHub and click "Compare & pull request". Explain what you changed and submit it for review!
+5. **Push and PR**: Push the branch to your fork and submit a Pull Request to the main repository. Ensure your code passes all tests and aligns with our formatting.
 
 ---
 
-## 📋 Development Roadmap (What's Done & What's Next)
+## 📋 Development Roadmap
 
 | Phase | Feature Name | Status |
 | :---: | :--- | :---: |
-| **0** | Project Foundation & Firebase Setup | ✅ Complete |
-| **1** | Role Selection & UI Design | ✅ Complete |
-| **2** | Secure Authentication System | ✅ Complete |
-| **3** | Driver Approval System (Admin) | ✅ Complete |
-| **4** | Core Dashboard Layouts | ✅ Complete |
+| **0-2**| Project Foundation, UI & Secure Auth (OTP via Brevo) | ✅ Complete |
+| **3-4**| Role Management & Driver Approvals | ✅ Complete |
 | **5-7**| Admin: CRUD for Buses, Routes, & Schedules | ✅ Complete |
 | **8** | Student Bus Search & View | ✅ Complete |
 | **9-10**| Driver Trip Setup & Running Status | ✅ Complete |
-| **11-13**| OpenStreetMap, Leaflet integration & Route drawing | ✅ Complete |
-| **14-15**| Background GPS Collection & Real-Time Syncing | ✅ Complete |
-| **16** | Live Bus Tracking on Map (Student) | ✅ Complete |
-| **17-18**| Distance Calculation & Live ETA System | ✅ Complete |
-| **19** | System Notifications & Alerts | ✅ Complete |
-| **20** | Live Group Chat for specific Buses | ✅ Complete |
-| **21** | Polish, Bug Fixes & Mobile Responsiveness | ✅ Complete |
-| **22** | Final Deployment to Hosting | ⏳ Up Next |
+| **11-13**| OpenStreetMap, Leaflet Integration & Route drawing | ✅ Complete |
+| **14-16**| GPS Collection & Live Bus Tracking | ✅ Complete |
+| **17-18**| Distance Calculation & ETA System | ✅ Complete |
+| **19-20**| Notifications, Alerts & Group Chat | ✅ Complete |
+| **21-22**| Admin: Analytics, Reports & Announcements | ✅ Complete |
+| **23**| Backend API Migration (ASP.NET Core) & Dockerization | ✅ Complete |
+| **24**| Playwright E2E Testing & Unit Tests | ✅ Complete |
+| **25**| Final Polish, Bug Fixes & Mobile Responsiveness | ⏳ In Progress |
+| **26**| Cloud Deployment (Vercel/Render) | ⏳ Up Next |
 
 ---
 

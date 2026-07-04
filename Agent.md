@@ -1,689 +1,148 @@
-# Smart Campus Bus Tracking System
+# Smart Campus Bus Tracking System - Agent & Architecture Guide
 
 ## Project Overview
 
 Smart Campus Bus Tracking System is a full-stack web application designed for university students, drivers, and administrators.
 
 The goal is to allow students to:
+- View bus schedules, routes, and stops
+- Track buses in real-time
+- Receive ETA information
+- Communicate through bus-specific group chats
+- Verify accounts securely using OTP via email
 
-- View bus schedules
-- View routes
-- View bus stops
-- View bus status
-- Track buses in real time (future phase)
-- Receive ETA information (future phase)
-- Communicate through bus-specific group chats (future phase)
-
-The project will be developed incrementally and phase-by-phase.
+The project is developed incrementally and phase-by-phase.
 
 ---
 
-# Technology Stack
+## Technology Stack
 
-## Frontend
+### Frontend
+- **Languages**: HTML5, CSS3, JavaScript (Vanilla ES6+)
+- **Testing**: Playwright (E2E)
+- **Maps**: OpenStreetMap (OSM) & Leaflet.js
+- **Reason for Map Selection**: OpenStreetMap is free, open-source, and highly suitable for real-time tracking without Google Maps API pricing limits.
 
-- HTML
-- CSS
-- JavaScript
+### Backend
+- **Framework**: C# ASP.NET Core Web API (.NET 8)
+- **Services**: Brevo API (for Email OTP)
+- **Containerization**: Docker
+- **Testing**: xUnit/NUnit (SmartCampusBus.Tests)
 
-## Backend
-
-- C# ASP.NET Core Web API
-
-## Database
-
-- Firebase Firestore
-
-## Authentication
-
-- Firebase Authentication
-
-## Maps
-
-- OpenStreetMap (OSM)
-- Leaflet.js
-
-## Reason for Map Selection
-
-Google Maps API is not preferred because of pricing limitations.
-
-This project will use:
-
-- OpenStreetMap
-- Leaflet.js
-
-Advantages:
-
-- Free
-- Open Source
-- Suitable for student projects
-- Supports real-time tracking
+### Database & Authentication
+- **Database**: Firebase Firestore (NoSQL, initialized via Admin SDK in backend)
+- **Authentication**: Firebase Authentication (Secured via JWT in ASP.NET Core)
 
 ---
 
-# User Roles
+## User Roles & Workflows
 
-## Student
+### Student
+- **Registration**: Requires email verification using an OTP sent via Brevo API.
+- **Access**: View bus list, schedules, routes, stops, and live status.
+- **Live Features**: View live location, ETA, and join bus-specific chats.
 
-Students can:
+### Driver
+- **Registration**: Selects assigned bus during sign up.
+- **Approval Flow**: Status is "Pending Approval" until an Admin reviews and approves it.
+- **Trip Management**: Start/End trips, broadcast live GPS, and send alerts.
 
-- Register
-- Login
-- View bus list
-- View schedules
-- View routes
-- View bus stops
-- View running status
-- View live location (future)
-- View ETA (future)
-- Join bus-specific chats (future)
-
----
-
-## Driver
-
-Drivers can:
-
-- Register
-- Login
-- Select assigned bus during registration
-- Wait for admin approval
-- Start trip
-- End trip
-
-Future:
-
-- Share GPS location
-- Real-time tracking
+### Admin
+- **Approval System**: Approve or reject driver accounts.
+- **Core Management**: CRUD for Buses, Routes, Schedules, Users, and Announcements.
+- **Analytics & Reports**: View live active buses, trip statistics, and generate system reports.
 
 ---
 
-## Admin
+## Authentication Flow
 
-Admins can:
-
-- Approve drivers
-- Reject drivers
-- Manage buses
-- Manage routes
-- Manage schedules
-- Manage users
-- Manage announcements
-- Monitor active buses
+1. User selects role (Student / Driver / Admin).
+2. Registration triggers the Backend Auth service.
+3. Student receives OTP via Email (Brevo API). Upon successful entry, account is activated.
+4. Driver registers and selects a bus. Account requires manual Admin approval.
+5. All logins exchange credentials for a Firebase JWT token which is passed via `Bearer` token to the C# Backend endpoints.
 
 ---
 
-# Authentication Flow
+## Data Models (Firestore Collections)
 
-## Application Start
+### users
+- `id`, `name`, `email`, `role`, `status`, `createdAt`
 
-User chooses role:
+### buses
+- `busId`, `busName`, `busNumber`, `assignedDriver`, `routeId`, `scheduleId`, `capacity`
 
-- Student
-- Driver
-- Admin
+### routes
+- `routeId`, `startPoint`, `endPoint`, `stops` (Array of coordinates/names)
 
-Then user can:
+### schedules
+- `scheduleId`, `busId`, `departureTimes`
 
-- Register
-- Login
+### trips & locations
+- Stores active trip data and live GPS updates (Latitude, Longitude, Timestamp).
 
----
+### driverApprovals
+- Tracks pending driver registrations.
 
-## Student Registration
+### chatRooms & messages
+- Bus-specific chat rooms and individual timestamped messages.
 
-Student registers.
-
-Account becomes active.
-
-Student can login immediately.
-
----
-
-## Driver Registration
-
-Driver registers.
-
-Driver selects assigned bus.
-
-Status:
-
-Pending Approval
-
-Admin must approve the driver.
-
-Only approved drivers can login.
+### announcements
+- Campus-wide alerts and updates posted by Admins.
 
 ---
 
-# Bus Information
+## System Workflows
 
-Each bus contains:
+### Real-time Tracking System
+- **Driver Device**: Accesses GPS, sends Latitude/Longitude every 5-10 seconds to the Backend/Firebase.
+- **Student Device**: Subscribes to Firebase location updates, rendering a moving marker on the Leaflet map.
 
-- Bus Name
-- Bus Number
-- Assigned Driver
-- Route
-- Schedule
-- Start Point
-- End Point
-- Bus Stops
-
-Example:
-
-Bus A
-
-Route:
-
-Campus → Highway → City Center
-
-Schedule:
-
-08:00 AM
-12:00 PM
-04:00 PM
-
-Stops:
-
-- Campus Gate
-- Main Highway
-- City Center
+### ETA System
+- Calculated based on the predefined Route, subsequent Bus Stops, and current Bus Position (not the student's personal location).
 
 ---
 
-# Student Dashboard
+## Development Roadmap (Status)
 
-Students can:
+### ✅ Phase 1: Project Foundation & UI
+- GitHub Repo, Frontend Setup, Initial HTML/CSS pages, Role Selection UI.
 
-- View bus list
-- View route
-- View schedule
-- View stops
-- View bus status
+### ✅ Phase 2: Secure Authentication
+- Firebase Auth, JWT integration with C# Backend, Brevo Email OTP verification.
 
----
+### ✅ Phase 3: Role Management & Approvals
+- Driver approval workflow via Admin Dashboard.
 
-## Running Status
+### ✅ Phase 4-7: Admin Management Modules
+- CRUD implementation for Buses, Routes, Schedules, and Announcements.
 
-If driver has not started trip:
+### ✅ Phase 8-10: Driver & Student Dashboards
+- Trip startup, running status flags, Student bus search views.
 
-```text
-Bus is not running yet
-```
+### ✅ Phase 11-16: Mapping & Live Tracking
+- OpenStreetMap + Leaflet integration, Route drawing, Driver GPS broadcasting, Student live view.
 
-If driver has started trip:
+### ✅ Phase 17-20: Advanced Features
+- Distance calculation, ETA System, Notifications, Alerts, and Group Chat per bus.
 
-```text
-Bus is currently running
-```
+### ✅ Phase 21-23: Analytics & Backend Overhaul
+- Admin Analytics/Reports JS. Migration of business logic to C# ASP.NET Core. Setup Docker.
 
-Future:
+### ✅ Phase 24: Testing & Stability
+- Playwright E2E tests added to Frontend. Backend testing framework initialized.
 
-- Live location
-- ETA
-- Distance information
+### ⏳ Phase 25: Final Polish & Mobile Optimization (In Progress)
+- UI/UX polish, bug fixes, mobile responsiveness across all dashboards.
 
----
-
-# Driver Dashboard
-
-Driver sees:
-
-- Assigned Bus
-- Start Button
-- End Button
+### ⏳ Phase 26: Production Deployment
+- Frontend to Vercel/Netlify. Backend to Render/Railway via Docker.
 
 ---
 
-## Start Trip
-
-When Start button is clicked:
-
-```text
-Bus Status = Running
-```
-
----
-
-## End Trip
-
-When End button is clicked:
-
-```text
-Bus Status = Not Running
-```
-
----
-
-# Live Tracking System (Future)
-
-## Driver Side
-
-Driver device:
-
-- GPS Access
-- Latitude
-- Longitude
-
-Location updates every:
-
-```text
-5–10 seconds
-```
-
-Location stored in Firebase.
-
----
-
-## Student Side
-
-Students receive:
-
-- Real-time location updates
-- Moving bus marker
-
-Map:
-
-- OpenStreetMap
-- Leaflet
-
----
-
-# ETA System (Future)
-
-ETA should be based on:
-
-- Route
-- Bus Stops
-- Bus Position
-
-Not based on:
-
-```text
-Student home location
-```
-
-Reason:
-
-Students may check buses from anywhere.
-
-ETA should be calculated according to the route.
-
----
-
-# Group Chat System (Future)
-
-Each bus has its own chat room.
-
-Example:
-
-- Bus A Chat
-- Bus B Chat
-- Bus C Chat
-
-Students assigned to a bus can communicate inside that chat room.
-
----
-
-# Database Collections
-
-## users
-
-Stores all users.
-
-Fields:
-
-- id
-- name
-- email
-- role
-- status
-
----
-
-## students
-
-Stores student information.
-
----
-
-## drivers
-
-Stores driver information.
-
----
-
-## admins
-
-Stores admin information.
-
----
-
-## buses
-
-Stores bus information.
-
----
-
-## routes
-
-Stores route information.
-
----
-
-## schedules
-
-Stores schedule information.
-
----
-
-## trips
-
-Stores active trip information.
-
----
-
-## locations
-
-Stores live GPS updates.
-
----
-
-## driverApprovals
-
-Stores pending driver approvals.
-
----
-
-## chatRooms
-
-Stores bus chat rooms.
-
----
-
-## messages
-
-Stores chat messages.
-
----
-
-# Development Roadmap
-
----
-
-# Phase 0 – Project Foundation
-
-- GitHub Repository
-- Folder Structure
-- README
-- Frontend Setup
-- Backend Setup
-- Firebase Setup
-
----
-
-# Phase 1 – Role Selection UI
-
-- Landing Page
-- Student Option
-- Driver Option
-- Admin Option
-
----
-
-# Phase 2 – Authentication
-
-- Student Register
-- Student Login
-- Driver Register
-- Driver Login
-- Admin Login
-
----
-
-# Phase 3 – Driver Approval System
-
-- Pending Drivers
-- Approve Driver
-- Reject Driver
-
----
-
-# Phase 4 – Basic Dashboards
-
-Student Dashboard
-
-Driver Dashboard
-
-Admin Dashboard
-
----
-
-# Phase 5 – Bus Management
-
-Admin:
-
-- Add Bus
-- Edit Bus
-- Delete Bus
-
----
-
-# Phase 6 – Route Management
-
-Admin:
-
-- Add Route
-- Edit Route
-- Delete Route
-
----
-
-# Phase 7 – Schedule Management
-
-Admin:
-
-- Add Schedule
-- Edit Schedule
-- Delete Schedule
-
----
-
-# Phase 8 – Student Bus View
-
-Student:
-
-- View Bus List
-- View Schedule
-- View Route
-- View Stops
-
----
-
-# Phase 9 – Driver Trip System
-
-Driver:
-
-- Start Trip
-- End Trip
-
----
-
-# Phase 10 – Running Status System
-
-Student sees:
-
-- Running
-- Not Running
-
----
-
-# Phase 11 – OpenStreetMap Integration
-
-Integrate:
-
-- OpenStreetMap
-- Leaflet.js
-
----
-
-# Phase 12 – Bus Stop Visualization
-
-Display:
-
-- Start Point
-- End Point
-- Stops
-
----
-
-# Phase 13 – Route Visualization
-
-Display route on map.
-
----
-
-# Phase 14 – GPS Collection
-
-Driver device:
-
-- GPS Access
-- Location Collection
-
----
-
-# Phase 15 – Real-Time Tracking Backend
-
-Store:
-
-- Latitude
-- Longitude
-- Timestamp
-
-Firebase updates.
-
----
-
-# Phase 16 – Live Tracking
-
-Students view:
-
-- Moving Bus Marker
-
----
-
-# Phase 17 – Distance Calculation
-
-Calculate:
-
-- Bus to Stop Distance
-
----
-
-# Phase 18 – ETA System
-
-Display:
-
-- ETA
-- Next Stop
-- Remaining Distance
-
----
-
-# Phase 19 – Notifications
-
-Students receive:
-
-- Bus Started
-- Bus Delayed
-- Bus Arrived
-
----
-
-# Phase 20 – Group Chat
-
-Bus-specific chat rooms.
-
----
-
-# Phase 21 – Announcements
-
-Admin:
-
-- Notices
-- Alerts
-- Schedule Changes
-
----
-
-# Phase 22 – Attendance (Optional)
-
-Future:
-
-- QR Attendance
-- Boarding Records
-
----
-
-# Phase 23 – Analytics Dashboard
-
-Admin:
-
-- Active Buses
-- Active Drivers
-- Daily Trips
-- Usage Statistics
-
----
-
-# Phase 24 – Security
-
-- Role Authorization
-- API Protection
-- Validation
-
----
-
-# Phase 25 – Testing
-
-- Unit Testing
-- Integration Testing
-- UI Testing
-
----
-
-# Phase 26 – Deployment
-
-Frontend:
-
-- Vercel / Netlify
-
-Backend:
-
-- Render / Railway
-
-Database:
-
-- Firebase
-
----
-
-# Phase 27 – Production Release
-
-- Documentation
-- Optimization
-- Bug Fixes
-
----
-
-# Development Rule
-
-IMPORTANT:
-
-- Never build the entire project at once.
-- Complete one phase at a time.
-- Wait for approval before moving to the next phase.
-- Keep architecture scalable.
-- Use clean code principles.
-- Maintain GitHub-friendly folder structure.
-- Follow production-ready development practices.
+## Development Rules
+
+- **API First**: Always route critical data through the C# ASP.NET Core API rather than direct client-to-Firebase calls where business logic is needed.
+- **Phase Completion**: Do not start a new phase until the current one is fully approved and tested.
+- **Clean Architecture**: Backend should maintain Separation of Concerns (Controllers -> Services -> Repositories/Firebase SDK).
+- **Testing**: E2E tests for frontend logic and Unit tests for backend logic must be maintained.
