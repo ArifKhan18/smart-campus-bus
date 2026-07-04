@@ -28,6 +28,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (btnLogout) {
             btnLogout.addEventListener("click", () => logoutUser());
         }
+        
+        const btnCalcMyLocation = document.getElementById('btn-calc-my-location');
+        if (btnCalcMyLocation) {
+            btnCalcMyLocation.addEventListener("click", requestStudentLocation);
+        }
     }
 });
 
@@ -305,6 +310,9 @@ let currentMap = null;
 let currentBusMarker = null;
 let currentSelectedBusId = null;
 let stopMarkersLayer = null; // Phase 12: layer group for stop markers
+let isShowingMyLocationETA = false;
+let studentLocation = null;
+let studentLocationMarker = null;
 
 function initDataListeners() {
     listenToBuses();
@@ -577,6 +585,11 @@ function updateEtaInfo(bus, busLatLng) {
     const stopNameEl = document.getElementById('eta-stop-name');
     const distanceEl = document.getElementById('eta-distance');
     const timeEl = document.getElementById('eta-time');
+    const lastUpdatedEl = document.getElementById('eta-last-updated');
+    const passedStatusEl = document.getElementById('bus-passed-status');
+    const nextStopEl = document.getElementById('bus-next-stop');
+    const destLabelEl = document.getElementById('eta-dest-label');
+    const btnCalcMyLocation = document.getElementById('btn-calc-my-location');
     
     if (!etaPanel || !stopNameEl || !distanceEl || !timeEl) return;
     
@@ -585,12 +598,26 @@ function updateEtaInfo(bus, busLatLng) {
         etaPanel.style.display = 'none';
         return;
     }
+
+    etaPanel.style.display = 'flex';
     
-    let nearestStop = null;
+    // Update Last Updated Time
+    if (lastUpdatedEl && bus.currentLocation && bus.currentLocation.timestamp) {
+        const lastUpdatedDate = new Date(bus.currentLocation.timestamp);
+        const diffMs = Date.now() - lastUpdatedDate.getTime();
+        const diffMins = Math.floor(diffMs / 60000);
+        
+        if (diffMins < 1) lastUpdatedEl.innerHTML = `Last Updated: <strong>Just now</strong>`;
+        else lastUpdatedEl.innerHTML = `Last Updated: <strong>${diffMins} min${diffMins > 1 ? 's' : ''} ago</strong>`;
+    } else if (lastUpdatedEl) {
+        lastUpdatedEl.innerHTML = `Last Updated: <strong>Unknown</strong>`;
+    }
+
+    // Determine Bus Position along the route
     let minDistance = Infinity;
+    let nearestStopIndex = -1;
     
-    // Find the nearest stop
-    route.stops.forEach(stop => {
+    route.stops.forEach((stop, index) => {
         if (stop.latitude && stop.longitude) {
             const dist = getDistanceFromLatLonInMeters(
                 busLatLng[0], busLatLng[1], 
@@ -598,55 +625,158 @@ function updateEtaInfo(bus, busLatLng) {
             );
             if (dist < minDistance) {
                 minDistance = dist;
-                nearestStop = stop;
+                nearestStopIndex = index;
             }
         }
     });
+
+    let previousStop = null;
+    let nextStop = null;
+    let currentStop = route.stops[nearestStopIndex];
+
+    if (minDistance < 50) {
+        // At a stop
+        previousStop = currentStop;
+        nextStop = nearestStopIndex < route.stops.length - 1 ? route.stops[nearestStopIndex + 1] : null;
+        if (passedStatusEl) passedStatusEl.innerHTML = `Currently at: <strong>${currentStop.name}</strong>`;
+    } else {
+        // Between stops - naive assumption based on nearest
+        if (nearestStopIndex === 0) {
+            previousStop = currentStop;
+            nextStop = route.stops.length > 1 ? route.stops[1] : null;
+            if (passedStatusEl) passedStatusEl.innerHTML = `Left: <strong>${previousStop.name}</strong>`;
+        } else if (nearestStopIndex === route.stops.length - 1) {
+            previousStop = route.stops[nearestStopIndex - 1];
+            nextStop = currentStop;
+            if (passedStatusEl) passedStatusEl.innerHTML = `Approaching final stop`;
+        } else {
+            previousStop = currentStop;
+            nextStop = route.stops[nearestStopIndex + 1];
+            if (passedStatusEl) passedStatusEl.innerHTML = `Recently passed: <strong>${previousStop.name}</strong>`;
+        }
+    }
+
+    if (nextStopEl) {
+        if (nextStop) nextStopEl.innerHTML = `<strong>${nextStop.name}</strong>`;
+        else nextStopEl.innerHTML = `<em>End of Route</em>`;
+    }
+
+    // Target Calculation (Final stop OR Student Location)
+    let targetLat, targetLon, targetName, targetDistance;
     
-    if (!nearestStop) {
-        etaPanel.style.display = 'none';
-        return;
+    if (isShowingMyLocationETA && studentLocation) {
+        targetLat = studentLocation.latitude;
+        targetLon = studentLocation.longitude;
+        targetName = "My Location";
+        if (destLabelEl) destLabelEl.textContent = "To My Location";
+        if (btnCalcMyLocation) btnCalcMyLocation.innerHTML = `<span>📍</span> Using My Location`;
+    } else {
+        // Default to final stop
+        const finalStop = route.stops[route.stops.length - 1];
+        targetLat = finalStop.latitude;
+        targetLon = finalStop.longitude;
+        targetName = finalStop.name;
+        if (destLabelEl) destLabelEl.textContent = "To Final Stop";
+        if (btnCalcMyLocation) btnCalcMyLocation.innerHTML = `<span>📍</span> Calculate from My Location`;
     }
     
-    // Show ETA Panel
-    etaPanel.style.display = 'flex';
-    stopNameEl.textContent = nearestStop.name;
-    
-    if (minDistance < 50) {
-        // Less than 50 meters = Arriving
-        distanceEl.textContent = `${Math.round(minDistance)}m`;
-        timeEl.textContent = "Arriving...";
-        timeEl.style.color = "var(--accent-success)";
+    if (targetLat && targetLon) {
+        targetDistance = getDistanceFromLatLonInMeters(
+            busLatLng[0], busLatLng[1], 
+            targetLat, targetLon
+        );
         
-        // Phase 19: Local "Bus Arrived" Notification
-        if (!bus.arrivalNotified) {
-            bus.arrivalNotified = true;
-            addLocalNotification({
-                type: 'bus_arrived',
-                message: `${bus.busName} has arrived at ${nearestStop.name}`,
-                timestamp: new Date()
-            });
-        }
-    } else {
-        // Format Distance
-        if (minDistance >= 1000) {
-            distanceEl.textContent = `${(minDistance / 1000).toFixed(1)} km`;
+        stopNameEl.textContent = targetName;
+        
+        if (targetDistance < 50 && isShowingMyLocationETA) {
+            distanceEl.textContent = `${Math.round(targetDistance)}m`;
+            timeEl.textContent = "Arrived!";
+            timeEl.style.color = "var(--accent-success)";
         } else {
-            distanceEl.textContent = `${Math.round(minDistance)} m`;
+            if (targetDistance >= 1000) {
+                distanceEl.textContent = `${(targetDistance / 1000).toFixed(1)} km`;
+            } else {
+                distanceEl.textContent = `${Math.round(targetDistance)} m`;
+            }
+            
+            const speedMetersPerSecond = 5.5; 
+            const timeInSeconds = targetDistance / speedMetersPerSecond;
+            const timeInMinutes = Math.ceil(timeInSeconds / 60);
+            
+            timeEl.textContent = `${timeInMinutes} min`;
+            timeEl.style.color = "#00ffcc"; 
         }
-        
-        // Calculate ETA (Assumed average speed: 20 km/h = ~5.5 m/s)
-        const speedMetersPerSecond = 5.5; 
-        const timeInSeconds = minDistance / speedMetersPerSecond;
-        const timeInMinutes = Math.ceil(timeInSeconds / 60);
-        
-        timeEl.textContent = `${timeInMinutes} min`;
-        timeEl.style.color = "#00ffcc"; // Default highlight color
-        
-        // Reset arrival flag if moved away
-        if (bus.arrivalNotified && minDistance > 100) {
-            bus.arrivalNotified = false;
-        }
+    }
+}
+
+function requestStudentLocation() {
+    const btnCalcMyLocation = document.getElementById('btn-calc-my-location');
+    if (btnCalcMyLocation) {
+        btnCalcMyLocation.innerHTML = `<span>⏳</span> Locating...`;
+        btnCalcMyLocation.disabled = true;
+    }
+    
+    if (!navigator.geolocation) {
+        window.showToast("Geolocation is not supported by your browser.", "error");
+        resetLocationButton();
+        return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+        (position) => {
+            isShowingMyLocationETA = true;
+            studentLocation = {
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude
+            };
+            window.showToast("Location captured! ETA updated.", "success");
+            
+            // Add marker on map
+            if (currentMap) {
+                if (studentLocationMarker) {
+                    currentMap.removeLayer(studentLocationMarker);
+                }
+                const studentIcon = L.divIcon({
+                    html: '<div style="font-size: 24px; background: rgba(37,99,235,0.2); border-radius: 50%; border: 2px solid #2563eb; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 10px rgba(37,99,235,0.5);">🧍</div>',
+                    className: '',
+                    iconSize: [30, 30],
+                    iconAnchor: [15, 15]
+                });
+                studentLocationMarker = L.marker([studentLocation.latitude, studentLocation.longitude], {icon: studentIcon}).addTo(currentMap);
+                
+                // Adjust map bounds to show both bus and student
+                if (currentBusMarker) {
+                    const bounds = L.latLngBounds([
+                        currentBusMarker.getLatLng(),
+                        studentLocationMarker.getLatLng()
+                    ]);
+                    currentMap.fitBounds(bounds, { padding: [50, 50] });
+                }
+            }
+            
+            if (currentSelectedBusId) {
+                updateLiveBusLocation(currentSelectedBusId);
+            }
+            
+            if (btnCalcMyLocation) {
+                btnCalcMyLocation.disabled = false;
+            }
+        },
+        (error) => {
+            console.error("Geolocation error:", error);
+            window.showToast("Failed to get location. Please allow location access.", "error");
+            resetLocationButton();
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+    );
+}
+
+function resetLocationButton() {
+    isShowingMyLocationETA = false;
+    const btnCalcMyLocation = document.getElementById('btn-calc-my-location');
+    if (btnCalcMyLocation) {
+        btnCalcMyLocation.innerHTML = `<span>📍</span> Calculate from My Location`;
+        btnCalcMyLocation.disabled = false;
     }
 }
 
