@@ -7,6 +7,89 @@ import { initAuthGuard, logoutUser } from "./auth-guard.js";
 import { sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { collection, query, where, getDocs, onSnapshot, addDoc, doc, updateDoc, serverTimestamp, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
+const translations = {
+    en: {
+        hello: "Hello,",
+        sign_out: "Sign Out",
+        start: "START",
+        cancel: "✕ CANCEL",
+        stop: "STOP",
+        delay: "DELAY",
+        ready_next_trip: "Ready for next trip",
+        gps_offline: "GPS Offline",
+        location_not_available: "Location not available",
+        assigned_bus: "ASSIGNED BUS",
+        todays_schedule: "TODAY'S DUTY SCHEDULE",
+        loading_schedules: "Loading schedules...",
+        no_bus: "No Bus Assigned",
+        contact_admin: "Please contact admin to assign a bus.",
+        cannot_start: "Cannot start trip: No bus assigned",
+        no_schedules: "No schedules assigned for today.",
+        assigned_duty: "Assigned Duty",
+        trip_in_progress: "📍 TRIP IN PROGRESS...",
+        connecting_gps: "Connecting to GPS...",
+        waiting_signal: "Waiting for signal",
+        gps_active: "GPS Active",
+        gps_error: "GPS Error",
+        connecting: "CONNECTING",
+        accuracy: "Accuracy",
+        updated: "Updated",
+        trip_cancelled: "Trip start cancelled.",
+        cannot_start_gps_error: "Cannot start trip.",
+        failed_start_db: "Failed to start trip due to database error.",
+        confirm_delay: "Are you sure you want to mark the bus as delayed?",
+        delay_sent: "Delay notification sent to students.",
+        delay_failed: "Failed to send delay notification.",
+        stop_failed: "Failed to stop trip."
+    },
+    bn: {
+        hello: "হ্যালো,",
+        sign_out: "লগ আউট",
+        start: "শুরু করুন",
+        cancel: "✕ বাতিল",
+        stop: "থামান",
+        delay: "দেরি",
+        ready_next_trip: "পরবর্তী ট্রিপের জন্য প্রস্তুত",
+        gps_offline: "জিপিএস অফলাইন",
+        location_not_available: "অবস্থান উপলব্ধ নেই",
+        assigned_bus: "নির্ধারিত বাস",
+        todays_schedule: "আজকের ডিউটি শিডিউল",
+        loading_schedules: "শিডিউল লোড হচ্ছে...",
+        no_bus: "কোনো বাস বরাদ্দ নেই",
+        contact_admin: "বাস বরাদ্দের জন্য অ্যাডমিনের সাথে যোগাযোগ করুন।",
+        cannot_start: "ট্রিপ শুরু করা যাচ্ছে না: কোনো বাস বরাদ্দ নেই",
+        no_schedules: "আজকের জন্য কোনো শিডিউল বরাদ্দ নেই।",
+        assigned_duty: "নির্ধারিত ডিউটি",
+        trip_in_progress: "📍 ট্রিপ চলছে...",
+        connecting_gps: "জিপিএস সংযোগ হচ্ছে...",
+        waiting_signal: "সিগন্যালের জন্য অপেক্ষা করা হচ্ছে",
+        gps_active: "জিপিএস সক্রিয়",
+        gps_error: "জিপিএস ত্রুটি",
+        connecting: "সংযোগ হচ্ছে",
+        accuracy: "সঠিকতা",
+        updated: "আপডেট",
+        trip_cancelled: "ট্রিপ শুরু করা বাতিল করা হয়েছে।",
+        cannot_start_gps_error: "ট্রিপ শুরু করা যাচ্ছে না।",
+        failed_start_db: "ডাটাবেস ত্রুটির কারণে ট্রিপ শুরু করা যায়নি।",
+        confirm_delay: "আপনি কি নিশ্চিত যে আপনি বাসটিকে বিলম্বিত হিসাবে চিহ্নিত করতে চান?",
+        delay_sent: "শিক্ষার্থীদের কাছে বিলম্বের বিজ্ঞপ্তি পাঠানো হয়েছে।",
+        delay_failed: "বিলম্বের বিজ্ঞপ্তি পাঠাতে ব্যর্থ হয়েছে।",
+        stop_failed: "ট্রিপ থামাতে ব্যর্থ হয়েছে।"
+    }
+};
+
+let currentLang = localStorage.getItem('driver_lang') || 'en';
+
+function getTranslation(key) {
+    return translations[currentLang][key] || key;
+}
+
+window.toggleLanguage = function() {
+    currentLang = currentLang === 'en' ? 'bn' : 'en';
+    localStorage.setItem('driver_lang', currentLang);
+    location.reload(); // Reload to apply language to all dynamic states
+};
+
 let currentDriverUser = null;
 let assignedBusId = null;
 let assignedBusName = "Bus";
@@ -33,7 +116,22 @@ const gpsDot = document.getElementById('gps-dot');
 const gpsText = document.getElementById('gps-text');
 const gpsDetails = document.getElementById('gps-details');
 
+function applyTranslations() {
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (translations[currentLang][key]) {
+            el.textContent = translations[currentLang][key];
+        }
+    });
+    const langBtn = document.getElementById('lang-toggle-btn');
+    if (langBtn) {
+        langBtn.textContent = currentLang === 'en' ? 'বাংলা' : 'English';
+        langBtn.addEventListener('click', window.toggleLanguage);
+    }
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
+    applyTranslations();
     // Require authentication, allow only drivers
     const authData = await initAuthGuard(true, ['driver']);
     
@@ -57,7 +155,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         if(btnCancelConnecting) {
             btnCancelConnecting.addEventListener("click", () => {
                 if (pendingTripStart) {
-                    showErrorPopup("Trip start cancelled.");
+                    showErrorPopup(getTranslation('trip_cancelled'));
                     resetStartButton();
                     stopGpsTracking();
                 }
@@ -122,16 +220,16 @@ async function fetchDriverData() {
             // 3. Check for active trips
             checkActiveTrips();
         } else {
-            if (assignedBusEl) assignedBusEl.textContent = "No Bus Assigned";
+            if (assignedBusEl) assignedBusEl.textContent = getTranslation('no_bus');
             if (scheduleListEl) scheduleListEl.innerHTML = `
                 <div class="schedule-item">
-                    <span class="schedule-time" style="color: var(--text-primary);">Please contact admin to assign a bus.</span>
+                    <span class="schedule-time" style="color: var(--text-primary);">${getTranslation('contact_admin')}</span>
                 </div>
             `;
             if(btnStart) {
                 btnStart.style.opacity = '0.5';
                 btnStart.disabled = true;
-                statusText.textContent = 'Cannot start trip: No bus assigned';
+                statusText.textContent = getTranslation('cannot_start');
             }
         }
     } catch (error) {
@@ -155,7 +253,7 @@ function fetchSchedules() {
             if (schedules.length === 0) {
                 scheduleListEl.innerHTML = `
                     <div class="schedule-item">
-                        <span class="schedule-time" style="color: var(--text-primary);">No schedules assigned for today.</span>
+                        <span class="schedule-time" style="color: var(--text-primary);">${getTranslation('no_schedules')}</span>
                     </div>
                 `;
                 return;
@@ -167,7 +265,7 @@ function fetchSchedules() {
                 item.className = 'schedule-item';
                 item.innerHTML = `
                     <span class="schedule-time">${formatTime12Hour(sched.departureTime)}</span>
-                    <span class="schedule-route">Assigned Duty</span>
+                    <span class="schedule-route">${getTranslation('assigned_duty')}</span>
                 `;
                 scheduleListEl.appendChild(item);
             });
@@ -192,7 +290,7 @@ function checkActiveTrips() {
             if(btnStop) btnStop.style.display = 'flex';
             if(btnDelay) btnDelay.classList.remove('hidden');
             if(statusText) {
-                statusText.textContent = '📍 TRIP IN PROGRESS...';
+                statusText.textContent = getTranslation('trip_in_progress');
                 statusText.style.color = 'var(--accent-success)';
                 statusText.style.borderColor = 'rgba(0, 200, 83, 0.2)';
                 statusText.style.background = 'rgba(0, 200, 83, 0.05)';
@@ -217,13 +315,13 @@ async function startTrip() {
     btnStart.disabled = true;
     btnStart.innerHTML = `
         <span class="btn-icon">⏳</span>
-        <span class="btn-text" style="font-size: 1rem;">CONNECTING</span>
+        <span class="btn-text" style="font-size: 1rem;">${getTranslation('connecting')}</span>
     `;
     btnStart.style.background = '#f59e0b';
     btnStart.style.boxShadow = '0 10px 30px rgba(245, 158, 11, 0.3)';
     
     if (statusText) {
-        statusText.textContent = 'Connecting to GPS...';
+        statusText.textContent = getTranslation('connecting_gps');
         statusText.style.color = '#f59e0b';
         statusText.style.borderColor = 'rgba(245, 158, 11, 0.2)';
         statusText.style.background = 'rgba(245, 158, 11, 0.05)';
@@ -238,7 +336,7 @@ async function startTrip() {
 async function delayBus() {
     if (!activeTripId || !assignedBusId) return;
     
-    if (!confirm("Are you sure you want to mark the bus as delayed?")) return;
+    if (!confirm(getTranslation('confirm_delay'))) return;
     
     btnDelay.disabled = true;
     try {
@@ -248,10 +346,10 @@ async function delayBus() {
             message: `${assignedBusName} is currently delayed due to traffic or other issues.`,
             timestamp: serverTimestamp()
         });
-        alert("Delay notification sent to students.");
+        alert(getTranslation('delay_sent'));
     } catch (error) {
         console.error("Error sending delay notification:", error);
-        alert("Failed to send delay notification.");
+        alert(getTranslation('delay_failed'));
     } finally {
         btnDelay.disabled = false;
     }
@@ -290,7 +388,7 @@ async function stopTrip() {
         
     } catch (error) {
         console.error("Error stopping trip:", error);
-        alert("Failed to stop trip.");
+        alert(getTranslation('stop_failed'));
     } finally {
         btnStop.disabled = false;
     }
@@ -316,8 +414,8 @@ function startGpsTracking(isStartingTrip = false) {
     }
     if (gpsStatusDiv) gpsStatusDiv.classList.add('visible');
     if (gpsDot) { gpsDot.classList.remove('error'); gpsDot.classList.add('active'); }
-    if (gpsText) gpsText.textContent = "Connecting to GPS...";
-    if (gpsDetails) gpsDetails.textContent = "Waiting for signal";
+    if (gpsText) gpsText.textContent = getTranslation('connecting_gps');
+    if (gpsDetails) gpsDetails.textContent = getTranslation('waiting_signal');
     
     // Clear any existing watch
     if (gpsWatchId) navigator.geolocation.clearWatch(gpsWatchId);
@@ -341,8 +439,8 @@ function stopGpsTracking() {
     
     if (gpsStatusDiv) gpsStatusDiv.classList.remove('visible');
     if (gpsDot) { gpsDot.classList.remove('active', 'error'); }
-    if (gpsText) gpsText.textContent = "GPS Offline";
-    if (gpsDetails) gpsDetails.textContent = "Location not available";
+    if (gpsText) gpsText.textContent = getTranslation('gps_offline');
+    if (gpsDetails) gpsDetails.textContent = getTranslation('location_not_available');
 }
 
 async function handleGpsSuccess(position) {
@@ -355,8 +453,8 @@ async function processLocationUpdate(latitude, longitude, accuracy) {
     
     // Update UI immediately
     if (gpsDot) { gpsDot.classList.remove('error'); gpsDot.classList.add('active'); }
-    if (gpsText) gpsText.textContent = "GPS Active";
-    if (gpsDetails) gpsDetails.textContent = `Accuracy: ±${Math.round(accuracy)}m | Updated: ${new Date().toLocaleTimeString()}`;
+    if (gpsText) gpsText.textContent = getTranslation('gps_active');
+    if (gpsDetails) gpsDetails.textContent = `${getTranslation('accuracy')}: ±${Math.round(accuracy)}m | ${getTranslation('updated')}: ${new Date().toLocaleTimeString()}`;
     
     if (pendingTripStart) {
         pendingTripStart = false;
@@ -405,7 +503,7 @@ function handleGpsError(error) {
     updateGpsUiError(msg);
     
     if (pendingTripStart) {
-        showErrorPopup(msg + " Cannot start trip.");
+        showErrorPopup(msg + " " + getTranslation('cannot_start_gps_error'));
         resetStartButton();
         stopGpsTracking();
     }
@@ -414,7 +512,7 @@ function handleGpsError(error) {
 function updateGpsUiError(msg) {
     if (gpsStatusDiv) gpsStatusDiv.classList.add('visible');
     if (gpsDot) { gpsDot.classList.remove('active'); gpsDot.classList.add('error'); }
-    if (gpsText) gpsText.textContent = "GPS Error";
+    if (gpsText) gpsText.textContent = getTranslation('gps_error');
     if (gpsDetails) gpsDetails.textContent = msg;
 }
 
@@ -449,7 +547,7 @@ async function confirmTripStart() {
     } catch (error) {
         console.error("Error confirming trip start:", error);
         resetStartButton();
-        showErrorPopup("Failed to start trip due to database error.");
+        showErrorPopup(getTranslation('failed_start_db'));
         stopGpsTracking();
     }
 }
@@ -462,7 +560,7 @@ function resetStartButton() {
         btnStart.style.display = 'flex';
         btnStart.innerHTML = `
             <span class="btn-icon">▶</span>
-            <span class="btn-text">START</span>
+            <span class="btn-text">${getTranslation('start')}</span>
         `;
         btnStart.style.background = ''; // reset to class default
         btnStart.style.boxShadow = '';
@@ -471,7 +569,7 @@ function resetStartButton() {
     if(btnStop) btnStop.style.display = 'none';
     if(btnDelay) btnDelay.classList.add('hidden');
     if(statusText) {
-        statusText.textContent = 'Ready for next trip';
+        statusText.textContent = getTranslation('ready_next_trip');
         statusText.style.color = 'var(--text-muted)';
         statusText.style.borderColor = 'rgba(255, 255, 255, 0.05)';
         statusText.style.background = 'rgba(255, 255, 255, 0.03)';

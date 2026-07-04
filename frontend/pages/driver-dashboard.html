@@ -391,13 +391,14 @@
             <div class="logo-area">
                 <div class="logo-icon">🚌</div>
                 <div class="driver-greeting">
-                    <span class="greeting-text">Hello,</span>
+                    <span class="greeting-text" data-i18n="hello">Hello,</span>
                     <h2 class="driver-name" id="user-name">Driver</h2>
                 </div>
             </div>
             <div style="display: flex; align-items: center; gap: 10px;">
+                <button id="lang-toggle-btn" title="Toggle Language" style="background:var(--bg-surface); color:var(--text-primary); border:1px solid var(--border-card); border-radius:8px; padding:8px; cursor:pointer; font-size:0.85rem; font-family:'Inter', sans-serif; transition:all 0.2s;">বাংলা</button>
                 <button id="theme-toggle-btn" class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme" style="background:var(--bg-surface); color:var(--text-primary); border:1px solid var(--border-card); border-radius:50%; width:36px; height:36px; cursor:pointer; font-size:1.1rem; transition:all 0.2s;">☀️</button>
-                <button id="btn-logout" class="btn-logout">Sign Out</button>
+                <button id="btn-logout" class="btn-logout" data-i18n="sign_out">Sign Out</button>
             </div>
         </header>
 
@@ -406,32 +407,32 @@
             <div class="action-area">
                 <button id="btn-start-trip" class="round-btn btn-start">
                     <span class="btn-icon">▶</span>
-                    <span class="btn-text">START</span>
+                    <span class="btn-text" data-i18n="start">START</span>
                 </button>
                 
-                <button id="btn-cancel-connecting" style="margin-top: 15px; background: transparent; border: 1px solid #ef4444; color: #ef4444; border-radius: 20px; padding: 8px 24px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: none; font-family: 'Inter', sans-serif;">
+                <button id="btn-cancel-connecting" data-i18n="cancel" style="margin-top: 15px; background: transparent; border: 1px solid #ef4444; color: #ef4444; border-radius: 20px; padding: 8px 24px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: none; font-family: 'Inter', sans-serif;">
                     ✕ CANCEL
                 </button>
                 
                 <button id="btn-stop-trip" class="round-btn btn-stop">
                     <span class="btn-icon">⏹</span>
-                    <span class="btn-text">STOP</span>
+                    <span class="btn-text" data-i18n="stop">STOP</span>
                 </button>
                 
                 <button id="btn-delay-bus" class="btn-delay hidden">
                     <span class="btn-icon" style="font-size: 2rem;">⏳</span>
-                    <span class="btn-text" style="font-size: 1rem;">DELAY</span>
+                    <span class="btn-text" style="font-size: 1rem;" data-i18n="delay">DELAY</span>
                 </button>
                 
-                <div class="trip-status" id="trip-status">Ready for next trip</div>
+                <div class="trip-status" id="trip-status" data-i18n="ready_next_trip">Ready for next trip</div>
                 
                 <!-- GPS Status (Phase 14) -->
                 <div class="gps-status" id="gps-status">
                     <div class="gps-status-indicator">
                         <div class="gps-dot" id="gps-dot"></div>
-                        <span id="gps-text">GPS Offline</span>
+                        <span id="gps-text" data-i18n="gps_offline">GPS Offline</span>
                     </div>
-                    <div class="gps-details" id="gps-details">Location not available</div>
+                    <div class="gps-details" id="gps-details" data-i18n="location_not_available">Location not available</div>
                 </div>
             </div>
 
@@ -442,7 +443,7 @@
                 <div class="info-row">
                     <div class="info-icon">🚐</div>
                     <div class="info-details">
-                        <div class="info-label">ASSIGNED BUS</div>
+                        <div class="info-label" data-i18n="assigned_bus">ASSIGNED BUS</div>
                         <h3 class="info-value" id="assigned-bus">--</h3>
                     </div>
                 </div>
@@ -453,11 +454,11 @@
                 <div class="info-row" style="align-items: flex-start;">
                     <div class="info-icon" style="background: rgba(0, 200, 83, 0.1); color: var(--accent-success);">⏰</div>
                     <div class="info-details" style="width: 100%;">
-                        <div class="info-label" style="margin-bottom: 10px;">TODAY'S DUTY SCHEDULE</div>
+                        <div class="info-label" style="margin-bottom: 10px;" data-i18n="todays_schedule">TODAY'S DUTY SCHEDULE</div>
                         <div class="schedule-list" id="duty-schedule-list">
                             <!-- Dynamic schedules will be rendered here -->
                             <div class="schedule-item">
-                                <span class="schedule-time" style="color: var(--text-primary);">Loading schedules...</span>
+                                <span class="schedule-time" style="color: var(--text-primary);" data-i18n="loading_schedules">Loading schedules...</span>
                             </div>
                         </div>
     </div>
