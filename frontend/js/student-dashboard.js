@@ -1095,7 +1095,6 @@ function initNotifications(user) {
                 badge.style.display = 'none';
                 badge.textContent = '0';
             }
-            localStorage.setItem('smartbus_notifications_last_seen', Date.now().toString());
         });
         
         document.addEventListener('click', (e) => {
@@ -1117,15 +1116,13 @@ function initNotifications(user) {
                     if (notifDate.getTime() < userCreationTime) return;
 
                     const clearedTime = parseInt(localStorage.getItem('smartbus_notifications_cleared') || '0');
-                    const lastSeenTime = parseInt(localStorage.getItem('smartbus_notifications_last_seen') || '0');
                     
                     if (notifDate.getTime() > clearedTime) {
-                        const isNew = notifDate.getTime() > lastSeenTime;
                         addLocalNotification({
                             type: data.type,
                             message: data.message,
                             timestamp: notifDate,
-                            isNew: isNew
+                            isNew: true
                         }, false);
                     }
                 }
