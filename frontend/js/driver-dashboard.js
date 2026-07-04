@@ -40,7 +40,17 @@ const translations = {
         confirm_delay: "Are you sure you want to mark the bus as delayed?",
         delay_sent: "Delay notification sent to students.",
         delay_failed: "Failed to send delay notification.",
-        stop_failed: "Failed to stop trip."
+        stop_failed: "Failed to stop trip.",
+        setup_trip: "Setup Trip",
+        select_direction: "1. Select Direction",
+        select_direction_opt: "-- Select Direction --",
+        start_to_end: "Start → End",
+        end_to_start: "End → Start",
+        select_time: "2. Select Time",
+        select_time_opt: "-- Select Time --",
+        start_trip: "Start Trip",
+        trip_setup_desc: "Click START to setup your trip details and begin broadcasting GPS.",
+        trip_setup: "TRIP SETUP"
     },
     bn: {
         hello: "হ্যালো,",
@@ -74,7 +84,17 @@ const translations = {
         confirm_delay: "আপনি কি নিশ্চিত যে আপনি বাসটিকে বিলম্বিত হিসাবে চিহ্নিত করতে চান?",
         delay_sent: "শিক্ষার্থীদের কাছে বিলম্বের বিজ্ঞপ্তি পাঠানো হয়েছে।",
         delay_failed: "বিলম্বের বিজ্ঞপ্তি পাঠাতে ব্যর্থ হয়েছে।",
-        stop_failed: "ট্রিপ থামাতে ব্যর্থ হয়েছে।"
+        stop_failed: "ট্রিপ থামাতে ব্যর্থ হয়েছে।",
+        setup_trip: "ট্রিপ সেটআপ",
+        select_direction: "১. দিক নির্বাচন করুন",
+        select_direction_opt: "-- দিক নির্বাচন করুন --",
+        start_to_end: "শুরু → শেষ",
+        end_to_start: "শেষ → শুরু",
+        select_time: "২. সময় নির্বাচন করুন",
+        select_time_opt: "-- সময় নির্বাচন করুন --",
+        start_trip: "ট্রিপ শুরু করুন",
+        trip_setup_desc: "আপনার ট্রিপের বিবরণ সেটআপ করতে এবং জিপিএস সম্প্রচার শুরু করতে START এ ক্লিক করুন।",
+        trip_setup: "ট্রিপ সেটআপ"
     }
 };
 
@@ -108,7 +128,15 @@ const btnDelay = document.getElementById('btn-delay-bus');
 const btnCancelConnecting = document.getElementById('btn-cancel-connecting');
 const statusText = document.getElementById('trip-status');
 const assignedBusEl = document.getElementById('assigned-bus');
-const scheduleListEl = document.getElementById('duty-schedule-list');
+const scheduleSelectorContainer = document.getElementById('schedule-selector-container');
+const timeSelect = document.getElementById('trip-time-select');
+const directionSelectorContainer = document.getElementById('direction-selector-container');
+const directionSelect = document.getElementById('trip-direction-select');
+const optForward = document.getElementById('opt-forward');
+const optReturn = document.getElementById('opt-return');
+
+let selectedScheduleId = null;
+let assignedRoute = null;
 
 // GPS UI Elements
 const gpsStatusDiv = document.getElementById('gps-status');
@@ -149,9 +177,33 @@ document.addEventListener("DOMContentLoaded", async () => {
         await fetchDriverData();
         
         // Setup Trip Actions
-        if(btnStart) btnStart.addEventListener("click", startTrip);
+        if(btnStart) btnStart.addEventListener('click', () => {
+        // Open the modal instead of starting the trip directly
+        document.getElementById('trip-setup-modal').style.display = 'flex';
+    });
+    
+    // Setup Modal Buttons
+    const btnCloseModal = document.getElementById('btn-close-modal');
+    const btnConfirmStart = document.getElementById('btn-confirm-start');
+    
+    if (btnCloseModal) {
+        btnCloseModal.addEventListener('click', () => {
+            document.getElementById('trip-setup-modal').style.display = 'none';
+        });
+    }
+    
+    if (btnConfirmStart) {
+        btnConfirmStart.addEventListener('click', startTrip);
+    }
         if(btnStop) btnStop.addEventListener("click", stopTrip);
         if(btnDelay) btnDelay.addEventListener("click", delayBus);
+        if(directionSelect) directionSelect.addEventListener("change", checkStartVisibility);
+        if(timeSelect) {
+            timeSelect.addEventListener("change", () => {
+                selectedScheduleId = timeSelect.value;
+                checkStartVisibility();
+            });
+        }
         if(btnCancelConnecting) {
             btnCancelConnecting.addEventListener("click", () => {
                 if (pendingTripStart) {
@@ -214,10 +266,23 @@ async function fetchDriverData() {
             
             if (assignedBusEl) assignedBusEl.textContent = busData.busName;
             
-            // 2. Fetch Schedules for this bus
+            // 2. Fetch Route for this bus
+            const qRoute = query(collection(db, "routes"), where("assignedBus", "==", assignedBusId));
+            const routeSnapshot = await getDocs(qRoute);
+            if (!routeSnapshot.empty) {
+                assignedRoute = routeSnapshot.docs[0].data();
+                if (optForward && optReturn) {
+                    optForward.textContent = `${assignedRoute.startPoint} \u2192 ${assignedRoute.endPoint}`;
+                    optReturn.textContent = `${assignedRoute.endPoint} \u2192 ${assignedRoute.startPoint}`;
+                }
+            } else {
+                if (directionSelectorContainer) directionSelectorContainer.style.display = 'none';
+            }
+            
+            // 3. Fetch Schedules for this bus
             fetchSchedules();
             
-            // 3. Check for active trips
+            // 4. Check for active trips
             checkActiveTrips();
         } else {
             if (assignedBusEl) assignedBusEl.textContent = getTranslation('no_bus');
@@ -231,6 +296,7 @@ async function fetchDriverData() {
                 btnStart.disabled = true;
                 statusText.textContent = getTranslation('cannot_start');
             }
+            if (directionSelectorContainer) directionSelectorContainer.style.display = 'none';
         }
     } catch (error) {
         console.error("Error fetching driver data:", error);
@@ -249,25 +315,20 @@ function fetchSchedules() {
         
         schedules.sort((a, b) => a.departureTime.localeCompare(b.departureTime));
         
-        if (scheduleListEl) {
-            if (schedules.length === 0) {
-                scheduleListEl.innerHTML = `
-                    <div class="schedule-item">
-                        <span class="schedule-time" style="color: var(--text-primary);">${getTranslation('no_schedules')}</span>
-                    </div>
-                `;
-                return;
+        if (schedules.length === 0) {
+            if (timeSelect) {
+                timeSelect.innerHTML = `<option value="">-- ${getTranslation('no_schedules')} --</option>`;
             }
-            
-            scheduleListEl.innerHTML = '';
-            schedules.forEach(sched => {
-                const item = document.createElement('div');
-                item.className = 'schedule-item';
-                item.innerHTML = `
-                    <span class="schedule-time">${formatTime12Hour(sched.departureTime)}</span>
-                    <span class="schedule-route">${getTranslation('assigned_duty')}</span>
-                `;
-                scheduleListEl.appendChild(item);
+            return;
+        }
+        
+        if (timeSelect) {
+            timeSelect.innerHTML = `<option value="">-- Select Time --</option>`;
+            schedules.forEach((sched) => {
+                const opt = document.createElement('option');
+                opt.value = sched.id;
+                opt.textContent = `${formatTime12Hour(sched.departureTime)} - ${getTranslation('assigned_duty')}`;
+                timeSelect.appendChild(opt);
             });
         }
     });
@@ -287,6 +348,8 @@ function checkActiveTrips() {
             // Restore active state
             activeTripId = snapshot.docs[0].id;
             if(btnStart) btnStart.style.display = 'none';
+            if(directionSelectorContainer) directionSelectorContainer.style.display = 'none';
+            if(scheduleSelectorContainer) scheduleSelectorContainer.style.display = 'none';
             if(btnStop) btnStop.style.display = 'flex';
             if(btnDelay) btnDelay.classList.remove('hidden');
             if(statusText) {
@@ -304,15 +367,51 @@ function checkActiveTrips() {
             if (pendingTripStart) return; // Don't reset UI if connecting to GPS
             
             resetStartButton();
+            if (directionSelectorContainer) directionSelectorContainer.style.display = 'flex';
         }
     });
 }
 
+function checkStartVisibility() {
+    if (activeTripId || pendingTripStart) return;
+    
+    // Handle Schedule Container Visibility in Modal
+    if (directionSelect && directionSelect.value) {
+        if (scheduleSelectorContainer) scheduleSelectorContainer.style.display = 'flex';
+    } else {
+        if (scheduleSelectorContainer) scheduleSelectorContainer.style.display = 'none';
+        selectedScheduleId = null; // reset if they unselect direction
+        if (timeSelect) timeSelect.value = '';
+    }
+    
+    // Handle Confirm Button Visibility in Modal
+    const btnConfirm = document.getElementById('btn-confirm-start');
+    if (btnConfirm) {
+        if (selectedScheduleId && directionSelect && directionSelect.value) {
+            btnConfirm.style.opacity = '1';
+            btnConfirm.style.pointerEvents = 'auto';
+        } else {
+            btnConfirm.style.opacity = '0.5';
+            btnConfirm.style.pointerEvents = 'none';
+        }
+    }
+}
+
 async function startTrip() {
     if (!assignedBusId || !currentDriverUser) return;
+    if (!selectedScheduleId) {
+        showErrorPopup("Please select a schedule before starting the trip.");
+        return;
+    }
+    
+    // Close the setup modal immediately
+    const modal = document.getElementById('trip-setup-modal');
+    if (modal) modal.style.display = 'none';
     
     // UI changes for connecting state
     btnStart.disabled = true;
+    if (directionSelectorContainer) directionSelectorContainer.style.display = 'none';
+    
     btnStart.innerHTML = `
         <span class="btn-icon">⏳</span>
         <span class="btn-text" style="font-size: 1rem;">${getTranslation('connecting')}</span>
@@ -521,10 +620,23 @@ function updateGpsUiError(msg) {
 async function confirmTripStart() {
     if (btnCancelConnecting) btnCancelConnecting.style.display = 'none';
     try {
+        const direction = directionSelect ? directionSelect.value : 'forward';
+        let tripStartPoint = 'Start';
+        let tripEndPoint = 'End';
+        
+        if (assignedRoute) {
+            tripStartPoint = direction === 'forward' ? assignedRoute.startPoint : assignedRoute.endPoint;
+            tripEndPoint = direction === 'forward' ? assignedRoute.endPoint : assignedRoute.startPoint;
+        }
+        
         // 1. Create Trip Record
         const tripData = {
             driverId: currentDriverUser.uid,
             busId: assignedBusId,
+            scheduleId: selectedScheduleId,
+            direction: direction,
+            startPoint: tripStartPoint,
+            endPoint: tripEndPoint,
             status: 'active',
             startTime: serverTimestamp()
         };
@@ -533,7 +645,9 @@ async function confirmTripStart() {
         
         // 2. Update Bus Status to 'running'
         await updateDoc(doc(db, "buses", assignedBusId), {
-            status: 'running'
+            status: 'running',
+            currentDirection: direction,
+            currentTripId: activeTripId
         });
         
         // 3. Send Notification
@@ -555,9 +669,20 @@ async function confirmTripStart() {
 function resetStartButton() {
     pendingTripStart = false;
     activeTripId = null;
+    selectedScheduleId = null;
+    
+    // Clear selections
+    if (directionSelect) directionSelect.value = "";
+    if (timeSelect) timeSelect.value = "";
+    if (scheduleSelectorContainer) scheduleSelectorContainer.style.display = 'none';
+    
     if(btnStart) {
         btnStart.disabled = false;
-        btnStart.style.display = 'flex';
+        document.getElementById('trip-setup-modal').style.display = 'none'; // Close modal
+        
+        btnStart.style.display = 'flex'; // Make sure the big round button is visible again
+        btnStart.style.opacity = '1';
+        btnStart.style.transform = 'scale(1)';
         btnStart.innerHTML = `
             <span class="btn-icon">▶</span>
             <span class="btn-text">${getTranslation('start')}</span>
@@ -565,6 +690,7 @@ function resetStartButton() {
         btnStart.style.background = ''; // reset to class default
         btnStart.style.boxShadow = '';
     }
+    if (directionSelectorContainer) directionSelectorContainer.style.display = 'flex';
     if (btnCancelConnecting) btnCancelConnecting.style.display = 'none';
     if(btnStop) btnStop.style.display = 'none';
     if(btnDelay) btnDelay.classList.add('hidden');
