@@ -118,18 +118,6 @@ public class AuthController : ControllerBase
         return Ok(new { message = "Email verified successfully." });
     }
 
-    [HttpGet("check-username")]
-    public async Task<IActionResult> CheckUsername([FromQuery] string username)
-    {
-        if (string.IsNullOrWhiteSpace(username))
-        {
-            return BadRequest(new { message = "Username cannot be empty" });
-        }
-
-        var exists = await _authService.CheckUsernameExistsAsync(username);
-        return Ok(new { exists });
-    }
-
     [HttpPut("profile")]
     [Authorize]
     public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileDto request)
@@ -137,23 +125,14 @@ public class AuthController : ControllerBase
         var uid = User.FindFirst("user_id")?.Value;
         if (string.IsNullOrEmpty(uid)) return Unauthorized();
 
-        if (string.IsNullOrWhiteSpace(request.Name) || string.IsNullOrWhiteSpace(request.Username))
+        if (string.IsNullOrWhiteSpace(request.Name))
         {
-            return BadRequest(new { message = "Name and Username are required." });
+            return BadRequest(new { message = "Name is required." });
         }
 
         try
         {
-            // Check if another user already has this username
-            var exists = await _authService.CheckUsernameExistsAsync(request.Username);
-            var currentUser = await _authService.GetUserAsync(uid);
-
-            if (exists && currentUser != null && !string.Equals(currentUser.Username, request.Username, StringComparison.OrdinalIgnoreCase))
-            {
-                return BadRequest(new { message = "Username is already taken." });
-            }
-
-            var result = await _authService.UpdateProfileAsync(uid, request.Username, request.Name);
+            var result = await _authService.UpdateProfileAsync(uid, request.Name);
             if (!result) return NotFound(new { message = "User not found" });
 
             return Ok(new { message = "Profile updated successfully." });
@@ -181,7 +160,6 @@ public class AuthController : ControllerBase
 public class UpdateProfileDto
 {
     public string Name { get; set; } = string.Empty;
-    public string Username { get; set; } = string.Empty;
 }
 
 public class VerifyOtpDto

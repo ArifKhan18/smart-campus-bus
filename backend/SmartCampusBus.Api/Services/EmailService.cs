@@ -7,7 +7,7 @@ namespace SmartCampusBus.Api.Services;
 
 public interface IEmailService
 {
-    Task SendOtpEmailAsync(string toEmail, string otpCode, string userName);
+    Task SendOtpEmailAsync(string toEmail, string otpCode, string name);
 }
 
 public class EmailService : IEmailService
@@ -25,7 +25,7 @@ public class EmailService : IEmailService
         _httpClient = new HttpClient();
     }
 
-    public async Task SendOtpEmailAsync(string toEmail, string otpCode, string userName)
+    public async Task SendOtpEmailAsync(string toEmail, string otpCode, string name)
     {
         if (string.IsNullOrEmpty(_brevoApiKey))
         {
@@ -44,7 +44,7 @@ public class EmailService : IEmailService
                 <p style='color: #777; margin-top: 5px;'>Account Verification</p>
             </div>
             
-            <p>Hello <strong>{userName}</strong>,</p>
+            <p>Hello <strong>{name}</strong>,</p>
             <p>Thank you for registering! Please use the following One-Time Password (OTP) to verify your email address and activate your account.</p>
             
             <div style='background-color: #f4f4f9; border-radius: 8px; padding: 20px; text-align: center; margin: 30px 0;'>
@@ -63,7 +63,7 @@ public class EmailService : IEmailService
         var payload = new
         {
             sender = new { name = _senderName, email = _senderEmail },
-            to = new[] { new { email = toEmail, name = userName } },
+            to = new[] { new { email = toEmail, name = name } },
             subject = "Verify your account - Smart Campus Bus",
             htmlContent = htmlBody
         };

@@ -1757,79 +1757,9 @@ function initSettings(user, profile) {
 
     // Populate initial data
     const inputName = document.getElementById('settings-name');
-    const inputUsername = document.getElementById('settings-username');
     const inputEmail = document.getElementById('settings-email');
-    const labelCurrentUsername = document.getElementById('current-username-display');
-
     if (inputName) inputName.value = profile.name || '';
-    if (inputUsername) inputUsername.value = profile.username || '';
     if (inputEmail) inputEmail.value = profile.email || '';
-    if (labelCurrentUsername) labelCurrentUsername.textContent = profile.username ? `@${profile.username}` : '';
-    
-    if (inputUsername) {
-        let timeout = null;
-        inputUsername.addEventListener("input", (e) => {
-            // Force lowercase and remove invalid chars
-            let val = e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '');
-            e.target.value = val;
-
-            clearTimeout(timeout);
-            const statusSpan = document.getElementById("username-settings-status");
-            const errorMsg = document.getElementById("error-settings-username");
-            const group = document.getElementById("form-group-settings-username");
-            
-            // If it's their current username, it's valid
-            if (val === profile.username) {
-                statusSpan.textContent = "✅";
-                errorMsg.style.display = "none";
-                group.classList.remove("form-group--error");
-                inputUsername.dataset.isValid = "true";
-                return;
-            }
-
-            statusSpan.textContent = "⏳";
-            errorMsg.style.display = "none";
-            group.classList.remove("form-group--error");
-
-            timeout = setTimeout(async () => {
-                const username = val;
-                if (!username || username.length < 3) {
-                    statusSpan.textContent = "❌";
-                    errorMsg.textContent = "Username must be at least 3 characters";
-                    errorMsg.style.display = "block";
-                    group.classList.add("form-group--error");
-                    inputUsername.dataset.isValid = "false";
-                    return;
-                }
-
-                try {
-                    const response = await fetch(`${API_BASE_URL}/Auth/check-username?username=${encodeURIComponent(username)}`);
-                    if (response.ok) {
-                        const data = await response.json();
-                        if (data.exists) {
-                            statusSpan.textContent = "❌";
-                            errorMsg.textContent = "Username is already taken";
-                            errorMsg.style.display = "block";
-                            group.classList.add("form-group--error");
-                            inputUsername.dataset.isValid = "false";
-                        } else {
-                            statusSpan.textContent = "✅";
-                            errorMsg.style.display = "none";
-                            group.classList.remove("form-group--error");
-                            inputUsername.dataset.isValid = "true";
-                        }
-                    } else {
-                        statusSpan.textContent = "❌";
-                        inputUsername.dataset.isValid = "false";
-                    }
-                } catch (e) {
-                    console.error("Error checking username:", e);
-                    statusSpan.textContent = "❌";
-                    inputUsername.dataset.isValid = "false";
-                }
-            }, 500);
-        });
-    }
 
     if (formProfile) {
         formProfile.addEventListener('submit', async (e) => {
@@ -1840,17 +1770,9 @@ function initSettings(user, profile) {
             btn.disabled = true;
 
             const newName = inputName.value.trim();
-            const newUsername = inputUsername.value.trim();
 
-            if (!newName || !newUsername) {
-                if (window.showToast) window.showToast("Name and username are required", 'error');
-                btn.textContent = originalText;
-                btn.disabled = false;
-                return;
-            }
-
-            if (inputUsername.dataset.isValid === "false") {
-                if (window.showToast) window.showToast("Please provide a valid, unique username", 'error');
+            if (!newName) {
+                if (window.showToast) window.showToast("Name is required", 'error');
                 btn.textContent = originalText;
                 btn.disabled = false;
                 return;
@@ -1867,8 +1789,7 @@ function initSettings(user, profile) {
                         'Authorization': `Bearer ${token}`
                     },
                     body: JSON.stringify({
-                        Name: newName,
-                        Username: newUsername
+                        Name: newName
                     })
                 });
 
@@ -1879,8 +1800,6 @@ function initSettings(user, profile) {
                     
                     // Update local UI state
                     profile.name = newName;
-                    profile.username = newUsername;
-                    if (labelCurrentUsername) labelCurrentUsername.textContent = `@${newUsername}`;
                     
                     const nameEl = document.getElementById("user-name");
                     const welcomeEl = document.getElementById("welcome-message");

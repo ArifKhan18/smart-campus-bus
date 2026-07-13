@@ -199,54 +199,6 @@ function initFormValidation(role) {
             handleRegisterSubmit(role);
         });
 
-        // Real-time username check
-        const usernameInput = document.getElementById("register-username");
-        if (usernameInput) {
-            let timeout = null;
-            usernameInput.addEventListener("input", (e) => {
-                // Force lowercase and remove invalid chars
-                let val = e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '');
-                e.target.value = val;
-
-                clearTimeout(timeout);
-                const statusSpan = document.getElementById("username-status");
-                const errorMsg = document.getElementById("error-username");
-                const group = document.getElementById("form-group-username");
-                
-                statusSpan.textContent = "⏳";
-                group.classList.remove("form-group--error");
-
-                timeout = setTimeout(async () => {
-                    const username = val;
-                    if (!username || username.length < 3) {
-                        statusSpan.textContent = "❌";
-                        errorMsg.textContent = "Username must be at least 3 characters";
-                        group.classList.add("form-group--error");
-                        usernameInput.dataset.isValid = "false";
-                        return;
-                    }
-
-                    try {
-                        const response = await fetch(`${API_BASE_URL}/Auth/check-username?username=${encodeURIComponent(username)}`);
-                        if (response.ok) {
-                            const data = await response.json();
-                            if (data.exists) {
-                                statusSpan.textContent = "❌";
-                                errorMsg.textContent = "Username is already taken";
-                                group.classList.add("form-group--error");
-                                usernameInput.dataset.isValid = "false";
-                            } else {
-                                statusSpan.textContent = "✅";
-                                group.classList.remove("form-group--error");
-                                usernameInput.dataset.isValid = "true";
-                            }
-                        }
-                    } catch (e) {
-                        console.error("Error checking username:", e);
-                    }
-                }, 500);
-            });
-        }
     }
 }
 
@@ -382,21 +334,6 @@ async function handleRegisterSubmit(role) {
         nameGroup.classList.remove("form-group--error");
     }
 
-    // Validate username
-    const username = document.getElementById("register-username");
-    const usernameGroup = document.getElementById("form-group-username");
-    const errorUsername = document.getElementById("error-username");
-    if (!username.value.trim()) {
-        usernameGroup.classList.add("form-group--error");
-        errorUsername.textContent = "Username is required";
-        isValid = false;
-    } else if (username.dataset.isValid === "false") {
-        usernameGroup.classList.add("form-group--error");
-        isValid = false;
-    } else {
-        usernameGroup.classList.remove("form-group--error");
-    }
-
     // Validate email
     const email = document.getElementById("register-email");
     const emailGroup = document.getElementById("form-group-email");
@@ -457,13 +394,11 @@ async function handleRegisterSubmit(role) {
             await setDoc(doc(db, "users", user.uid), {
                 uid: user.uid,
                 name: name.value.trim(),
-                username: username.value.trim(),
                 email: email.value,
                 role: role,
                 status: status,
                 assignedBus: selectedBus,
-                createdAt: serverTimestamp(),
-                usernameChangeCount: 0
+                createdAt: serverTimestamp()
             });
 
             // 4. Redirect to OTP Verification page (Do NOT sign out yet)

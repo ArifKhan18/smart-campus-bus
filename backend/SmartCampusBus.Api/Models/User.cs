@@ -5,8 +5,6 @@ public class User
     public string Uid { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
-    public string Username { get; set; } = string.Empty;
-    public int UsernameChangeCount { get; set; } = 0;
     public string Role { get; set; } = string.Empty;       // "student", "driver", "admin"
     public string Status { get; set; } = "active";         // "active", "pending", "rejected"
     public string? AssignedBus { get; set; }
