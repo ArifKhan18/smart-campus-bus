@@ -4,8 +4,9 @@
 
 import { db } from "./firebase-config.js";
 import { initAuthGuard, logoutUser } from "./auth-guard.js";
-import { sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { sendEmailVerification, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { collection, query, where, getDocs, onSnapshot, addDoc, doc, updateDoc, serverTimestamp, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { API_BASE_URL } from "./api.js";
 
 const translations = {
     en: {
@@ -50,7 +51,28 @@ const translations = {
         select_time_opt: "-- Select Time --",
         start_trip: "Start Trip",
         trip_setup_desc: "Click START to setup your trip details and begin broadcasting GPS.",
-        trip_setup: "TRIP SETUP"
+        trip_setup: "TRIP SETUP",
+        settings: "Settings",
+        account_settings: "Account Settings",
+        settings_desc: "Manage your profile and password settings.",
+        profile_info: "Profile Information",
+        full_name: "Full Name",
+        email_readonly: "Email (Read Only)",
+        update_profile: "Update Profile",
+        change_password: "Change Password",
+        current_password: "Current Password",
+        new_password: "New Password",
+        confirm_new_password: "Confirm New Password",
+        update_password: "Update Password",
+        back_to_dashboard: "Back to Dashboard",
+        name_required: "Name is required",
+        profile_updated: "Profile updated successfully!",
+        passwords_dont_match: "New passwords do not match",
+        password_updated: "Password updated successfully!",
+        incorrect_current_password: "Incorrect current password",
+        password_too_weak: "New password is too weak",
+        failed_update_password: "Failed to update password",
+        updating: "Updating..."
     },
     bn: {
         hello: "হ্যালো,",
@@ -94,7 +116,28 @@ const translations = {
         select_time_opt: "-- সময় নির্বাচন করুন --",
         start_trip: "ট্রিপ শুরু করুন",
         trip_setup_desc: "আপনার ট্রিপের বিবরণ সেটআপ করতে এবং জিপিএস সম্প্রচার শুরু করতে START এ ক্লিক করুন।",
-        trip_setup: "ট্রিপ সেটআপ"
+        trip_setup: "ট্রিপ সেটআপ",
+        settings: "সেটিংস",
+        account_settings: "অ্যাকাউন্ট সেটিংস",
+        settings_desc: "আপনার প্রোফাইল এবং পাসওয়ার্ড সেটিংস পরিচালনা করুন।",
+        profile_info: "প্রোফাইল তথ্য",
+        full_name: "পূর্ণ নাম",
+        email_readonly: "ইমেল (শুধুমাত্র পড়ার জন্য)",
+        update_profile: "প্রোফাইল আপডেট করুন",
+        change_password: "পাসওয়ার্ড পরিবর্তন করুন",
+        current_password: "বর্তমান পাসওয়ার্ড",
+        new_password: "নতুন পাসওয়ার্ড",
+        confirm_new_password: "নতুন পাসওয়ার্ড নিশ্চিত করুন",
+        update_password: "পাসওয়ার্ড আপডেট করুন",
+        back_to_dashboard: "ড্যাশবোর্ডে ফিরে যান",
+        name_required: "নাম দেওয়া আবশ্যক",
+        profile_updated: "প্রোফাইল সফলভাবে আপডেট করা হয়েছে!",
+        passwords_dont_match: "নতুন পাসওয়ার্ড মিলছে না",
+        password_updated: "পাসওয়ার্ড সফলভাবে আপডেট করা হয়েছে!",
+        incorrect_current_password: "বর্তমান পাসওয়ার্ডটি ভুল",
+        password_too_weak: "নতুন পাসওয়ার্ডটি অত্যন্ত দুর্বল",
+        failed_update_password: "পাসওয়ার্ড আপডেট করতে ব্যর্থ হয়েছে",
+        updating: "আপডেট হচ্ছে..."
     }
 };
 
@@ -172,6 +215,19 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (btnLogout) {
             btnLogout.addEventListener("click", () => logoutUser());
         }
+
+        // Setup Settings Button Toggle
+        const btnSettings = document.getElementById('btn-settings');
+        const btnBackDashboard = document.getElementById('btn-back-dashboard');
+        if (btnSettings) {
+            btnSettings.addEventListener('click', () => showSettings(true));
+        }
+        if (btnBackDashboard) {
+            btnBackDashboard.addEventListener('click', () => showSettings(false));
+        }
+
+        // Initialize Settings Panel
+        initSettings(authData.user, authData.profile);
         
         // Fetch specific driver data
         await fetchDriverData();
@@ -752,5 +808,129 @@ function showErrorPopup(message) {
     
     closeBtn.addEventListener('click', closePopup);
     setTimeout(closePopup, 5000); // auto close after 5 seconds
+}
+
+function showSettings(show) {
+    const dashboardSec = document.getElementById('section-dashboard');
+    const settingsSec = document.getElementById('section-settings');
+    const btnSettings = document.getElementById('btn-settings');
+    
+    if (show) {
+        if (dashboardSec) dashboardSec.style.display = 'none';
+        if (settingsSec) settingsSec.style.display = 'block';
+        if (btnSettings) btnSettings.style.display = 'none';
+    } else {
+        if (dashboardSec) dashboardSec.style.display = 'grid';
+        if (settingsSec) settingsSec.style.display = 'none';
+        if (btnSettings) btnSettings.style.display = 'block';
+    }
+}
+
+function initSettings(user, profile) {
+    const formProfile = document.getElementById('settings-profile-form');
+    const formPassword = document.getElementById('settings-password-form');
+
+    // Populate initial data
+    const inputName = document.getElementById('settings-name');
+    const inputEmail = document.getElementById('settings-email');
+    if (inputName) inputName.value = profile.name || '';
+    if (inputEmail) inputEmail.value = profile.email || '';
+
+    if (formProfile) {
+        formProfile.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-update-profile');
+            const originalText = btn.textContent;
+            btn.textContent = getTranslation('updating');
+            btn.disabled = true;
+
+            const newName = inputName.value.trim();
+
+            if (!newName) {
+                if (window.showToast) window.showToast(getTranslation('name_required'), 'error');
+                btn.textContent = originalText;
+                btn.disabled = false;
+                return;
+            }
+
+            try {
+                // Get fresh token
+                const token = await user.getIdToken(true);
+                
+                const response = await fetch(`${API_BASE_URL}/Auth/profile`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        Name: newName
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    if (window.showToast) window.showToast(result.message || getTranslation('profile_updated'), 'success');
+                    
+                    // Update local UI state
+                    profile.name = newName;
+                    
+                    const nameEl = document.getElementById("user-name");
+                    if (nameEl) nameEl.textContent = profile.name;
+
+                } else {
+                    throw new Error(result.error || result.message || "Failed to update profile");
+                }
+
+            } catch (error) {
+                console.error("Profile update error:", error);
+                if (window.showToast) window.showToast(error.message, 'error');
+            }
+
+            btn.textContent = originalText;
+            btn.disabled = false;
+        });
+    }
+
+    if (formPassword) {
+        formPassword.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const currentPwd = document.getElementById('settings-current-password').value;
+            const newPwd = document.getElementById('settings-new-password').value;
+            const confirmPwd = document.getElementById('settings-confirm-password').value;
+            
+            if (newPwd !== confirmPwd) {
+                if (window.showToast) window.showToast(getTranslation('passwords_dont_match'), 'error');
+                return;
+            }
+
+            const btn = document.getElementById('btn-update-password');
+            const originalText = btn.textContent;
+            btn.textContent = getTranslation('updating');
+            btn.disabled = true;
+
+            try {
+                // 1. Re-authenticate user
+                const credential = EmailAuthProvider.credential(user.email, currentPwd);
+                await reauthenticateWithCredential(user, credential);
+                
+                // 2. Update password
+                await updatePassword(user, newPwd);
+                
+                if (window.showToast) window.showToast(getTranslation('password_updated'), 'success');
+                formPassword.reset();
+            } catch (error) {
+                console.error("Password update error:", error);
+                let msg = getTranslation('failed_update_password');
+                if (error.code === 'auth/invalid-credential') msg = getTranslation('incorrect_current_password');
+                if (error.code === 'auth/weak-password') msg = getTranslation('password_too_weak');
+                if (window.showToast) window.showToast(msg, 'error');
+            }
+
+            btn.textContent = originalText;
+            btn.disabled = false;
+        });
+    }
 }
 
