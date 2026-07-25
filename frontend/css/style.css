@@ -779,38 +779,48 @@ button {
 }
 
 @media (max-width: 640px) {
+    .header {
+        padding: 0.5rem 0;
+    }
+
+    .header__inner {
+        padding: 0 1rem;
+    }
+
     .hero {
-        padding: 5rem 1.5rem 3rem;
+        padding: 4.5rem 1rem 2.5rem;
     }
 
     .hero__title {
-        font-size: 2rem;
-        letter-spacing: -0.5px;
+        font-size: 1.75rem;
+        letter-spacing: -0.3px;
         max-width: 100%;
     }
 
     .hero__subtitle {
-        font-size: 1rem;
+        font-size: 0.9rem;
         max-width: 100%;
     }
 
     .hero__stats {
-        gap: 1.5rem;
+        gap: 1.25rem;
         flex-wrap: wrap;
+        margin-top: 1.5rem;
+        padding-top: 1rem;
     }
 
     .hero__shape--1 {
-        width: 200px;
-        height: 200px;
-        top: -50px;
-        right: -50px;
+        width: 140px;
+        height: 140px;
+        top: -30px;
+        right: -30px;
     }
 
     .hero__shape--2 {
-        width: 100px;
-        height: 100px;
+        width: 80px;
+        height: 80px;
         bottom: 5%;
-        left: -30px;
+        left: -20px;
     }
 
     .hero__shape--3 {
@@ -820,30 +830,46 @@ button {
     .features,
     .how-it-works,
     .roles {
-        padding: 3rem 1.5rem;
+        padding: 2.5rem 1rem;
     }
 
     .features__heading,
     .how-it-works__heading,
     .roles__heading {
-        font-size: 1.5rem;
+        font-size: 1.35rem;
+    }
+
+    .feature-card {
+        padding: 1rem 0;
+        gap: 0.75rem;
     }
 
     .feature-card__num {
-        min-width: 1.5rem;
+        min-width: 1.25rem;
+        font-size: 0.85rem;
+    }
+
+    .step {
+        gap: 0.75rem;
     }
 
     .step__num {
-        min-width: 2rem;
-        font-size: 1.3rem;
+        min-width: 1.5rem;
+        font-size: 1.1rem;
     }
 
     .step__block {
-        padding: 1rem 1.25rem;
+        padding: 0.9rem 1rem;
     }
 
     .role-card {
         flex-wrap: wrap;
+        gap: 0.75rem;
+        padding: 0.9rem 1rem;
+    }
+
+    .role-card__desc {
+        width: 100%;
     }
 
     .role-card .btn {
@@ -852,7 +878,7 @@ button {
     }
 
     .footer {
-        padding: 1.5rem;
+        padding: 1.25rem 1rem;
     }
 
     .footer__inner {
