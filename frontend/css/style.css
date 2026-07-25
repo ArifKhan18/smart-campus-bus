@@ -1932,6 +1932,19 @@ button {
     .feature-card {
         text-align: center;
     }
+
+    .roles__text {
+        text-align: center;
+    }
+
+    .roles__cards {
+        align-items: center;
+    }
+
+    .role-card {
+        text-align: center;
+        justify-content: center;
+    }
     .feature-card__icon {
         margin: 0 auto var(--space-md);
     }
