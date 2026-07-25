@@ -798,7 +798,7 @@ button {
     }
 
     .hero {
-        padding: 3.5rem 1.5rem 2rem;
+        padding: 3.5rem 2rem 2rem;
     }
 
     .hero__title {
@@ -832,7 +832,7 @@ button {
     .features,
     .how-it-works,
     .roles {
-        padding: 2.5rem 1.5rem;
+        padding: 2.5rem 2rem;
     }
 
     .features__heading,
@@ -921,7 +921,7 @@ button {
     }
 
     .hero {
-        padding: 2.5rem 1.25rem 1rem;
+        padding: 2.5rem 1.5rem 1rem;
     }
 
     .hero__title {
@@ -955,7 +955,7 @@ button {
     .features,
     .how-it-works,
     .roles {
-        padding: 2rem 1.25rem;
+        padding: 2rem 1.5rem;
     }
 
     .features__heading,
