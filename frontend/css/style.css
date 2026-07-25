@@ -412,7 +412,6 @@ button {
     padding: 8rem 2rem 4rem;
     max-width: 1100px;
     margin: 0 auto;
-    overflow: hidden;
 }
 
 .hero__shape {
@@ -810,21 +809,7 @@ button {
         padding-top: 1rem;
     }
 
-    .hero__shape--1 {
-        width: 140px;
-        height: 140px;
-        top: -30px;
-        right: -30px;
-    }
-
-    .hero__shape--2 {
-        width: 80px;
-        height: 80px;
-        bottom: 5%;
-        left: -20px;
-    }
-
-    .hero__shape--3 {
+    .hero__shape {
         display: none;
     }
 
@@ -909,8 +894,14 @@ button {
     }
 
     .btn--primary {
-        font-size: 0.75rem;
-        padding: 0.45rem 0.8rem;
+        font-size: 0.7rem;
+        padding: 0.4rem 0.6rem;
+    }
+
+    #btn-register {
+        font-size: 0.7rem;
+        padding: 0.4rem 0.6rem;
+        white-space: nowrap;
     }
 
     .hero {
@@ -937,18 +928,8 @@ button {
         font-size: 0.7rem;
     }
 
-    .hero__shape--1 {
-        width: 100px;
-        height: 100px;
-        top: -20px;
-        right: -20px;
-    }
-
-    .hero__shape--2 {
-        width: 60px;
-        height: 60px;
-        bottom: 5%;
-        left: -15px;
+    .hero__shape {
+        display: none;
     }
 
     .features,
