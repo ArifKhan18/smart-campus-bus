@@ -892,11 +892,11 @@ button {
 
 @media (max-width: 375px) {
     .header {
-        padding: 0.25rem 0;
+        padding: 0.15rem 0;
     }
 
     .header__inner {
-        padding: 0 2rem;
+        padding: 0.2rem 1rem;
     }
 
     .logo {
@@ -1867,24 +1867,25 @@ button {
 
     /* Landing Page - Header & Nav */
     .header__inner {
-        flex-direction: column;
-        gap: var(--space-md);
-        padding: var(--space-md) var(--space-md);
+        flex-direction: row;
+        gap: 0;
+        padding: var(--space-sm) var(--space-md);
         position: relative;
     }
     .nav {
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
         justify-content: center;
-        gap: var(--space-md);
+        gap: var(--space-sm);
+    }
+    .nav__link {
+        font-size: 0.75rem;
     }
     .header__actions {
-        width: 100%;
-        justify-content: center;
+        width: auto;
+        justify-content: flex-end;
     }
     .header__actions .theme-toggle {
-        position: absolute;
-        top: 10px;
-        right: 15px;
+        position: static;
     }
     
     /* Landing Page - Hero */
@@ -1923,6 +1924,11 @@ button {
     }
 
     /* Landing Page - Features */
+    .features__heading,
+    .how-it-works__heading,
+    .roles__heading {
+        text-align: center;
+    }
     .feature-card {
         text-align: center;
     }
