@@ -769,7 +769,7 @@ button {
     .nav { display: none; }
 
     .header__inner {
-        padding: 0 1.5rem;
+        padding: 0 2rem;
     }
 
     .roles__inner {
@@ -788,7 +788,7 @@ button {
     }
 
     .hero {
-        padding: 4.5rem 1rem 2.5rem;
+        padding: 4.5rem 1.5rem 2.5rem;
     }
 
     .hero__title {
@@ -816,7 +816,7 @@ button {
     .features,
     .how-it-works,
     .roles {
-        padding: 2.5rem 1rem;
+        padding: 2.5rem 1.5rem;
     }
 
     .features__heading,
@@ -880,7 +880,7 @@ button {
     }
 
     .header__inner {
-        padding: 0 0.75rem;
+        padding: 0 2rem;
     }
 
     .logo {
@@ -905,7 +905,7 @@ button {
     }
 
     .hero {
-        padding: 3.5rem 0.75rem 2rem;
+        padding: 3.5rem 1.25rem 2rem;
     }
 
     .hero__title {
@@ -935,7 +935,7 @@ button {
     .features,
     .how-it-works,
     .roles {
-        padding: 2rem 0.75rem;
+        padding: 2rem 1.25rem;
     }
 
     .features__heading,
@@ -993,7 +993,7 @@ button {
     }
 
     .footer {
-        padding: 1rem 0.75rem;
+        padding: 1rem 1.25rem;
     }
 
     .footer__links a {
