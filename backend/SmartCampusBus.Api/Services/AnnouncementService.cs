@@ -32,14 +32,14 @@ public class AnnouncementService : IAnnouncementService
         var dictionary = new Dictionary<string, object>
         {
             { "id", announcement.Id },
-            { "title", announcement.Title },
-            { "message", announcement.Message },
-            { "type", announcement.Type },
-            { "priority", announcement.Priority },
-            { "targetAudience", announcement.TargetAudience },
-            { "status", announcement.Status },
-            { "createdAt", Timestamp.FromDateTime(announcement.CreatedAt) },
-            { "updatedAt", Timestamp.FromDateTime(announcement.UpdatedAt) }
+            { "title", announcement.Title ?? "" },
+            { "message", announcement.Message ?? "" },
+            { "type", announcement.Type ?? "" },
+            { "priority", announcement.Priority ?? "" },
+            { "targetAudience", announcement.TargetAudience ?? "" },
+            { "status", announcement.Status ?? "" },
+            { "createdAt", Timestamp.FromDateTime(DateTime.SpecifyKind(announcement.CreatedAt, DateTimeKind.Utc)) },
+            { "updatedAt", Timestamp.FromDateTime(DateTime.SpecifyKind(announcement.UpdatedAt, DateTimeKind.Utc)) }
         };
 
         await docRef.SetAsync(dictionary);
@@ -63,7 +63,7 @@ public class AnnouncementService : IAnnouncementService
             { "priority", announcement.Priority ?? "" },
             { "targetAudience", announcement.TargetAudience ?? "" },
             { "status", announcement.Status ?? "" },
-            { "updatedAt", Timestamp.FromDateTime(announcement.UpdatedAt) }
+            { "updatedAt", Timestamp.FromDateTime(DateTime.SpecifyKind(announcement.UpdatedAt, DateTimeKind.Utc)) }
         };
 
         await docRef.UpdateAsync(updates);

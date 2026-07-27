@@ -1,6 +1,5 @@
 using Google.Cloud.Firestore;
 using SmartCampusBus.Api.Models;
-using System.Text.Json;
 
 namespace SmartCampusBus.Api.Services;
 
@@ -76,43 +75,32 @@ public class RouteService : IRouteService
 
         route.UpdatedAt = DateTime.UtcNow;
         
-        var updates = new Dictionary<string, object>
+        var updates = new Dictionary<string, object?>
         {
             { "routeName", route.RouteName ?? "" },
             { "startPoint", route.StartPoint ?? "" },
             { "endPoint", route.EndPoint ?? "" },
-            { "updatedAt", Timestamp.FromDateTime(route.UpdatedAt) }
+            { "assignedBus", route.AssignedBus },
+            { "assignedBusName", route.AssignedBusName },
+            { "updatedAt", Timestamp.FromDateTime(DateTime.SpecifyKind(route.UpdatedAt, DateTimeKind.Utc)) }
         };
 
-        if (!string.IsNullOrEmpty(route.AssignedBus))
-            updates["assignedBus"] = route.AssignedBus;
-        else
-            updates["assignedBus"] = Google.Cloud.Firestore.FieldValue.Delete;
-
-        if (!string.IsNullOrEmpty(route.AssignedBusName))
-            updates["assignedBusName"] = route.AssignedBusName;
-        else
-            updates["assignedBusName"] = Google.Cloud.Firestore.FieldValue.Delete;
-
+        var stopsList = new List<Dictionary<string, object>>();
         if (route.Stops != null && route.Stops.Any())
         {
-            var stopsList = route.Stops.Select(s => {
+            foreach (var stop in route.Stops)
+            {
                 var stopDict = new Dictionary<string, object>
                 {
-                    { "name", s.Name },
-                    { "order", s.Order }
+                    { "name", stop.Name ?? "" },
+                    { "order", stop.Order }
                 };
-                if (s.Latitude.HasValue) stopDict.Add("latitude", s.Latitude.Value);
-                if (s.Longitude.HasValue) stopDict.Add("longitude", s.Longitude.Value);
-                return stopDict;
-            }).ToList();
-            
-            updates.Add("stops", stopsList);
+                if (stop.Latitude.HasValue) stopDict.Add("latitude", stop.Latitude.Value);
+                if (stop.Longitude.HasValue) stopDict.Add("longitude", stop.Longitude.Value);
+                stopsList.Add(stopDict);
+            }
         }
-        else
-        {
-            updates.Add("stops", new List<object>());
-        }
+        updates["stops"] = stopsList;
 
         await docRef.UpdateAsync(updates);
         return true;
@@ -175,9 +163,9 @@ public class RouteService : IRouteService
         var dict = new Dictionary<string, object>
         {
             { "routeId", route.RouteId },
-            { "routeName", route.RouteName },
-            { "startPoint", route.StartPoint },
-            { "endPoint", route.EndPoint },
+            { "routeName", route.RouteName ?? "" },
+            { "startPoint", route.StartPoint ?? "" },
+            { "endPoint", route.EndPoint ?? "" },
             { "createdAt", Timestamp.FromDateTime(DateTime.SpecifyKind(route.CreatedAt, DateTimeKind.Utc)) },
             { "updatedAt", Timestamp.FromDateTime(DateTime.SpecifyKind(route.UpdatedAt, DateTimeKind.Utc)) }
         };
@@ -192,7 +180,7 @@ public class RouteService : IRouteService
             {
                 var stopDict = new Dictionary<string, object>
                 {
-                    { "name", stop.Name },
+                    { "name", stop.Name ?? "" },
                     { "order", stop.Order }
                 };
                 if (stop.Latitude.HasValue) stopDict.Add("latitude", stop.Latitude.Value);

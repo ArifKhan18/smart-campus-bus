@@ -51,7 +51,7 @@ public class BusService : IBusService
     public async Task<Bus> CreateBusAsync(Bus bus)
     {
         var collectionRef = _firestoreDb.Collection(BusesCollection);
-        var docRef = collectionRef.Document(); // Auto-generate ID
+        var docRef = collectionRef.Document();
         
         bus.BusId = docRef.Id;
         bus.CreatedAt = DateTime.UtcNow;
@@ -75,33 +75,17 @@ public class BusService : IBusService
 
         bus.UpdatedAt = DateTime.UtcNow;
         
-        var updates = new Dictionary<string, object>
+        var updates = new Dictionary<string, object?>
         {
             { "busName", bus.BusName ?? "" },
             { "busNumber", bus.BusNumber ?? "" },
+            { "capacity", bus.Capacity },
+            { "assignedDriver", bus.AssignedDriver },
+            { "assignedDriverName", bus.AssignedDriverName },
+            { "route", bus.Route },
             { "status", bus.Status ?? "inactive" },
-            { "updatedAt", Timestamp.FromDateTime(bus.UpdatedAt) }
+            { "updatedAt", Timestamp.FromDateTime(DateTime.SpecifyKind(bus.UpdatedAt, DateTimeKind.Utc)) }
         };
-
-        if (bus.Capacity.HasValue)
-            updates["capacity"] = bus.Capacity.Value;
-        else
-            updates["capacity"] = Google.Cloud.Firestore.FieldValue.Delete;
-
-        if (!string.IsNullOrEmpty(bus.AssignedDriver))
-            updates["assignedDriver"] = bus.AssignedDriver;
-        else
-            updates["assignedDriver"] = Google.Cloud.Firestore.FieldValue.Delete;
-
-        if (!string.IsNullOrEmpty(bus.AssignedDriverName))
-            updates["assignedDriverName"] = bus.AssignedDriverName;
-        else
-            updates["assignedDriverName"] = Google.Cloud.Firestore.FieldValue.Delete;
-
-        if (!string.IsNullOrEmpty(bus.Route))
-            updates["route"] = bus.Route;
-        else
-            updates["route"] = Google.Cloud.Firestore.FieldValue.Delete;
 
         await docRef.UpdateAsync(updates);
         return true;
@@ -129,7 +113,7 @@ public class BusService : IBusService
             BusId = document.Id,
             BusName = dictionary.GetValueOrDefault("busName")?.ToString() ?? string.Empty,
             BusNumber = dictionary.GetValueOrDefault("busNumber")?.ToString() ?? string.Empty,
-            Capacity = dictionary.TryGetValue("capacity", out var cap) ? Convert.ToInt32(cap) : null,
+            Capacity = dictionary.TryGetValue("capacity", out var cap) && cap != null ? Convert.ToInt32(cap) : null,
             AssignedDriver = dictionary.GetValueOrDefault("assignedDriver")?.ToString(),
             AssignedDriverName = dictionary.GetValueOrDefault("assignedDriverName")?.ToString(),
             Route = dictionary.GetValueOrDefault("route")?.ToString(),
@@ -144,9 +128,9 @@ public class BusService : IBusService
         var dict = new Dictionary<string, object>
         {
             { "busId", bus.BusId },
-            { "busName", bus.BusName },
-            { "busNumber", bus.BusNumber },
-            { "status", bus.Status },
+            { "busName", bus.BusName ?? "" },
+            { "busNumber", bus.BusNumber ?? "" },
+            { "status", bus.Status ?? "inactive" },
             { "createdAt", Timestamp.FromDateTime(DateTime.SpecifyKind(bus.CreatedAt, DateTimeKind.Utc)) },
             { "updatedAt", Timestamp.FromDateTime(DateTime.SpecifyKind(bus.UpdatedAt, DateTimeKind.Utc)) }
         };

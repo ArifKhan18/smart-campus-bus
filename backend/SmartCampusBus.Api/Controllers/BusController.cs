@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using SmartCampusBus.Api.Models;
 using SmartCampusBus.Api.Services;
-
 using Microsoft.AspNetCore.Authorization;
 
 namespace SmartCampusBus.Api.Controllers;
@@ -21,63 +20,89 @@ public class BusController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAllBuses()
     {
-        var buses = await _busService.GetAllBusesAsync();
-        return Ok(buses);
+        try
+        {
+            var buses = await _busService.GetAllBusesAsync();
+            return Ok(buses);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[BusController] GetAllBuses error: {ex.Message}");
+            return StatusCode(500, new { message = "Failed to fetch buses.", detail = ex.Message });
+        }
     }
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetBus(string id)
     {
-        var bus = await _busService.GetBusByIdAsync(id);
-        
-        if (bus == null)
+        try
         {
-            return NotFound(new { message = "Bus not found" });
+            var bus = await _busService.GetBusByIdAsync(id);
+            if (bus == null) return NotFound(new { message = "Bus not found" });
+            return Ok(bus);
         }
-
-        return Ok(bus);
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[BusController] GetBus error: {ex.Message}");
+            return StatusCode(500, new { message = "Failed to fetch bus.", detail = ex.Message });
+        }
     }
 
     [HttpPost]
     public async Task<IActionResult> CreateBus([FromBody] Bus request)
     {
-        if (string.IsNullOrEmpty(request.BusName) || string.IsNullOrEmpty(request.BusNumber))
+        try
         {
-            return BadRequest(new { message = "Bus Name and Bus Number are required." });
-        }
+            if (string.IsNullOrEmpty(request.BusName) || string.IsNullOrEmpty(request.BusNumber))
+            {
+                return BadRequest(new { message = "Bus Name and Bus Number are required." });
+            }
 
-        var createdBus = await _busService.CreateBusAsync(request);
-        return CreatedAtAction(nameof(GetBus), new { id = createdBus.BusId }, createdBus);
+            var createdBus = await _busService.CreateBusAsync(request);
+            return Ok(createdBus);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[BusController] CreateBus error: {ex.Message}");
+            return StatusCode(500, new { message = "Failed to create bus.", detail = ex.Message });
+        }
     }
 
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateBus(string id, [FromBody] Bus request)
     {
-        if (string.IsNullOrEmpty(request.BusName) || string.IsNullOrEmpty(request.BusNumber))
+        try
         {
-            return BadRequest(new { message = "Bus Name and Bus Number are required." });
-        }
+            if (string.IsNullOrEmpty(request.BusName) || string.IsNullOrEmpty(request.BusNumber))
+            {
+                return BadRequest(new { message = "Bus Name and Bus Number are required." });
+            }
 
-        var result = await _busService.UpdateBusAsync(id, request);
-        
-        if (!result)
+            var result = await _busService.UpdateBusAsync(id, request);
+            if (!result) return NotFound(new { message = "Bus not found" });
+
+            return Ok(new { message = "Bus updated successfully" });
+        }
+        catch (Exception ex)
         {
-            return NotFound(new { message = "Bus not found" });
+            Console.WriteLine($"[BusController] UpdateBus error: {ex.Message}");
+            return StatusCode(500, new { message = "Failed to update bus.", detail = ex.Message });
         }
-
-        return Ok(new { message = "Bus updated successfully" });
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteBus(string id)
     {
-        var result = await _busService.DeleteBusAsync(id);
-        
-        if (!result)
+        try
         {
-            return NotFound(new { message = "Bus not found" });
+            var result = await _busService.DeleteBusAsync(id);
+            if (!result) return NotFound(new { message = "Bus not found" });
+            return Ok(new { message = "Bus deleted successfully" });
         }
-
-        return Ok(new { message = "Bus deleted successfully" });
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[BusController] DeleteBus error: {ex.Message}");
+            return StatusCode(500, new { message = "Failed to delete bus.", detail = ex.Message });
+        }
     }
 }
