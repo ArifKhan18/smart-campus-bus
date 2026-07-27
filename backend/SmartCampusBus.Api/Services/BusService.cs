@@ -77,19 +77,33 @@ public class BusService : IBusService
         
         var updates = new Dictionary<string, object>
         {
-            { "busName", bus.BusName },
-            { "busNumber", bus.BusNumber },
-            { "capacity", bus.Capacity.HasValue ? bus.Capacity.Value : null! },
-            { "assignedDriver", bus.AssignedDriver ?? null! },
-            { "assignedDriverName", bus.AssignedDriverName ?? null! },
-            { "status", bus.Status },
+            { "busName", bus.BusName ?? "" },
+            { "busNumber", bus.BusNumber ?? "" },
+            { "status", bus.Status ?? "inactive" },
             { "updatedAt", Timestamp.FromDateTime(bus.UpdatedAt) }
         };
 
-        // Remove null values so Firestore handles them properly or stores them as null
-        var cleanUpdates = updates.Where(kvp => kvp.Value != null).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+        if (bus.Capacity.HasValue)
+            updates["capacity"] = bus.Capacity.Value;
+        else
+            updates["capacity"] = Google.Cloud.Firestore.FieldValue.Delete;
 
-        await docRef.UpdateAsync(cleanUpdates);
+        if (!string.IsNullOrEmpty(bus.AssignedDriver))
+            updates["assignedDriver"] = bus.AssignedDriver;
+        else
+            updates["assignedDriver"] = Google.Cloud.Firestore.FieldValue.Delete;
+
+        if (!string.IsNullOrEmpty(bus.AssignedDriverName))
+            updates["assignedDriverName"] = bus.AssignedDriverName;
+        else
+            updates["assignedDriverName"] = Google.Cloud.Firestore.FieldValue.Delete;
+
+        if (!string.IsNullOrEmpty(bus.Route))
+            updates["route"] = bus.Route;
+        else
+            updates["route"] = Google.Cloud.Firestore.FieldValue.Delete;
+
+        await docRef.UpdateAsync(updates);
         return true;
     }
 

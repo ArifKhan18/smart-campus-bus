@@ -78,13 +78,21 @@ public class RouteService : IRouteService
         
         var updates = new Dictionary<string, object>
         {
-            { "routeName", route.RouteName },
-            { "startPoint", route.StartPoint },
-            { "endPoint", route.EndPoint },
-            { "assignedBus", route.AssignedBus ?? null! },
-            { "assignedBusName", route.AssignedBusName ?? null! },
+            { "routeName", route.RouteName ?? "" },
+            { "startPoint", route.StartPoint ?? "" },
+            { "endPoint", route.EndPoint ?? "" },
             { "updatedAt", Timestamp.FromDateTime(route.UpdatedAt) }
         };
+
+        if (!string.IsNullOrEmpty(route.AssignedBus))
+            updates["assignedBus"] = route.AssignedBus;
+        else
+            updates["assignedBus"] = Google.Cloud.Firestore.FieldValue.Delete;
+
+        if (!string.IsNullOrEmpty(route.AssignedBusName))
+            updates["assignedBusName"] = route.AssignedBusName;
+        else
+            updates["assignedBusName"] = Google.Cloud.Firestore.FieldValue.Delete;
 
         if (route.Stops != null && route.Stops.Any())
         {
@@ -106,9 +114,7 @@ public class RouteService : IRouteService
             updates.Add("stops", new List<object>());
         }
 
-        var cleanUpdates = updates.Where(kvp => kvp.Value != null).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-
-        await docRef.UpdateAsync(cleanUpdates);
+        await docRef.UpdateAsync(updates);
         return true;
     }
 

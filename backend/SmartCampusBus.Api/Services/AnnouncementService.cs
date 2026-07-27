@@ -57,17 +57,16 @@ public class AnnouncementService : IAnnouncementService
         
         var updates = new Dictionary<string, object>
         {
-            { "title", announcement.Title },
-            { "message", announcement.Message },
-            { "type", announcement.Type },
-            { "priority", announcement.Priority },
-            { "targetAudience", announcement.TargetAudience },
-            { "status", announcement.Status },
+            { "title", announcement.Title ?? "" },
+            { "message", announcement.Message ?? "" },
+            { "type", announcement.Type ?? "" },
+            { "priority", announcement.Priority ?? "" },
+            { "targetAudience", announcement.TargetAudience ?? "" },
+            { "status", announcement.Status ?? "" },
             { "updatedAt", Timestamp.FromDateTime(announcement.UpdatedAt) }
         };
 
-        var cleanUpdates = updates.Where(kvp => kvp.Value != null).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-        await docRef.UpdateAsync(cleanUpdates);
+        await docRef.UpdateAsync(updates);
         return true;
     }
 
