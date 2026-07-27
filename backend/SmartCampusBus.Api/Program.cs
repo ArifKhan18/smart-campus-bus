@@ -68,20 +68,37 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         {
             OnTokenValidated = async context =>
             {
-                var authService = context.HttpContext.RequestServices.GetRequiredService<IAuthService>();
-                var uid = context.Principal?.FindFirst("user_id")?.Value;
-                if (!string.IsNullOrEmpty(uid))
+                try
                 {
-                    var user = await authService.GetUserAsync(uid);
-                    if (user != null && !string.IsNullOrEmpty(user.Role))
+                    var authService = context.HttpContext.RequestServices.GetRequiredService<IAuthService>();
+                    var uid = context.Principal?.FindFirst("user_id")?.Value;
+                    if (!string.IsNullOrEmpty(uid))
                     {
-                        var claims = new List<Claim>
+                        var user = await authService.GetUserAsync(uid);
+                        if (user != null)
                         {
-                            new Claim(ClaimTypes.Role, user.Role)
-                        };
-                        var appIdentity = new ClaimsIdentity(claims);
-                        context.Principal?.AddIdentity(appIdentity);
+                            var role = user.Role;
+                            if (string.IsNullOrEmpty(role) && 
+                                (user.AdminLevel?.Equals("main", StringComparison.OrdinalIgnoreCase) == true ||
+                                 user.AdminLevel?.Equals("co", StringComparison.OrdinalIgnoreCase) == true))
+                            {
+                                role = "admin";
+                            }
+                            if (!string.IsNullOrEmpty(role))
+                            {
+                                var claims = new List<Claim>
+                                {
+                                    new Claim(ClaimTypes.Role, role.ToLowerInvariant())
+                                };
+                                var appIdentity = new ClaimsIdentity(claims);
+                                context.Principal?.AddIdentity(appIdentity);
+                            }
+                        }
                     }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error in JWT OnTokenValidated: {ex.Message}");
                 }
             }
         };

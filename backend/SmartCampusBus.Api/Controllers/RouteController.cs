@@ -20,63 +20,98 @@ public class RouteController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAllRoutes()
     {
-        var routes = await _routeService.GetAllRoutesAsync();
-        return Ok(routes);
+        try
+        {
+            var routes = await _routeService.GetAllRoutesAsync();
+            return Ok(routes);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = $"Server error: {ex.Message}" });
+        }
     }
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetRoute(string id)
     {
-        var route = await _routeService.GetRouteByIdAsync(id);
-        
-        if (route == null)
+        try
         {
-            return NotFound(new { message = "Route not found" });
-        }
+            var route = await _routeService.GetRouteByIdAsync(id);
+            
+            if (route == null)
+            {
+                return NotFound(new { message = "Route not found" });
+            }
 
-        return Ok(route);
+            return Ok(route);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = $"Server error: {ex.Message}" });
+        }
     }
 
     [HttpPost]
     public async Task<IActionResult> CreateRoute([FromBody] Models.Route request)
     {
-        if (string.IsNullOrEmpty(request.RouteName) || string.IsNullOrEmpty(request.StartPoint) || string.IsNullOrEmpty(request.EndPoint))
+        try
         {
-            return BadRequest(new { message = "Route Name, Start Point, and End Point are required." });
-        }
+            if (string.IsNullOrEmpty(request.RouteName) || string.IsNullOrEmpty(request.StartPoint) || string.IsNullOrEmpty(request.EndPoint))
+            {
+                return BadRequest(new { message = "Route Name, Start Point, and End Point are required." });
+            }
 
-        var createdRoute = await _routeService.CreateRouteAsync(request);
-        return CreatedAtAction(nameof(GetRoute), new { id = createdRoute.RouteId }, createdRoute);
+            var createdRoute = await _routeService.CreateRouteAsync(request);
+            return CreatedAtAction(nameof(GetRoute), new { id = createdRoute.RouteId }, createdRoute);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = $"Server error: {ex.Message}" });
+        }
     }
 
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateRoute(string id, [FromBody] Models.Route request)
     {
-        if (string.IsNullOrEmpty(request.RouteName) || string.IsNullOrEmpty(request.StartPoint) || string.IsNullOrEmpty(request.EndPoint))
+        try
         {
-            return BadRequest(new { message = "Route Name, Start Point, and End Point are required." });
-        }
+            if (string.IsNullOrEmpty(request.RouteName) || string.IsNullOrEmpty(request.StartPoint) || string.IsNullOrEmpty(request.EndPoint))
+            {
+                return BadRequest(new { message = "Route Name, Start Point, and End Point are required." });
+            }
 
-        var result = await _routeService.UpdateRouteAsync(id, request);
-        
-        if (!result)
+            var result = await _routeService.UpdateRouteAsync(id, request);
+            
+            if (!result)
+            {
+                return NotFound(new { message = "Route not found" });
+            }
+
+            return Ok(new { message = "Route updated successfully" });
+        }
+        catch (Exception ex)
         {
-            return NotFound(new { message = "Route not found" });
+            return StatusCode(500, new { message = $"Server error: {ex.Message}" });
         }
-
-        return Ok(new { message = "Route updated successfully" });
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteRoute(string id)
     {
-        var result = await _routeService.DeleteRouteAsync(id);
-        
-        if (!result)
+        try
         {
-            return NotFound(new { message = "Route not found" });
-        }
+            var result = await _routeService.DeleteRouteAsync(id);
+            
+            if (!result)
+            {
+                return NotFound(new { message = "Route not found" });
+            }
 
-        return Ok(new { message = "Route deleted successfully" });
+            return Ok(new { message = "Route deleted successfully" });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = $"Server error: {ex.Message}" });
+        }
     }
 }
