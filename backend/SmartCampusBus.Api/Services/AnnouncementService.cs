@@ -32,14 +32,14 @@ public class AnnouncementService : IAnnouncementService
         var dictionary = new Dictionary<string, object>
         {
             { "id", announcement.Id },
-            { "title", announcement.Title ?? "" },
-            { "message", announcement.Message ?? "" },
-            { "type", announcement.Type ?? "" },
-            { "priority", announcement.Priority ?? "" },
-            { "targetAudience", announcement.TargetAudience ?? "" },
-            { "status", announcement.Status ?? "" },
-            { "createdAt", Timestamp.FromDateTime(DateTime.SpecifyKind(announcement.CreatedAt, DateTimeKind.Utc)) },
-            { "updatedAt", Timestamp.FromDateTime(DateTime.SpecifyKind(announcement.UpdatedAt, DateTimeKind.Utc)) }
+            { "title", announcement.Title },
+            { "message", announcement.Message },
+            { "type", announcement.Type },
+            { "priority", announcement.Priority },
+            { "targetAudience", announcement.TargetAudience },
+            { "status", announcement.Status },
+            { "createdAt", Timestamp.FromDateTime(announcement.CreatedAt) },
+            { "updatedAt", Timestamp.FromDateTime(announcement.UpdatedAt) }
         };
 
         await docRef.SetAsync(dictionary);
@@ -57,16 +57,17 @@ public class AnnouncementService : IAnnouncementService
         
         var updates = new Dictionary<string, object>
         {
-            { "title", announcement.Title ?? "" },
-            { "message", announcement.Message ?? "" },
-            { "type", announcement.Type ?? "" },
-            { "priority", announcement.Priority ?? "" },
-            { "targetAudience", announcement.TargetAudience ?? "" },
-            { "status", announcement.Status ?? "" },
-            { "updatedAt", Timestamp.FromDateTime(DateTime.SpecifyKind(announcement.UpdatedAt, DateTimeKind.Utc)) }
+            { "title", announcement.Title },
+            { "message", announcement.Message },
+            { "type", announcement.Type },
+            { "priority", announcement.Priority },
+            { "targetAudience", announcement.TargetAudience },
+            { "status", announcement.Status },
+            { "updatedAt", Timestamp.FromDateTime(announcement.UpdatedAt) }
         };
 
-        await docRef.UpdateAsync(updates);
+        var cleanUpdates = updates.Where(kvp => kvp.Value != null).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+        await docRef.UpdateAsync(cleanUpdates);
         return true;
     }
 

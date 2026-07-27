@@ -5,13 +5,12 @@ using SmartCampusBus.Api.Config;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using SmartCampusBus.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // ── CORS Configuration ──
+// Allow frontend (Live Server) to make requests to this API
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
@@ -26,10 +25,10 @@ builder.Services.AddCors(options =>
 FirebaseSetup.Initialize(builder.Configuration);
 
 // ── Setup Credentials for Firestore ──
-var serviceAccountPath = "/etc/secrets/serviceAccountKey.json";
+var serviceAccountPath = "/etc/secrets/serviceAccountKey.json"; // Render path
 if (!System.IO.File.Exists(serviceAccountPath))
 {
-    serviceAccountPath = "serviceAccountKey.json";
+    serviceAccountPath = "serviceAccountKey.json"; // Local path
 }
 if (System.IO.File.Exists(serviceAccountPath))
 {
@@ -90,38 +89,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
-// ── Add Controllers with JSON options ──
-builder.Services.AddControllers()
-    .AddJsonOptions(options =>
-    {
-        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
-        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-        options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
-    });
+// ── Add Controllers ──
+builder.Services.AddControllers().AddJsonOptions(o =>
+    o.JsonSerializerOptions.PropertyNameCaseInsensitive = true);
 
 var app = builder.Build();
-
-// ── Global Exception Handler ──
-app.UseExceptionHandler(error =>
-{
-    error.Run(async context =>
-    {
-        var exception = context.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerFeature>()?.Error;
-        Console.WriteLine($"[GLOBAL ERROR] {exception?.Message}");
-        Console.WriteLine($"[GLOBAL ERROR] {exception?.StackTrace}");
-
-        context.Response.ContentType = "application/json";
-        context.Response.StatusCode = 500;
-
-        var response = new
-        {
-            message = exception?.Message ?? "An unexpected error occurred.",
-            detail = app.Environment.IsDevelopment() ? exception?.StackTrace : null
-        };
-
-        await context.Response.WriteAsJsonAsync(response);
-    });
-});
 
 // ── Middleware Pipeline ──
 app.UseCors("AllowFrontend");

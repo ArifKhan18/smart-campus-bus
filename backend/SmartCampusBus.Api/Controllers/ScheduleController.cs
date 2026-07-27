@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using SmartCampusBus.Api.Models;
 using SmartCampusBus.Api.Services;
+
 using Microsoft.AspNetCore.Authorization;
 
 namespace SmartCampusBus.Api.Controllers;
@@ -20,88 +21,63 @@ public class ScheduleController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAllSchedules()
     {
-        try
-        {
-            var schedules = await _scheduleService.GetAllSchedulesAsync();
-            return Ok(schedules);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[ScheduleController] GetAllSchedules error: {ex.Message}");
-            return StatusCode(500, new { message = "Failed to fetch schedules.", detail = ex.Message });
-        }
+        var schedules = await _scheduleService.GetAllSchedulesAsync();
+        return Ok(schedules);
     }
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetSchedule(string id)
     {
-        try
+        var schedule = await _scheduleService.GetScheduleByIdAsync(id);
+        
+        if (schedule == null)
         {
-            var schedule = await _scheduleService.GetScheduleByIdAsync(id);
-            if (schedule == null) return NotFound(new { message = "Schedule not found" });
-            return Ok(schedule);
+            return NotFound(new { message = "Schedule not found" });
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[ScheduleController] GetSchedule error: {ex.Message}");
-            return StatusCode(500, new { message = "Failed to fetch schedule.", detail = ex.Message });
-        }
+
+        return Ok(schedule);
     }
 
     [HttpPost]
     public async Task<IActionResult> CreateSchedule([FromBody] Schedule request)
     {
-        try
+        if (string.IsNullOrEmpty(request.BusId) || string.IsNullOrEmpty(request.DepartureTime))
         {
-            if (string.IsNullOrEmpty(request.BusId) || string.IsNullOrEmpty(request.DepartureTime))
-            {
-                return BadRequest(new { message = "Bus and Departure Time are required." });
-            }
+            return BadRequest(new { message = "Bus and Departure Time are required." });
+        }
 
-            var createdSchedule = await _scheduleService.CreateScheduleAsync(request);
-            return Ok(createdSchedule);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[ScheduleController] CreateSchedule error: {ex.Message}");
-            return StatusCode(500, new { message = "Failed to create schedule.", detail = ex.Message });
-        }
+        var createdSchedule = await _scheduleService.CreateScheduleAsync(request);
+        return CreatedAtAction(nameof(GetSchedule), new { id = createdSchedule.ScheduleId }, createdSchedule);
     }
 
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateSchedule(string id, [FromBody] Schedule request)
     {
-        try
+        if (string.IsNullOrEmpty(request.BusId) || string.IsNullOrEmpty(request.DepartureTime))
         {
-            if (string.IsNullOrEmpty(request.BusId) || string.IsNullOrEmpty(request.DepartureTime))
-            {
-                return BadRequest(new { message = "Bus and Departure Time are required." });
-            }
+            return BadRequest(new { message = "Bus and Departure Time are required." });
+        }
 
-            var result = await _scheduleService.UpdateScheduleAsync(id, request);
-            if (!result) return NotFound(new { message = "Schedule not found" });
-            return Ok(new { message = "Schedule updated successfully" });
-        }
-        catch (Exception ex)
+        var result = await _scheduleService.UpdateScheduleAsync(id, request);
+        
+        if (!result)
         {
-            Console.WriteLine($"[ScheduleController] UpdateSchedule error: {ex.Message}");
-            return StatusCode(500, new { message = "Failed to update schedule.", detail = ex.Message });
+            return NotFound(new { message = "Schedule not found" });
         }
+
+        return Ok(new { message = "Schedule updated successfully" });
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteSchedule(string id)
     {
-        try
+        var result = await _scheduleService.DeleteScheduleAsync(id);
+        
+        if (!result)
         {
-            var result = await _scheduleService.DeleteScheduleAsync(id);
-            if (!result) return NotFound(new { message = "Schedule not found" });
-            return Ok(new { message = "Schedule deleted successfully" });
+            return NotFound(new { message = "Schedule not found" });
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[ScheduleController] DeleteSchedule error: {ex.Message}");
-            return StatusCode(500, new { message = "Failed to delete schedule.", detail = ex.Message });
-        }
+
+        return Ok(new { message = "Schedule deleted successfully" });
     }
 }

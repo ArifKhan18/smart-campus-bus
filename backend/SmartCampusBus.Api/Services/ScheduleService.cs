@@ -77,11 +77,11 @@ public class ScheduleService : IScheduleService
         
         var updates = new Dictionary<string, object>
         {
-            { "busId", schedule.BusId ?? "" },
-            { "busName", schedule.BusName ?? "" },
-            { "departureTime", schedule.DepartureTime ?? "" },
+            { "busId", schedule.BusId },
+            { "busName", schedule.BusName },
+            { "departureTime", schedule.DepartureTime },
             { "operatingDays", schedule.OperatingDays ?? new List<string>() },
-            { "updatedAt", Timestamp.FromDateTime(DateTime.SpecifyKind(schedule.UpdatedAt, DateTimeKind.Utc)) }
+            { "updatedAt", Timestamp.FromDateTime(schedule.UpdatedAt) }
         };
 
         await docRef.UpdateAsync(updates);
@@ -131,9 +131,9 @@ public class ScheduleService : IScheduleService
         var dict = new Dictionary<string, object>
         {
             { "scheduleId", schedule.ScheduleId },
-            { "busId", schedule.BusId ?? "" },
-            { "busName", schedule.BusName ?? "" },
-            { "departureTime", schedule.DepartureTime ?? "" },
+            { "busId", schedule.BusId },
+            { "busName", schedule.BusName },
+            { "departureTime", schedule.DepartureTime },
             { "operatingDays", schedule.OperatingDays ?? new List<string>() },
             { "createdAt", Timestamp.FromDateTime(DateTime.SpecifyKind(schedule.CreatedAt, DateTimeKind.Utc)) },
             { "updatedAt", Timestamp.FromDateTime(DateTime.SpecifyKind(schedule.UpdatedAt, DateTimeKind.Utc)) }

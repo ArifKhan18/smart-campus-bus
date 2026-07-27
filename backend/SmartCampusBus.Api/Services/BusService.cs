@@ -51,7 +51,7 @@ public class BusService : IBusService
     public async Task<Bus> CreateBusAsync(Bus bus)
     {
         var collectionRef = _firestoreDb.Collection(BusesCollection);
-        var docRef = collectionRef.Document();
+        var docRef = collectionRef.Document(); // Auto-generate ID
         
         bus.BusId = docRef.Id;
         bus.CreatedAt = DateTime.UtcNow;
@@ -74,34 +74,22 @@ public class BusService : IBusService
         }
 
         bus.UpdatedAt = DateTime.UtcNow;
-
+        
         var updates = new Dictionary<string, object>
         {
-            { "busName", bus.BusName ?? "" },
-            { "busNumber", bus.BusNumber ?? "" },
-            { "status", bus.Status ?? "inactive" },
-            { "updatedAt", Timestamp.FromDateTime(DateTime.SpecifyKind(bus.UpdatedAt, DateTimeKind.Utc)) }
+            { "busName", bus.BusName },
+            { "busNumber", bus.BusNumber },
+            { "capacity", bus.Capacity.HasValue ? bus.Capacity.Value : null! },
+            { "assignedDriver", bus.AssignedDriver ?? null! },
+            { "assignedDriverName", bus.AssignedDriverName ?? null! },
+            { "status", bus.Status },
+            { "updatedAt", Timestamp.FromDateTime(bus.UpdatedAt) }
         };
 
-        if (bus.Capacity.HasValue)
-            updates["capacity"] = bus.Capacity.Value;
+        // Remove null values so Firestore handles them properly or stores them as null
+        var cleanUpdates = updates.Where(kvp => kvp.Value != null).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 
-        if (!string.IsNullOrEmpty(bus.AssignedDriver))
-            updates["assignedDriver"] = bus.AssignedDriver;
-        else
-            updates["assignedDriver"] = FieldValue.Delete;
-
-        if (!string.IsNullOrEmpty(bus.AssignedDriverName))
-            updates["assignedDriverName"] = bus.AssignedDriverName;
-        else
-            updates["assignedDriverName"] = FieldValue.Delete;
-
-        if (!string.IsNullOrEmpty(bus.Route))
-            updates["route"] = bus.Route;
-        else
-            updates["route"] = FieldValue.Delete;
-
-        await docRef.UpdateAsync(updates);
+        await docRef.UpdateAsync(cleanUpdates);
         return true;
     }
 
@@ -127,7 +115,7 @@ public class BusService : IBusService
             BusId = document.Id,
             BusName = dictionary.GetValueOrDefault("busName")?.ToString() ?? string.Empty,
             BusNumber = dictionary.GetValueOrDefault("busNumber")?.ToString() ?? string.Empty,
-            Capacity = dictionary.TryGetValue("capacity", out var cap) && cap != null ? Convert.ToInt32(cap) : null,
+            Capacity = dictionary.TryGetValue("capacity", out var cap) ? Convert.ToInt32(cap) : null,
             AssignedDriver = dictionary.GetValueOrDefault("assignedDriver")?.ToString(),
             AssignedDriverName = dictionary.GetValueOrDefault("assignedDriverName")?.ToString(),
             Route = dictionary.GetValueOrDefault("route")?.ToString(),
@@ -142,9 +130,9 @@ public class BusService : IBusService
         var dict = new Dictionary<string, object>
         {
             { "busId", bus.BusId },
-            { "busName", bus.BusName ?? "" },
-            { "busNumber", bus.BusNumber ?? "" },
-            { "status", bus.Status ?? "inactive" },
+            { "busName", bus.BusName },
+            { "busNumber", bus.BusNumber },
+            { "status", bus.Status },
             { "createdAt", Timestamp.FromDateTime(DateTime.SpecifyKind(bus.CreatedAt, DateTimeKind.Utc)) },
             { "updatedAt", Timestamp.FromDateTime(DateTime.SpecifyKind(bus.UpdatedAt, DateTimeKind.Utc)) }
         };
