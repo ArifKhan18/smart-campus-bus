@@ -1,6 +1,5 @@
 using Google.Cloud.Firestore;
 using SmartCampusBus.Api.Models;
-using System.Text.Json;
 
 namespace SmartCampusBus.Api.Services;
 
