@@ -74,18 +74,32 @@ public class BusService : IBusService
         }
 
         bus.UpdatedAt = DateTime.UtcNow;
-        
-        var updates = new Dictionary<string, object?>
+
+        var updates = new Dictionary<string, object>
         {
             { "busName", bus.BusName ?? "" },
             { "busNumber", bus.BusNumber ?? "" },
-            { "capacity", bus.Capacity },
-            { "assignedDriver", bus.AssignedDriver },
-            { "assignedDriverName", bus.AssignedDriverName },
-            { "route", bus.Route },
             { "status", bus.Status ?? "inactive" },
             { "updatedAt", Timestamp.FromDateTime(DateTime.SpecifyKind(bus.UpdatedAt, DateTimeKind.Utc)) }
         };
+
+        if (bus.Capacity.HasValue)
+            updates["capacity"] = bus.Capacity.Value;
+
+        if (!string.IsNullOrEmpty(bus.AssignedDriver))
+            updates["assignedDriver"] = bus.AssignedDriver;
+        else
+            updates["assignedDriver"] = FieldValue.Delete;
+
+        if (!string.IsNullOrEmpty(bus.AssignedDriverName))
+            updates["assignedDriverName"] = bus.AssignedDriverName;
+        else
+            updates["assignedDriverName"] = FieldValue.Delete;
+
+        if (!string.IsNullOrEmpty(bus.Route))
+            updates["route"] = bus.Route;
+        else
+            updates["route"] = FieldValue.Delete;
 
         await docRef.UpdateAsync(updates);
         return true;

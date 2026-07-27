@@ -75,15 +75,23 @@ public class RouteService : IRouteService
 
         route.UpdatedAt = DateTime.UtcNow;
         
-        var updates = new Dictionary<string, object?>
+        var updates = new Dictionary<string, object>
         {
             { "routeName", route.RouteName ?? "" },
             { "startPoint", route.StartPoint ?? "" },
             { "endPoint", route.EndPoint ?? "" },
-            { "assignedBus", route.AssignedBus },
-            { "assignedBusName", route.AssignedBusName },
             { "updatedAt", Timestamp.FromDateTime(DateTime.SpecifyKind(route.UpdatedAt, DateTimeKind.Utc)) }
         };
+
+        if (!string.IsNullOrEmpty(route.AssignedBus))
+            updates["assignedBus"] = route.AssignedBus;
+        else
+            updates["assignedBus"] = FieldValue.Delete;
+
+        if (!string.IsNullOrEmpty(route.AssignedBusName))
+            updates["assignedBusName"] = route.AssignedBusName;
+        else
+            updates["assignedBusName"] = FieldValue.Delete;
 
         var stopsList = new List<Dictionary<string, object>>();
         if (route.Stops != null && route.Stops.Any())
