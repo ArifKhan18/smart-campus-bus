@@ -9,7 +9,9 @@ import {
     signInWithEmailAndPassword, 
     createUserWithEmailAndPassword, 
     sendPasswordResetEmail,
-    sendEmailVerification
+    sendEmailVerification,
+    GoogleAuthProvider,
+    signInWithPopup
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { API_BASE_URL } from "./api.js";
@@ -56,6 +58,8 @@ document.addEventListener("DOMContentLoaded", () => {
     handleAdminRestrictions(role);
     updateNavigationLinks(role);
     initForgotPassword();
+    // Initialize Google Sign‑In button handling
+    initGoogleSignIn(role);
 });
 
 // ── Get Role from URL ──
@@ -493,4 +497,101 @@ function initForgotPassword() {
             }
         });
     }
+}
+// ── Google Sign‑In Initialization ──
+function initGoogleSignIn(role) {
+    const btn = document.getElementById('auth-google-btn');
+    if (!btn) return;
+
+    const provider = new GoogleAuthProvider();
+    // Optional: request email and profile scopes (default includes email)
+    provider.addScope('email');
+    provider.addScope('profile');
+
+    btn.addEventListener('click', async () => {
+        const submitBtn = document.getElementById('auth-submit');
+        const loadingOverlay = document.getElementById('auth-loading');
+        const originalText = submitBtn ? submitBtn.textContent : '';
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Signing In...';
+        }
+        if (loadingOverlay) loadingOverlay.style.display = 'flex';
+
+        try {
+            const result = await signInWithPopup(auth, provider);
+            const user = result.user;
+
+            // Fetch or create user profile in Firestore
+            const docRef = doc(db, 'users', user.uid);
+            const docSnap = await getDoc(docRef);
+            let profile = null;
+            if (docSnap.exists()) {
+                profile = docSnap.data();
+            } else {
+                // New Google user – create a basic profile using the selected role
+                const newProfile = {
+                    uid: user.uid,
+                    name: user.displayName || '',
+                    email: user.email,
+                    role: role,
+                    status: role === 'driver' ? 'pending' : 'active',
+                    assignedBus: null,
+                    createdAt: serverTimestamp()
+                };
+                await setDoc(docRef, newProfile);
+                profile = newProfile;
+            }
+
+            // Role validation (same logic as email/password flow)
+            let hasAccess = false;
+            if (profile.role === role) {
+                hasAccess = true;
+            } else if (role === 'admin' && (profile.adminLevel === 'main' || profile.adminLevel === 'co')) {
+                hasAccess = true;
+            }
+
+            if (!hasAccess) {
+                await auth.signOut();
+                window.showToast(`Error: This account is registered as a ${profile.role}. Please switch roles.`, 'error');
+                return;
+            }
+
+            // Email verification check (skip for admins)
+            if (!user.emailVerified && role !== 'admin') {
+                window.showToast('Please verify your email address. Redirecting...', 'warning');
+                setTimeout(() => {
+                    window.location.href = 'verify-otp.html';
+                }, 1000);
+                return;
+            }
+
+            // Driver pending/rejected handling
+            if (role === 'driver' && profile.status === 'pending') {
+                await auth.signOut();
+                window.showToast('Your account is pending admin approval. You cannot log in yet.', 'warning');
+                return;
+            } else if (role === 'driver' && profile.status === 'rejected') {
+                await auth.signOut();
+                window.showToast('Your account application was rejected.', 'error');
+                return;
+            }
+
+            // Success – redirect to appropriate dashboard
+            window.showToast('Login successful! Redirecting...', 'success');
+            setTimeout(() => {
+                window.location.href = `dashboard.html?role=${role}`;
+            }, 1000);
+        } catch (error) {
+            console.error('Google Sign‑In Error:', error);
+            const msg = error.message || 'Google sign‑in failed.';
+            window.showToast(msg, 'error');
+        } finally {
+            if (submitBtn) {
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            }
+            if (loadingOverlay) loadingOverlay.style.display = 'none';
+        }
+    });
 }
