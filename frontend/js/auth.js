@@ -58,6 +58,7 @@ document.addEventListener("DOMContentLoaded", () => {
     handleAdminRestrictions(role);
     updateNavigationLinks(role);
     initForgotPassword();
+    // Initialize Google Sign‑In button handling
     initGoogleSignIn(role);
 });
 
@@ -497,7 +498,6 @@ function initForgotPassword() {
         });
     }
 }
-
 // ── Google Sign‑In Initialization ──
 function initGoogleSignIn(role) {
     const btn = document.getElementById('auth-google-btn');

@@ -1617,7 +1617,6 @@ button {
     transform: translateY(-2px);
     box-shadow: 0 4px 20px rgba(255, 107, 107, 0.35);
 }
-
 /* ── Google Button ── */
 .auth__google-btn {
     width: 100%;
@@ -1642,7 +1641,6 @@ button {
     transform: translateY(-1px);
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
 }
-
 /* ── Forgot Password ── */
 .auth__forgot {
     display: block;
