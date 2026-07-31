@@ -20,37 +20,58 @@ public class AnnouncementController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreateAnnouncement([FromBody] Announcement request)
     {
-        if (string.IsNullOrEmpty(request.Title) || string.IsNullOrEmpty(request.Message))
+        try
         {
-            return BadRequest(new { message = "Title and Message are required." });
-        }
+            if (string.IsNullOrEmpty(request.Title) || string.IsNullOrEmpty(request.Message))
+            {
+                return BadRequest(new { message = "Title and Message are required." });
+            }
 
-        var created = await _announcementService.CreateAnnouncementAsync(request);
-        return Ok(created);
+            var created = await _announcementService.CreateAnnouncementAsync(request);
+            return Ok(created);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = $"Server error: {ex.Message}" });
+        }
     }
 
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateAnnouncement(string id, [FromBody] Announcement request)
     {
-        if (string.IsNullOrEmpty(request.Title) || string.IsNullOrEmpty(request.Message))
+        try
         {
-            return BadRequest(new { message = "Title and Message are required." });
+            if (string.IsNullOrEmpty(request.Title) || string.IsNullOrEmpty(request.Message))
+            {
+                return BadRequest(new { message = "Title and Message are required." });
+            }
+
+            var result = await _announcementService.UpdateAnnouncementAsync(id, request);
+            
+            if (!result) return NotFound(new { message = "Announcement not found" });
+
+            return Ok(new { message = "Announcement updated successfully" });
         }
-
-        var result = await _announcementService.UpdateAnnouncementAsync(id, request);
-        
-        if (!result) return NotFound(new { message = "Announcement not found" });
-
-        return Ok(new { message = "Announcement updated successfully" });
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = $"Server error: {ex.Message}" });
+        }
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteAnnouncement(string id)
     {
-        var result = await _announcementService.DeleteAnnouncementAsync(id);
-        
-        if (!result) return NotFound(new { message = "Announcement not found" });
+        try
+        {
+            var result = await _announcementService.DeleteAnnouncementAsync(id);
+            
+            if (!result) return NotFound(new { message = "Announcement not found" });
 
-        return Ok(new { message = "Announcement deleted successfully" });
+            return Ok(new { message = "Announcement deleted successfully" });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = $"Server error: {ex.Message}" });
+        }
     }
 }

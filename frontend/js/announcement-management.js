@@ -173,7 +173,9 @@ function setupEventListeners() {
                     title: inputTitle.value.trim(),
                     type: inputType.value,
                     priority: inputPriority.value,
-                    message: inputMessage.value.trim()
+                    message: inputMessage.value.trim(),
+                    targetAudience: 'all',
+                    status: 'active'
                 };
                 
                 if (isEdit) {

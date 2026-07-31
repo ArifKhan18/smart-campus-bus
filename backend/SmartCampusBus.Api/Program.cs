@@ -70,26 +70,52 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         {
             OnTokenValidated = async context =>
             {
+<<<<<<< HEAD
                 var authService = context.HttpContext.RequestServices.GetRequiredService<IAuthService>();
                 var uid = context.Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value?? context.Principal?.FindFirst("user_id")?.Value;
                 if (!string.IsNullOrEmpty(uid))
+=======
+                try
+>>>>>>> b11ad7a6c8c8233b9ab5a9028980cc8b450d31ba
                 {
-                    var user = await authService.GetUserAsync(uid);
-                    if (user != null && !string.IsNullOrEmpty(user.Role))
+                    var authService = context.HttpContext.RequestServices.GetRequiredService<IAuthService>();
+                    var uid = context.Principal?.FindFirst("user_id")?.Value;
+                    if (!string.IsNullOrEmpty(uid))
                     {
-                        var claims = new List<Claim>
+                        var user = await authService.GetUserAsync(uid);
+                        if (user != null)
                         {
-                            new Claim(ClaimTypes.Role, user.Role)
-                        };
-                        var appIdentity = new ClaimsIdentity(claims);
-                        context.Principal?.AddIdentity(appIdentity);
+                            var role = user.Role;
+                            if (string.IsNullOrEmpty(role) && 
+                                (user.AdminLevel?.Equals("main", StringComparison.OrdinalIgnoreCase) == true ||
+                                 user.AdminLevel?.Equals("co", StringComparison.OrdinalIgnoreCase) == true))
+                            {
+                                role = "admin";
+                            }
+                            if (!string.IsNullOrEmpty(role))
+                            {
+                                var claims = new List<Claim>
+                                {
+                                    new Claim(ClaimTypes.Role, role.ToLowerInvariant())
+                                };
+                                var appIdentity = new ClaimsIdentity(claims);
+                                context.Principal?.AddIdentity(appIdentity);
+                            }
+                        }
                     }
                 }
+<<<<<<< HEAD
             },
             OnAuthenticationFailed = context =>
             {
                 Console.WriteLine($"Firebase token validation failed: {context.Exception.Message}");
                 return Task.CompletedTask;
+=======
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error in JWT OnTokenValidated: {ex.Message}");
+                }
+>>>>>>> b11ad7a6c8c8233b9ab5a9028980cc8b450d31ba
             }
         };
     });
@@ -97,7 +123,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 
 // ── Add Controllers ──
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddJsonOptions(o =>
+    o.JsonSerializerOptions.PropertyNameCaseInsensitive = true);
 
 var app = builder.Build();
 

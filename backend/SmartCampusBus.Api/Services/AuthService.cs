@@ -43,6 +43,7 @@ public class AuthService : IAuthService
             Name = dictionary.GetValueOrDefault("name")?.ToString() ?? string.Empty,
             Email = email,
             Role = dictionary.GetValueOrDefault("role")?.ToString() ?? string.Empty,
+            AdminLevel = dictionary.GetValueOrDefault("adminLevel")?.ToString(),
             Status = dictionary.GetValueOrDefault("status")?.ToString() ?? "active",
             AssignedBus = dictionary.GetValueOrDefault("assignedBus")?.ToString(),
             CreatedAt = dictionary.TryGetValue("createdAt", out var ca) && ca is Timestamp ts ? ts.ToDateTime() : DateTime.MinValue

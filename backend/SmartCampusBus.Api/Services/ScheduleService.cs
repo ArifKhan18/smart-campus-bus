@@ -84,7 +84,8 @@ public class ScheduleService : IScheduleService
             { "updatedAt", Timestamp.FromDateTime(schedule.UpdatedAt) }
         };
 
-        await docRef.UpdateAsync(updates);
+        var cleanUpdates = updates.Where(kvp => kvp.Value != null).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+        await docRef.UpdateAsync(cleanUpdates);
         return true;
     }
 
