@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Smart Campus Bus UI Tests', () => {
 
   test('Login page loads correctly', async ({ page }) => {
-    await page.goto('http://127.0.0.1:5500/pages/login.html');
+    await page.goto('http://127.0.0.1:5500/frontend/pages/login.html');
     
     // Expect a title "to contain" a substring.
     await expect(page).toHaveTitle(/Login/);
@@ -11,13 +11,15 @@ test.describe('Smart Campus Bus UI Tests', () => {
     // Verify role select link exists
     const roleLink = page.locator('text=Choose a different role');
     await expect(roleLink).toBeVisible();
+    await expect(page.getByRole('button', { name: /continue with google/i })).toBeVisible();
     
   });
 
   test('Register page loads correctly', async ({ page }) => {
-    await page.goto('http://127.0.0.1:5500/pages/register.html');
+    await page.goto('http://127.0.0.1:5500/frontend/pages/register.html');
     
     await expect(page).toHaveTitle(/Register/);
+    await expect(page.getByRole('button', { name: /sign up with google/i })).toBeVisible();
   });
   
 });
