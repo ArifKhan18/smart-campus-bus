@@ -301,6 +301,7 @@ window.deleteBus = async function(busId) {
         if(window.showToast) window.showToast("Bus deleted successfully!", "success");
     } catch (error) {
         console.error("Error deleting bus:", error);
-        if(window.showToast) window.showToast("Error deleting bus", "error");
+        if(window.showToast) window.showToast(`Error deleting bus: ${error.message}`, "error");
+        else alert(`Error deleting bus: ${error.message}`);
     }
 };

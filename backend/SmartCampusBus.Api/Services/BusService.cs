@@ -79,17 +79,14 @@ public class BusService : IBusService
         {
             { "busName", bus.BusName },
             { "busNumber", bus.BusNumber },
-            { "capacity", bus.Capacity.HasValue ? bus.Capacity.Value : null! },
-            { "assignedDriver", bus.AssignedDriver ?? null! },
-            { "assignedDriverName", bus.AssignedDriverName ?? null! },
+            { "capacity", bus.Capacity.HasValue ? (object)bus.Capacity.Value : FieldValue.Delete },
+            { "assignedDriver", !string.IsNullOrEmpty(bus.AssignedDriver) ? (object)bus.AssignedDriver : FieldValue.Delete },
+            { "assignedDriverName", !string.IsNullOrEmpty(bus.AssignedDriverName) ? (object)bus.AssignedDriverName : FieldValue.Delete },
             { "status", bus.Status },
             { "updatedAt", Timestamp.FromDateTime(bus.UpdatedAt) }
         };
 
-        // Remove null values so Firestore handles them properly or stores them as null
-        var cleanUpdates = updates.Where(kvp => kvp.Value != null).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-
-        await docRef.UpdateAsync(cleanUpdates);
+        await docRef.UpdateAsync(updates);
         return true;
     }
 

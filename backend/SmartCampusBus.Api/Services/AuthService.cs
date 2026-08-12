@@ -7,6 +7,8 @@ public interface IAuthService
 {
     Task<User?> GetUserAsync(string uid);
     Task<bool> UpdateUserStatusAsync(string uid, string status);
+    Task<bool> UpdateAdminLevelAsync(string uid, string? adminLevel);
+    Task<bool> TransferMainAdminAsync(string targetUid, string currentUid);
     Task<List<User>> GetUsersByRoleAsync(string role, string? statusFilter = null);
     Task SaveOtpAsync(string uid, string otpCode, DateTime expiresAt);
     Task<bool> VerifyOtpAsync(string uid, string otpCode);
@@ -66,6 +68,43 @@ public class AuthService : IAuthService
         };
 
         await docRef.UpdateAsync(updates);
+        return true;
+    }
+
+    public async Task<bool> UpdateAdminLevelAsync(string uid, string? adminLevel)
+    {
+        var docRef = _firestoreDb.Collection(UsersCollection).Document(uid);
+        var snapshot = await docRef.GetSnapshotAsync();
+
+        if (!snapshot.Exists)
+        {
+            return false;
+        }
+
+        var updates = new Dictionary<string, object>
+        {
+            { "adminLevel", string.IsNullOrEmpty(adminLevel) ? FieldValue.Delete : adminLevel }
+        };
+
+        await docRef.UpdateAsync(updates);
+        return true;
+    }
+
+    public async Task<bool> TransferMainAdminAsync(string targetUid, string currentUid)
+    {
+        var targetRef = _firestoreDb.Collection(UsersCollection).Document(targetUid);
+        var currentRef = _firestoreDb.Collection(UsersCollection).Document(currentUid);
+
+        var targetSnap = await targetRef.GetSnapshotAsync();
+        var currentSnap = await currentRef.GetSnapshotAsync();
+
+        if (!targetSnap.Exists || !currentSnap.Exists)
+        {
+            return false;
+        }
+
+        await targetRef.UpdateAsync("adminLevel", "main");
+        await currentRef.UpdateAsync("adminLevel", "co");
         return true;
     }
 

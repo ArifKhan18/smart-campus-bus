@@ -1,6 +1,7 @@
 import { auth, db } from "./firebase-config.js";
 import { collection, getDocs, doc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getCurrentUser } from "./auth-guard.js";
+import { ApiService } from "./api.js";
 
 // State
 let allUsers = [];
@@ -269,34 +270,47 @@ function createUserCard(user, isAdminGrid, viewerAdminLevel = null, currentUserI
 
 window.toggleUserBlock = async function (userId, newStatus, role) {
     try {
-        await updateDoc(doc(db, "users", userId), { status: newStatus });
+        await ApiService.fetchWithAuth(`/Auth/user/${userId}/status`, {
+            method: 'PUT',
+            body: JSON.stringify({ status: newStatus })
+        });
         const actionText = newStatus === 'blocked' ? 'blocked' : 'unblocked';
         if (window.showToast) window.showToast(`User successfully ${actionText}.`, 'success');
         else alert(`User successfully ${actionText}.`);
     } catch (error) {
-        console.error("Error:", error);
+        console.error("Error toggling user block status:", error);
+        if (window.showToast) window.showToast(`Failed to update status: ${error.message}`, 'error');
+        else alert(`Failed to update status: ${error.message}`);
     }
 };
 
 window.toggleAdminRole = async function (userId, newLevel) {
     try {
-        await updateDoc(doc(db, "users", userId), { adminLevel: newLevel });
+        await ApiService.fetchWithAuth(`/Auth/user/${userId}/admin-level`, {
+            method: 'PUT',
+            body: JSON.stringify({ adminLevel: newLevel })
+        });
         const actionText = newLevel === 'co' ? 'granted Co-Admin access' : 'removed from Admins';
         if (window.showToast) window.showToast(`User successfully ${actionText}.`, 'success');
         else alert(`User successfully ${actionText}.`);
     } catch (error) {
-        console.error("Error:", error);
+        console.error("Error toggling admin role:", error);
+        if (window.showToast) window.showToast(`Failed to update admin role: ${error.message}`, 'error');
+        else alert(`Failed to update admin role: ${error.message}`);
     }
 };
 
 window.makeMainAdmin = async function (targetUserId, currentUserId) {
     if (!currentUserId || currentUserId === 'undefined') return alert("Error: Current user ID not found.");
     try {
-        await updateDoc(doc(db, "users", targetUserId), { adminLevel: 'main' });
-        await updateDoc(doc(db, "users", currentUserId), { adminLevel: 'co' });
-        if (window.showToast) window.showToast("Main Admin role transferred.", 'success');
-        setTimeout(() => window.location.reload(), 2000);
+        await ApiService.fetchWithAuth(`/Auth/user/${targetUserId}/transfer-main-admin`, {
+            method: 'POST'
+        });
+        if (window.showToast) window.showToast("Main Admin role transferred successfully.", 'success');
+        setTimeout(() => window.location.reload(), 1500);
     } catch (error) {
-        console.error("Error:", error);
+        console.error("Error transferring main admin role:", error);
+        if (window.showToast) window.showToast(`Failed to transfer role: ${error.message}`, 'error');
+        else alert(`Failed to transfer role: ${error.message}`);
     }
 };

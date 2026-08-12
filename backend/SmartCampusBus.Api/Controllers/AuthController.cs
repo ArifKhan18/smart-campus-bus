@@ -18,12 +18,19 @@ public class AuthController : ControllerBase
         _emailService = emailService;
     }
 
+    private string? GetUserId()
+    {
+        return User.FindFirst("user_id")?.Value 
+            ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value 
+            ?? User.FindFirst("sub")?.Value;
+    }
+
     // Any authenticated user can get their own profile
     [HttpGet("me")]
     [Authorize]
     public async Task<IActionResult> GetMe()
     {
-        var uid = User.FindFirst("user_id")?.Value;
+        var uid = GetUserId();
         if (string.IsNullOrEmpty(uid)) return Unauthorized();
 
         var user = await _authService.GetUserAsync(uid);
@@ -54,13 +61,12 @@ public class AuthController : ControllerBase
         return Ok(users);
     }
 
-    // This endpoint will be primarily used by Admins in Phase 3
     [HttpPut("user/{uid}/status")]
     [Authorize(Roles = "admin")]
     public async Task<IActionResult> UpdateUserStatus(string uid, [FromBody] UpdateStatusDto request)
     {
         if (string.IsNullOrEmpty(request.Status) || 
-            (request.Status != "active" && request.Status != "pending" && request.Status != "rejected"))
+            (request.Status != "active" && request.Status != "pending" && request.Status != "rejected" && request.Status != "blocked"))
         {
             return BadRequest(new { message = "Invalid status" });
         }
@@ -75,13 +81,42 @@ public class AuthController : ControllerBase
         return Ok(new { message = $"User status updated to {request.Status}" });
     }
 
+    [HttpPut("user/{uid}/admin-level")]
+    [Authorize(Roles = "admin")]
+    public async Task<IActionResult> UpdateAdminLevel(string uid, [FromBody] UpdateAdminLevelDto request)
+    {
+        var result = await _authService.UpdateAdminLevelAsync(uid, request.AdminLevel);
+        if (!result)
+        {
+            return NotFound(new { message = "User not found" });
+        }
+
+        return Ok(new { message = $"User admin level updated to {request.AdminLevel ?? "none"}" });
+    }
+
+    [HttpPost("user/{targetUid}/transfer-main-admin")]
+    [Authorize(Roles = "admin")]
+    public async Task<IActionResult> TransferMainAdmin(string targetUid)
+    {
+        var currentUid = GetUserId();
+        if (string.IsNullOrEmpty(currentUid)) return Unauthorized();
+
+        var result = await _authService.TransferMainAdminAsync(targetUid, currentUid);
+        if (!result)
+        {
+            return BadRequest(new { message = "Failed to transfer main admin role." });
+        }
+
+        return Ok(new { message = "Main admin role transferred successfully." });
+    }
+
     [HttpPost("send-otp")]
     [Authorize]
     public async Task<IActionResult> SendOtp()
     {
         try
         {
-            var uid = User.FindFirst("user_id")?.Value;
+            var uid = GetUserId();
             if (string.IsNullOrEmpty(uid)) return Unauthorized();
 
             var user = await _authService.GetUserAsync(uid);
@@ -106,7 +141,7 @@ public class AuthController : ControllerBase
     [Authorize]
     public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpDto request)
     {
-        var uid = User.FindFirst("user_id")?.Value;
+        var uid = GetUserId();
         if (string.IsNullOrEmpty(uid)) return Unauthorized();
 
         var isValid = await _authService.VerifyOtpAsync(uid, request.Code);
@@ -122,7 +157,7 @@ public class AuthController : ControllerBase
     [Authorize]
     public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileDto request)
     {
-        var uid = User.FindFirst("user_id")?.Value;
+        var uid = GetUserId();
         if (string.IsNullOrEmpty(uid)) return Unauthorized();
 
         if (string.IsNullOrWhiteSpace(request.Name))
@@ -147,7 +182,7 @@ public class AuthController : ControllerBase
     [Authorize]
     public async Task<IActionResult> DeleteAccount()
     {
-        var uid = User.FindFirst("user_id")?.Value;
+        var uid = GetUserId();
         if (string.IsNullOrEmpty(uid)) return Unauthorized();
 
         var result = await _authService.DeleteUserAccountAsync(uid);
@@ -170,4 +205,9 @@ public class VerifyOtpDto
 public class UpdateStatusDto
 {
     public string Status { get; set; } = string.Empty;
+}
+
+public class UpdateAdminLevelDto
+{
+    public string? AdminLevel { get; set; }
 }

@@ -389,6 +389,7 @@ window.deleteSchedule = async function(scheduleId) {
         if(window.showToast) window.showToast("Schedule deleted successfully!", "success");
     } catch (error) {
         console.error("Error deleting schedule:", error);
-        if(window.showToast) window.showToast("Error deleting schedule", "error");
+        if(window.showToast) window.showToast(`Error deleting schedule: ${error.message}`, "error");
+        else alert(`Error deleting schedule: ${error.message}`);
     }
 };

@@ -71,19 +71,23 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 try
                 {
                     var authService = context.HttpContext.RequestServices.GetRequiredService<IAuthService>();
-                    var uid = context.Principal?.FindFirst("user_id")?.Value;
+                    var uid = context.Principal?.FindFirst("user_id")?.Value
+                           ?? context.Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                           ?? context.Principal?.FindFirst("sub")?.Value;
+
                     if (!string.IsNullOrEmpty(uid))
                     {
                         var user = await authService.GetUserAsync(uid);
                         if (user != null)
                         {
                             var role = user.Role;
-                            if (string.IsNullOrEmpty(role) && 
-                                (user.AdminLevel?.Equals("main", StringComparison.OrdinalIgnoreCase) == true ||
-                                 user.AdminLevel?.Equals("co", StringComparison.OrdinalIgnoreCase) == true))
+                            if (string.Equals(user.Role, "admin", StringComparison.OrdinalIgnoreCase) ||
+                                string.Equals(user.AdminLevel, "main", StringComparison.OrdinalIgnoreCase) ||
+                                string.Equals(user.AdminLevel, "co", StringComparison.OrdinalIgnoreCase))
                             {
                                 role = "admin";
                             }
+
                             if (!string.IsNullOrEmpty(role))
                             {
                                 var claims = new List<Claim>
@@ -114,7 +118,10 @@ var app = builder.Build();
 
 // ── Middleware Pipeline ──
 app.UseCors("AllowFrontend");
-app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

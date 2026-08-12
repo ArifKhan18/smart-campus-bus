@@ -703,6 +703,7 @@ window.deleteRoute = async function(routeId) {
         if(window.showToast) window.showToast("Route deleted successfully!", "success");
     } catch (error) {
         console.error("Error deleting route:", error);
-        if(window.showToast) window.showToast("Error deleting route", "error");
+        if(window.showToast) window.showToast(`Error deleting route: ${error.message}`, "error");
+        else alert(`Error deleting route: ${error.message}`);
     }
 };

@@ -247,9 +247,9 @@ async function deleteAnnouncement(id, title) {
     } catch (error) {
         console.error("Error deleting announcement:", error);
         if (typeof window.showToast === 'function') {
-            window.showToast("Error deleting announcement", 'error');
+            window.showToast(`Error deleting announcement: ${error.message}`, 'error');
         } else {
-            alert("Error deleting announcement: " + error.message);
+            alert(`Error deleting announcement: ${error.message}`);
         }
     }
 }
