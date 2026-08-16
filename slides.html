@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Campus Bus Tracking System - SDP 400 Presentation</title>
+    <meta name="description" content="Smart Campus Bus Tracking System - Software Development Project 400 Presentation by Intake 51, Section 3">
+    <link rel="stylesheet" href="css/presentation.css">
+</head>
+<body>
+    <div class="progress-bar" id="progressBar"></div>
+    <div class="top-actions">
+        <button class="action-btn presentation-btn" onclick="toggleFullscreen()">🖥️ Present</button>
+        <a href="Smart_Campus_Bus_Tracking_System.pptx" download class="action-btn download-btn">📥 Download PPTX</a>
+        <button class="action-btn print-btn" onclick="window.print()">🖨️ Print PDF</button>
+        <button class="action-btn edit-btn" id="editToggle" onclick="toggleEditMode()">✏️ Edit Mode</button>
+    </div>
+
+    <div class="presentation-container" id="presentationContainer">
+
+        <!-- ==================== SLIDE 1: TITLE ==================== -->
+        <div class="slide slide-title active" id="slide-1">
+            <span class="title-badge">SOFTWARE DEVELOPMENT PROJECT 400</span>
+            <h1 contenteditable="false">Smart Campus Bus<br>Tracking System</h1>
+            <p class="subtitle" contenteditable="false">A real-time GPS-based bus tracking web application for university campus transportation</p>
+            <div class="team-info">
+                <span><strong>Supervisor:</strong> Humayra Ahmed, Assistant Professor</span>
+                <span><strong>Intake 51 | Section 3</strong></span>
+                <span style="margin-top: 16px; font-size: 14px; letter-spacing: 0.5px;">
+                    Md Arif Khan &nbsp;•&nbsp;
+                    Karnia Binte Rafique &nbsp;•&nbsp;
+                    Suraiya Karim &nbsp;•&nbsp;
+                    Prosenjit Biswas &nbsp;•&nbsp;
+                    Proshanta Saha
+                </span>
+            </div>
+        </div>
+
+        <!-- ==================== SLIDE 2: PROBLEM & SOLUTION ==================== -->
+        <div class="slide slide-content" id="slide-2">
+            <div class="slide-header">
+                <h2 contenteditable="false">Problem Statement & Our Solution</h2>
+                <span class="slide-number">02</span>
+            </div>
+            <div class="slide-body">
+                <div class="slide-body-row">
+                    <div class="slide-body-col">
+                        <div class="highlight-box orange">
+                            <h4>❌ The Problem</h4>
+                            <ul>
+                                <li>Students have no idea where the campus bus is</li>
+                                <li>No real-time location tracking or ETA</li>
+                                <li>No centralized schedule or route information</li>
+                                <li>No communication channel between riders</li>
+                                <li>Admin has zero fleet visibility or analytics</li>
+                            </ul>
+                        </div>
+                        <div class="highlight-box green">
+                            <h4>✅ Our Solution — SmartBus</h4>
+                            <ul>
+                                <li>Live GPS tracking with interactive map & ETA</li>
+                                <li>Haversine formula for accurate distance calculation</li>
+                                <li>3 roles: Student, Driver, Admin</li>
+                                <li>Bus-wise group chat (Firebase Firestore)</li>
+                                <li>Full admin dashboard with analytics</li>
+                                <li>Bilingual support (English & বাংলা)</li>
+                                <li>Push notifications for trip events</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="slide-body-col">
+                        <div class="screenshot-single">
+                            <img src="project picture/Screenshot 2026-08-16 110344.png" alt="Landing Page">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== SLIDE 3: LANDING PAGE ==================== -->
+        <div class="slide slide-content" id="slide-3">
+            <div class="slide-header">
+                <h2 contenteditable="false">Landing Page & Role Selection</h2>
+                <span class="slide-number">03</span>
+            </div>
+            <div class="slide-body">
+                <div class="screenshot-duo">
+                    <div class="screenshot-item">
+                        <img src="project picture/Screenshot 2026-08-16 110407.png" alt="Features List">
+                        <div class="caption">Feature Highlights & How It Works</div>
+                    </div>
+                    <div class="screenshot-item">
+                        <img src="project picture/Screenshot 2026-08-16 110246.png" alt="Role Selection">
+                        <div class="caption">Role Selection — Student / Driver / Admin</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== SLIDE 4: LANDING PAGE CONTINUED ==================== -->
+        <div class="slide slide-content" id="slide-4">
+            <div class="slide-header">
+                <h2 contenteditable="false">Onboarding & Multi-Role Access</h2>
+                <span class="slide-number">04</span>
+            </div>
+            <div class="slide-body">
+                <p class="slide-description" contenteditable="false">Three-step onboarding: Pick your role → Sign up → Start moving. Each role has distinct features and capabilities tailored for their needs.</p>
+                <div class="screenshot-single">
+                    <img src="project picture/Screenshot 2026-08-16 110420.png" alt="How It Works & Roles">
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== SLIDE 5: AUTH ==================== -->
+        <div class="slide slide-content" id="slide-5">
+            <div class="slide-header">
+                <h2 contenteditable="false">Student Login & Registration</h2>
+                <span class="slide-number">05</span>
+            </div>
+            <div class="slide-body">
+                <p class="slide-description" contenteditable="false">Secure OTP-based email verification via Brevo API. JWT bearer tokens for session management. Dark-themed login/register UI with password visibility toggle and role-specific badges.</p>
+                <div class="screenshot-duo">
+                    <div class="screenshot-item">
+                        <img src="project picture/Screenshot 2026-08-16 110301.png" alt="Student Login">
+                        <div class="caption">Student Login (Dark Mode)</div>
+                    </div>
+                    <div class="screenshot-item">
+                        <img src="project picture/Screenshot 2026-08-16 110319.png" alt="Student Registration">
+                        <div class="caption">Student Registration</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== SLIDE 6: STUDENT DASHBOARD ==================== -->
+        <div class="slide slide-content" id="slide-6">
+            <div class="slide-header">
+                <h2 contenteditable="false">Student Dashboard</h2>
+                <span class="slide-number">06</span>
+            </div>
+            <div class="slide-body">
+                <p class="slide-description" contenteditable="false">Personalized welcome, real-time stats (Active Buses, Available Routes, Active Trips), sidebar navigation to all student features.</p>
+                <div class="screenshot-single">
+                    <img src="project picture/Screenshot 2026-08-16 105144.png" alt="Student Dashboard">
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== SLIDE 7: LIVE GPS TRACKING ==================== -->
+        <div class="slide slide-content" id="slide-7">
+            <div class="slide-header">
+                <h2 contenteditable="false">Real-Time GPS Bus Tracking</h2>
+                <span class="slide-number">07</span>
+            </div>
+            <div class="slide-body">
+                <p class="slide-description" contenteditable="false">Live map (Leaflet.js) updates bus position every 5 seconds. Haversine formula calculates real distance & ETA. Shows numbered stops, recently passed stop, and next stop.</p>
+                <div class="screenshot-single">
+                    <img src="project picture/Screenshot 2026-08-16 105418.png" alt="Live GPS Tracking">
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== SLIDE 8: AVAILABLE BUSES & NOTIFICATIONS ==================== -->
+        <div class="slide slide-content" id="slide-8">
+            <div class="slide-header">
+                <h2 contenteditable="false">Available Buses & Push Notifications</h2>
+                <span class="slide-number">08</span>
+            </div>
+            <div class="slide-body">
+                <p class="slide-description" contenteditable="false">View all buses with active/inactive status. "View Live Map & Details" button for each bus. Real-time push notifications for trip start, delay, and completion events.</p>
+                <div class="screenshot-duo">
+                    <div class="screenshot-item">
+                        <img src="project picture/Screenshot 2026-08-16 105133.png" alt="Available Buses">
+                        <div class="caption">Available Buses List</div>
+                    </div>
+                    <div class="screenshot-item" style="flex: 0 0 300px;">
+                        <img src="project picture/Screenshot 2026-08-16 105153.png" alt="Notifications">
+                        <div class="caption">Real-Time Notifications</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== SLIDE 9: ROUTES & SCHEDULES (STUDENT) ==================== -->
+        <div class="slide slide-content" id="slide-9">
+            <div class="slide-header">
+                <h2 contenteditable="false">Student: Routes & Schedules</h2>
+                <span class="slide-number">09</span>
+            </div>
+            <div class="slide-body">
+                <p class="slide-description" contenteditable="false">Students can view all bus routes with stop details and assigned buses. Schedule view shows departure times and operating days.</p>
+                <div class="screenshot-duo">
+                    <div class="screenshot-item">
+                        <img src="project picture/Screenshot 2026-08-16 105122.png" alt="Routes & Stops">
+                        <div class="caption">Routes & Stops (Student View)</div>
+                    </div>
+                    <div class="screenshot-item">
+                        <img src="project picture/Screenshot 2026-08-16 105106.png" alt="Schedules">
+                        <div class="caption">Schedules (Student View)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== SLIDE 10: ANNOUNCEMENTS (STUDENT) ==================== -->
+        <div class="slide slide-content" id="slide-10">
+            <div class="slide-header">
+                <h2 contenteditable="false">Student: Announcements & Account Settings</h2>
+                <span class="slide-number">10</span>
+            </div>
+            <div class="slide-body">
+                <p class="slide-description" contenteditable="false">Campus-wide announcements from admin (Notice/Urgent types). Full account settings with profile update, password change, and account deletion (Danger Zone).</p>
+                <div class="screenshot-duo">
+                    <div class="screenshot-item">
+                        <img src="project picture/Screenshot 2026-08-16 105057.png" alt="Announcements">
+                        <div class="caption">Campus Announcements</div>
+                    </div>
+                    <div class="screenshot-item">
+                        <img src="project picture/Screenshot 2026-08-16 105046.png" alt="Account Settings">
+                        <div class="caption">Account Settings & Danger Zone</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== SLIDE 11: BUS CHAT ==================== -->
+        <div class="slide slide-content" id="slide-11">
+            <div class="slide-header">
+                <h2 contenteditable="false">Bus-Wise Group Chat</h2>
+                <span class="slide-number">11</span>
+            </div>
+            <div class="slide-body">
+                <p class="slide-description" contenteditable="false">Real-time group chat powered by Firebase Firestore, organized by bus. Students can discuss bus location, timing, and share updates. Messages with timestamps and read receipts.</p>
+                <div class="screenshot-duo">
+                    <div class="screenshot-item">
+                        <img src="project picture/Screenshot 2026-08-16 110042.png" alt="Chat Student View">
+                        <div class="caption">Bus Chat — Student View</div>
+                    </div>
+                    <div class="screenshot-item">
+                        <img src="project picture/Screenshot 2026-08-16 110050.png" alt="Chat Driver View">
+                        <div class="caption">Bus Chat — Driver View</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== SLIDE 12: REPORT SYSTEM ==================== -->
+        <div class="slide slide-content" id="slide-12">
+            <div class="slide-header">
+                <h2 contenteditable="false">Report Management System</h2>
+                <span class="slide-number">12</span>
+            </div>
+            <div class="slide-body">
+                <p class="slide-description" contenteditable="false">Categorized reporting (Bus Issue, Driver Behavior, App Bug, Suggestion). Admin responds with notes. Status workflow: Pending → Processing → Completed/Cancelled.</p>
+                <div class="screenshot-duo">
+                    <div class="screenshot-item">
+                        <img src="project picture/Screenshot 2026-08-16 104456.png" alt="Report Form">
+                        <div class="caption">Student: Report to Admin</div>
+                    </div>
+                    <div class="screenshot-item">
+                        <img src="project picture/Screenshot 2026-08-16 105036.png" alt="Report History">
+                        <div class="caption">Student: Previous Reports & Admin Replies</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== SLIDE 13: ADMIN REPORT VIEW & CATEGORIES ==================== -->
+        <div class="slide slide-content" id="slide-13">
+            <div class="slide-header">
+                <h2 contenteditable="false">Admin: Student Reports Dashboard</h2>
+                <span class="slide-number">13</span>
+            </div>
+            <div class="slide-body">
+                <p class="slide-description" contenteditable="false">Admin views all student reports with filter tabs (Pending, Processing, Completed, Cancelled). Can respond with notes, mark as complete, or cancel. Report topics include Bus Issue/Delay, Driver Behavior, App Bug, Suggestion.</p>
+                <div class="screenshot-duo">
+                    <div class="screenshot-item">
+                        <img src="project picture/Screenshot 2026-08-16 104738.png" alt="Admin Reports">
+                        <div class="caption">Admin: Student Reports Management</div>
+                    </div>
+                    <div class="screenshot-item" style="flex: 0 0 350px;">
+                        <img src="project picture/Screenshot 2026-08-16 104110.png" alt="Report Categories">
+                        <div class="caption">Report Topic Categories</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== SLIDE 14: DRIVER DASHBOARD ==================== -->
+        <div class="slide slide-content" id="slide-14">
+            <div class="slide-header">
+                <h2 contenteditable="false">Driver Dashboard & Trip Controls</h2>
+                <span class="slide-number">14</span>
+            </div>
+            <div class="slide-body">
+                <p class="slide-description" contenteditable="false">Large START button for quick trip initiation. GPS broadcasts location every 5 seconds. STOP and DELAY buttons for trip management. Full bilingual support (English/বাংলা).</p>
+                <div class="screenshot-duo">
+                    <div class="screenshot-item">
+                        <img src="project picture/Screenshot 2026-08-16 104822.png" alt="Driver Start">
+                        <div class="caption">Driver Dashboard — Ready to Start</div>
+                    </div>
+                    <div class="screenshot-item">
+                        <img src="project picture/Screenshot 2026-08-16 104846.png" alt="Driver Settings Bangla">
+                        <div class="caption">Driver Settings (বাংলা Interface)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== SLIDE 15: DRIVER MOBILE ==================== -->
+        <div class="slide slide-content" id="slide-15">
+            <div class="slide-header">
+                <h2 contenteditable="false">Driver Mobile Experience — Fully Responsive</h2>
+                <span class="slide-number">15</span>
+            </div>
+            <div class="slide-body">
+                <p class="slide-description" contenteditable="false">Mobile-first responsive design. Trip setup → GPS connecting → Trip active with STOP/DELAY controls. Bilingual interface works on all devices.</p>
+                <div class="mobile-grid">
+                    <div class="screenshot-item screenshot-mobile">
+                        <img src="project picture/WhatsApp Image 2026-08-16 at 10.55.42 AM.jpeg" alt="Driver Mobile Ready">
+                        <div class="caption">Ready State</div>
+                    </div>
+                    <div class="screenshot-item screenshot-mobile">
+                        <img src="project picture/WhatsApp Image 2026-08-16 at 10.55.42 AM (1).jpeg" alt="Setup Trip">
+                        <div class="caption">Setup Trip</div>
+                    </div>
+                    <div class="screenshot-item screenshot-mobile">
+                        <img src="project picture/WhatsApp Image 2026-08-16 at 10.55.43 AM.jpeg" alt="GPS Connecting">
+                        <div class="caption">GPS Connecting</div>
+                    </div>
+                    <div class="screenshot-item screenshot-mobile">
+                        <img src="project picture/WhatsApp Image 2026-08-16 at 10.55.43 AM (1).jpeg" alt="Trip Active EN">
+                        <div class="caption">Trip Active (EN)</div>
+                    </div>
+                    <div class="screenshot-item screenshot-mobile">
+                        <img src="project picture/WhatsApp Image 2026-08-16 at 10.56.11 AM.jpeg" alt="Trip Active BN">
+                        <div class="caption">Trip Active (বাংলা)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== SLIDE 16: ADMIN USER MANAGEMENT ==================== -->
+        <div class="slide slide-content" id="slide-16">
+            <div class="slide-header">
+                <h2 contenteditable="false">Admin: User Management Dashboard</h2>
+                <span class="slide-number">16</span>
+            </div>
+            <div class="slide-body">
+                <p class="slide-description" contenteditable="false">Complete user management: 57 users, filter by role (Students/Drivers/Blocked), search, block users, promote to Co-Admin. Real-time stats cards.</p>
+                <div class="screenshot-single">
+                    <img src="project picture/Screenshot 2026-08-16 101700.png" alt="User Management">
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== SLIDE 17: ADMIN MANAGEMENT & DRIVER APPROVALS ==================== -->
+        <div class="slide slide-content" id="slide-17">
+            <div class="slide-header">
+                <h2 contenteditable="false">Admin: Co-Admin System & Driver Approvals</h2>
+                <span class="slide-number">17</span>
+            </div>
+            <div class="slide-body">
+                <p class="slide-description" contenteditable="false">Multi-tier admin hierarchy: Main Admin + Co-Admins (Student/Driver). Driver approval workflow with approve/reject/revoke actions.</p>
+                <div class="screenshot-duo">
+                    <div class="screenshot-item">
+                        <img src="project picture/Screenshot 2026-08-16 101839.png" alt="Admin Management">
+                        <div class="caption">Co-Admin Management</div>
+                    </div>
+                    <div class="screenshot-item">
+                        <img src="project picture/Screenshot 2026-08-16 102136.png" alt="Driver Approvals">
+                        <div class="caption">Driver Approval Workflow</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== SLIDE 18: BUS & ROUTE MANAGEMENT ==================== -->
+        <div class="slide slide-content" id="slide-18">
+            <div class="slide-header">
+                <h2 contenteditable="false">Admin: Bus & Route Management</h2>
+                <span class="slide-number">18</span>
+            </div>
+            <div class="slide-body">
+                <p class="slide-description" contenteditable="false">Fleet management with Add/Edit/Delete. Assign drivers and capacity. Route management with ordered stops.</p>
+                <div class="screenshot-duo">
+                    <div class="screenshot-item">
+                        <img src="project picture/Screenshot 2026-08-16 102304.png" alt="Bus Management">
+                        <div class="caption">Bus Management (Fleet)</div>
+                    </div>
+                    <div class="screenshot-item">
+                        <img src="project picture/Screenshot 2026-08-16 103430.png" alt="Routes & Stops">
+                        <div class="caption">Routes & Stops Management</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== SLIDE 19: MAP ROUTE BUILDER ==================== -->
+        <div class="slide slide-content" id="slide-19">
+            <div class="slide-header">
+                <h2 contenteditable="false">Interactive Map-Based Route Builder</h2>
+                <span class="slide-number">19</span>
+            </div>
+            <div class="slide-body">
+                <p class="slide-description" contenteditable="false">Click-to-place GPS coordinates on Leaflet.js + OpenStreetMap. Define start/end points and add intermediate stops with drag-and-drop reordering.</p>
+                <div class="screenshot-single">
+                    <img src="project picture/Screenshot 2026-08-16 103443.png" alt="Map Route Builder">
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== SLIDE 20: SCHEDULE & ANNOUNCEMENTS ==================== -->
+        <div class="slide slide-content" id="slide-20">
+            <div class="slide-header">
+                <h2 contenteditable="false">Admin: Schedule & Announcement Management</h2>
+                <span class="slide-number">20</span>
+            </div>
+            <div class="slide-body">
+                <p class="slide-description" contenteditable="false">Create schedules: assign bus, set multiple departure times, select operating days. Post announcements (Notice/Urgent) with edit/delete.</p>
+                <div class="screenshot-trio">
+                    <div class="screenshot-item">
+                        <img src="project picture/Screenshot 2026-08-16 103643.png" alt="Schedule Management">
+                        <div class="caption">Schedule Management</div>
+                    </div>
+                    <div class="screenshot-item">
+                        <img src="project picture/Screenshot 2026-08-16 103459.png" alt="Add Schedule">
+                        <div class="caption">Add New Schedule</div>
+                    </div>
+                    <div class="screenshot-item">
+                        <img src="project picture/Screenshot 2026-08-16 103851.png" alt="Announcements">
+                        <div class="caption">Announcements</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== SLIDE 21: ANALYTICS ==================== -->
+        <div class="slide slide-content" id="slide-21">
+            <div class="slide-header">
+                <h2 contenteditable="false">Admin: Analytics Dashboard</h2>
+                <span class="slide-number">21</span>
+            </div>
+            <div class="slide-body">
+                <p class="slide-description" contenteditable="false">Interactive Chart.js visualizations — User Role Distribution (donut) & Driver Status Overview (pie). Real-time stat cards for Total Students, Active Drivers, Buses, and Routes.</p>
+                <div class="screenshot-single">
+                    <img src="project picture/Screenshot 2026-08-16 103910.png" alt="Analytics Dashboard">
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== SLIDE 22: TECH STACK ==================== -->
+        <div class="slide slide-content" id="slide-22">
+            <div class="slide-header">
+                <h2 contenteditable="false">Technology Stack & Architecture</h2>
+                <span class="slide-number">22</span>
+            </div>
+            <div class="slide-body" style="justify-content: center;">
+                <div class="tech-grid">
+                    <div class="tech-card">
+                        <span class="tech-icon">🖥️</span>
+                        <div class="tech-name" contenteditable="false">HTML / CSS / JS</div>
+                        <div class="tech-desc">Frontend UI (Vanilla)</div>
+                    </div>
+                    <div class="tech-card">
+                        <span class="tech-icon">🟣</span>
+                        <div class="tech-name" contenteditable="false">ASP.NET Core</div>
+                        <div class="tech-desc">Backend REST API (C# .NET 8)</div>
+                    </div>
+                    <div class="tech-card">
+                        <span class="tech-icon">🔥</span>
+                        <div class="tech-name" contenteditable="false">Firebase Firestore</div>
+                        <div class="tech-desc">Real-Time Chat & GPS Data</div>
+                    </div>
+                    <div class="tech-card">
+                        <span class="tech-icon">🗺️</span>
+                        <div class="tech-name" contenteditable="false">Leaflet.js + OSM</div>
+                        <div class="tech-desc">Interactive Maps</div>
+                    </div>
+                    <div class="tech-card">
+                        <span class="tech-icon">🔑</span>
+                        <div class="tech-name" contenteditable="false">JWT + OTP Auth</div>
+                        <div class="tech-desc">Security & Sessions</div>
+                    </div>
+                    <div class="tech-card">
+                        <span class="tech-icon">📧</span>
+                        <div class="tech-name" contenteditable="false">Brevo API</div>
+                        <div class="tech-desc">Email OTP Verification</div>
+                    </div>
+                    <div class="tech-card">
+                        <span class="tech-icon">📈</span>
+                        <div class="tech-name" contenteditable="false">Chart.js</div>
+                        <div class="tech-desc">Analytics Visualizations</div>
+                    </div>
+                    <div class="tech-card">
+                        <span class="tech-icon">🚀</span>
+                        <div class="tech-name" contenteditable="false">Vercel</div>
+                        <div class="tech-desc">CI/CD Deployment</div>
+                    </div>
+                </div>
+
+                <div class="arch-diagram" style="margin-top: 20px;">
+                    <div class="arch-layer">
+                        <div class="arch-box frontend">
+                            <div class="arch-label">Frontend</div>
+                            <div class="arch-tech">HTML, CSS, Vanilla JS, Leaflet.js</div>
+                        </div>
+                        <div class="arch-box frontend">
+                            <div class="arch-label">Real-Time Layer</div>
+                            <div class="arch-tech">Firebase Firestore SDK</div>
+                        </div>
+                    </div>
+                    <div class="arch-arrow">⬇️ REST API + Firestore Listeners ⬇️</div>
+                    <div class="arch-layer">
+                        <div class="arch-box backend">
+                            <div class="arch-label">ASP.NET Core API</div>
+                            <div class="arch-tech">JWT Auth, Haversine Engine, CRUD</div>
+                        </div>
+                        <div class="arch-box database">
+                            <div class="arch-label">Firebase Firestore</div>
+                            <div class="arch-tech">NoSQL + Brevo SMTP</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== SLIDE 23: KEY DIFFERENTIATORS ==================== -->
+        <div class="slide slide-content" id="slide-23">
+            <div class="slide-header">
+                <h2 contenteditable="false">What Makes SmartBus Different</h2>
+                <span class="slide-number">23</span>
+            </div>
+            <div class="slide-body" style="justify-content: center;">
+                <div class="slide-body-row">
+                    <div class="slide-body-col">
+                        <div class="highlight-box green">
+                            <h4>🧮 Haversine Formula ETA</h4>
+                            <p>Accurate distance & arrival time using GPS lat/lng coordinates — not straight-line guesses</p>
+                        </div>
+                        <div class="highlight-box">
+                            <h4>💬 Bus-Wise Group Chat</h4>
+                            <p>Firebase-powered real-time chat grouped by bus for rider communication</p>
+                        </div>
+                        <div class="highlight-box orange">
+                            <h4>🌐 Bilingual (EN/বাংলা)</h4>
+                            <p>Full interface localization. Driver dashboard entirely bilingual</p>
+                        </div>
+                    </div>
+                    <div class="slide-body-col">
+                        <div class="highlight-box">
+                            <h4>🔔 Push Notifications</h4>
+                            <p>Instant alerts for trip start, delays, and completion. No refresh needed</p>
+                        </div>
+                        <div class="highlight-box green">
+                            <h4>📊 Admin Analytics</h4>
+                            <p>Interactive Chart.js dashboards for data-driven fleet management</p>
+                        </div>
+                        <div class="highlight-box orange">
+                            <h4>📋 Report Workflow</h4>
+                            <p>Categorized reports with admin response & status tracking pipeline</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== SLIDE 24: THANK YOU ==================== -->
+        <div class="slide slide-thankyou" id="slide-24">
+            <h2 contenteditable="false">Thank You!</h2>
+            <p contenteditable="false" style="font-size: 22px;">Smart Campus Bus Tracking System</p>
+            <p style="font-size: 16px; margin-top: 24px; opacity: 0.8;">
+                Software Development Project 400<br>
+                Intake 51 | Section 3<br>
+                Supervised by <strong>Humayra Ahmed</strong>, Assistant Professor
+            </p>
+            <p style="font-size: 14px; margin-top: 20px; opacity: 0.6;">
+                Md Arif Khan &nbsp;•&nbsp; Karnia Binte Rafique &nbsp;•&nbsp; Suraiya Karim &nbsp;•&nbsp; Prosenjit Biswas &nbsp;•&nbsp; Proshanta Saha
+            </p>
+            <p style="font-size: 16px; margin-top: 30px; opacity: 0.7;">
+                Questions & Feedback Welcome 🙌
+            </p>
+        </div>
+
+    </div>
+
+    <!-- Navigation Controls -->
+    <div class="nav-controls" id="navControls">
+        <button class="nav-btn" id="prevBtn" onclick="prevSlide()">◀</button>
+        <span class="slide-counter" id="slideCounter">1 / 24</span>
+        <button class="nav-btn" id="nextBtn" onclick="nextSlide()">▶</button>
+    </div>
+
+    <div class="shortcuts-hint" id="shortcutsHint">
+        <kbd>←</kbd> <kbd>→</kbd> Navigate &nbsp;&nbsp;
+        <kbd>E</kbd> Edit Mode &nbsp;&nbsp;
+        <kbd>Ctrl+P</kbd> Print/PDF
+    </div>
+
+    <script src="js/presentation.js"></script>
+</body>
+</html>
