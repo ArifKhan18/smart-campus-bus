@@ -11,6 +11,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const prevBtn = document.getElementById('prevBtn');
     const nextBtn = document.getElementById('nextBtn');
 
+    // Theme Management
+    const themeSelect = document.getElementById('themeSelect');
+
+    window.changeTheme = function(themeName) {
+        document.body.classList.remove('theme-classic', 'theme-terracotta', 'theme-oceanic');
+        document.body.classList.add(`theme-${themeName}`);
+        localStorage.setItem('selected-theme', themeName);
+        if (themeSelect && themeSelect.value !== themeName) {
+            themeSelect.value = themeName;
+        }
+    };
+
+    // Load saved theme or default to terracotta (Idea 1 style)
+    const savedTheme = localStorage.getItem('selected-theme') || 'terracotta';
+    changeTheme(savedTheme);
+
     function updateSlide() {
         slides.forEach((slide, index) => {
             slide.classList.remove('active', 'prev');

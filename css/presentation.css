@@ -1,7 +1,12 @@
 /* Smart Campus Bus Tracking System - Presentation Stylesheet */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&family=Alexandria:wght@300;400;500;600;700;800;900&family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap');
 
 :root {
+    /* Fonts */
+    --font-heading: 'Outfit', sans-serif;
+    --font-body: 'Inter', sans-serif;
+
+    /* Theme - Classic Navy (Default) */
     --bg-primary: #ffffff;
     --bg-secondary: #f0f4f8;
     --bg-accent: #e8eef6;
@@ -22,6 +27,121 @@
     --radius: 12px;
     --slide-width: 100vw;
     --slide-height: 100vh;
+
+    /* Title Slide defaults (Classic) */
+    --title-bg: #1e3a5f;
+    --title-bg-image: linear-gradient(135deg, #1e3a5f 0%, #2563eb 50%, #3b82f6 100%);
+    --title-text: #ffffff;
+    --title-subtitle: rgba(255,255,255,0.9);
+    --title-info: rgba(255,255,255,0.8);
+    --title-info-strong: #ffffff;
+    --title-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    --badge-bg: rgba(255,255,255,0.15);
+    --badge-border: rgba(255,255,255,0.3);
+    --badge-text: #ffffff;
+
+    /* Highlight box defaults */
+    --hl-blue-bg: #eff6ff;
+    --hl-blue-border: #bfdbfe;
+    --hl-green-bg: #ecfdf5;
+    --hl-green-border: #a7f3d0;
+    --hl-orange-bg: #fffbeb;
+    --hl-orange-border: #fde68a;
+}
+
+/* ==================== THEME OVERRIDES ==================== */
+
+/* Classic Navy Theme (Matches root defaults) */
+body.theme-classic {
+    /* Classic uses :root default variables */
+}
+
+/* Terracotta Cream Theme (Idea 1 Style) */
+body.theme-terracotta {
+    --font-heading: 'DM Sans', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+    
+    --bg-primary: #fffaeb;
+    --bg-secondary: #fbf5e2;
+    --bg-accent: #f5eed3;
+    --text-primary: #2b1511;
+    --text-secondary: #4a332f;
+    --text-muted: #806864;
+    --accent-blue: #a44f30;     /* Terracotta primary accent */
+    --accent-indigo: #ef5241;   /* Warm red secondary accent */
+    --accent-green: #4e8a64;    /* Muted green */
+    --accent-orange: #f37335;   /* Orange marker */
+    --accent-red: #d32f2f;
+    --accent-gradient: linear-gradient(135deg, #a44f30, #f37335);
+    --card-bg: #ffffff;
+    --card-border: #eadec9;
+    --shadow-sm: 0 1px 3px rgba(43,21,17,0.05);
+    --shadow-md: 0 4px 12px rgba(43,21,17,0.08);
+    --shadow-lg: 0 10px 30px rgba(43,21,17,0.1);
+
+    /* Title Slide & Thank You Slide layout */
+    --title-bg: #fffaeb;
+    --title-bg-image: radial-gradient(circle at top right, #fffdf7, #fffaeb);
+    --title-text: #2b1511;
+    --title-subtitle: #4a332f;
+    --title-info: #806864;
+    --title-info-strong: #2b1511;
+    --title-shadow: none;
+    --badge-bg: rgba(164, 79, 48, 0.1);
+    --badge-border: rgba(164, 79, 48, 0.3);
+    --badge-text: #a44f30;
+
+    /* Dynamic Highlights */
+    --hl-blue-bg: #fdf2e9;
+    --hl-blue-border: #fadbc8;
+    --hl-green-bg: #f0f7f4;
+    --hl-green-border: #d8ebd8;
+    --hl-orange-bg: #fdf8eb;
+    --hl-orange-border: #fadba8;
+}
+
+/* Oceanic Teal Theme (Idea 2 Style) */
+body.theme-oceanic {
+    --font-heading: 'Alexandria', sans-serif;
+    --font-body: 'Alexandria', sans-serif;
+    
+    --bg-primary: #fffaf6;
+    --bg-secondary: #fcf4ec;
+    --bg-accent: #f7ebe0;
+    --text-primary: #15110e;
+    --text-secondary: #4a413a;
+    --text-muted: #82756c;
+    --accent-blue: #135669;     /* Deep teal primary accent */
+    --accent-indigo: #285d66;   /* Muted teal secondary accent */
+    --accent-green: #3f9282;    /* Soft teal green */
+    --accent-orange: #5296b8;   /* Slate blue */
+    --accent-red: #c25338;
+    --accent-gradient: linear-gradient(135deg, #135669, #5296b8);
+    --card-bg: #ffffff;
+    --card-border: #e8dfd8;
+    --shadow-sm: 0 1px 3px rgba(21,17,14,0.05);
+    --shadow-md: 0 4px 12px rgba(21,17,14,0.08);
+    --shadow-lg: 0 10px 30px rgba(21,17,14,0.1);
+
+    /* Title Slide & Thank You Slide layout */
+    --title-bg: #fffaf6;
+    --title-bg-image: radial-gradient(circle at top right, #fffff9, #fffaf6);
+    --title-text: #15110e;
+    --title-subtitle: #4a413a;
+    --title-info: #82756c;
+    --title-info-strong: #15110e;
+    --title-shadow: none;
+    --badge-bg: rgba(19, 86, 105, 0.1);
+    --badge-border: rgba(19, 86, 105, 0.3);
+    --badge-text: #135669;
+
+    /* Dynamic Highlights */
+    --hl-blue-bg: #f5f8fa;
+    --hl-blue-border: #d5e2e8;
+    --hl-green-bg: #f2f7f6;
+    --hl-green-border: #d3ebe7;
+    --hl-orange-bg: #faf7f2;
+    --hl-orange-border: #ebe0d3;
 }
 
 * {
@@ -31,7 +151,7 @@
 }
 
 html, body {
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-body), sans-serif;
     background: var(--bg-secondary);
     color: var(--text-primary);
     overflow: hidden;
@@ -80,39 +200,44 @@ html, body {
 
 /* ===== TITLE SLIDE ===== */
 .slide-title {
-    background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 50%, #3b82f6 100%);
-    color: white;
+    background: var(--title-bg) !important;
+    background-image: var(--title-bg-image) !important;
+    color: var(--title-text) !important;
     text-align: center;
+    position: relative;
+    overflow: hidden;
 }
 
 .slide-title .title-badge {
     display: inline-block;
     padding: 8px 24px;
-    background: rgba(255,255,255,0.15);
-    border: 1px solid rgba(255,255,255,0.3);
+    background: var(--badge-bg);
+    border: 1px solid var(--badge-border);
+    color: var(--badge-text);
     border-radius: 50px;
     font-size: 14px;
-    font-weight: 500;
+    font-weight: 600;
     letter-spacing: 1px;
     margin-bottom: 24px;
     backdrop-filter: blur(10px);
 }
 
 .slide-title h1 {
-    font-family: 'Outfit', sans-serif;
+    font-family: var(--font-heading), sans-serif;
     font-size: 52px;
     font-weight: 800;
     line-height: 1.15;
     margin-bottom: 16px;
-    text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    text-shadow: var(--title-shadow);
+    color: var(--title-text) !important;
 }
 
 .slide-title .subtitle {
     font-size: 22px;
     font-weight: 300;
-    opacity: 0.9;
     margin-bottom: 40px;
     max-width: 700px;
+    color: var(--title-subtitle) !important;
 }
 
 .slide-title .team-info {
@@ -120,11 +245,20 @@ html, body {
     flex-direction: column;
     gap: 8px;
     font-size: 15px;
-    opacity: 0.85;
+    color: var(--title-info) !important;
 }
 
 .slide-title .team-info strong {
     font-weight: 600;
+    color: var(--title-info-strong) !important;
+}
+
+.slide-title .team-info .team-members {
+    margin-top: 16px;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+    font-weight: 500;
+    color: var(--title-info-strong);
 }
 
 .slide-title .bus-emoji {
@@ -443,22 +577,56 @@ html, body {
 
 /* ===== THANK YOU SLIDE ===== */
 .slide-thankyou {
-    background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 50%, #3b82f6 100%);
-    color: white;
+    background: var(--title-bg) !important;
+    background-image: var(--title-bg-image) !important;
+    color: var(--title-text) !important;
     text-align: center;
+    position: relative;
+    overflow: hidden;
 }
 
 .slide-thankyou h2 {
-    font-family: 'Outfit', sans-serif;
-    font-size: 56px;
+    font-family: var(--font-heading), sans-serif;
+    font-size: 64px;
     font-weight: 800;
     margin-bottom: 16px;
+    color: var(--title-text) !important;
 }
 
-.slide-thankyou p {
-    font-size: 20px;
-    opacity: 0.85;
-    max-width: 600px;
+.slide-thankyou .thankyou-subtitle {
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--title-subtitle) !important;
+    margin-bottom: 32px;
+}
+
+.slide-thankyou .thankyou-details {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.slide-thankyou .thankyou-project {
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--title-info) !important;
+}
+
+.slide-thankyou .thankyou-project strong {
+    color: var(--title-info-strong) !important;
+}
+
+.slide-thankyou .thankyou-members {
+    font-size: 14px;
+    letter-spacing: 0.5px;
+    color: var(--title-info) !important;
+}
+
+.slide-thankyou .thankyou-footer {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--title-info-strong) !important;
+    margin-top: 24px;
 }
 
 /* ===== NAVIGATION CONTROLS ===== */
@@ -471,12 +639,13 @@ html, body {
     align-items: center;
     gap: 16px;
     z-index: 100;
-    background: rgba(255,255,255,0.95);
+    background: var(--bg-primary);
     padding: 8px 20px;
     border-radius: 50px;
     box-shadow: var(--shadow-lg);
     border: 1px solid var(--card-border);
     backdrop-filter: blur(10px);
+    transition: background-color 0.3s, border-color 0.3s;
 }
 
 .nav-btn {
@@ -549,6 +718,48 @@ html, body {
     align-items: center;
 }
 
+.theme-selector-container {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--bg-primary);
+    padding: 2px 6px;
+    border-radius: 50px;
+    border: 1px solid var(--card-border);
+    box-shadow: var(--shadow-md);
+    backdrop-filter: blur(10px);
+    transition: background-color 0.3s, border-color 0.3s;
+}
+
+.theme-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    padding-left: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    user-select: none;
+}
+
+.theme-select {
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 6px 12px 6px 4px !important;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    cursor: pointer;
+    outline: none;
+    font-family: var(--font-body), sans-serif;
+    transition: color 0.3s;
+}
+
+.theme-select option {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+}
+
 /* Hide action buttons and shortcut hints in presentation mode (fullscreen) */
 :fullscreen .top-actions,
 :-webkit-full-screen .top-actions,
@@ -561,7 +772,7 @@ html, body {
     padding: 8px 18px;
     border-radius: 50px;
     border: 1px solid var(--card-border);
-    background: rgba(255,255,255,0.95);
+    background: var(--bg-primary);
     color: var(--text-primary);
     font-size: 13px;
     font-weight: 600;
@@ -569,7 +780,7 @@ html, body {
     box-shadow: var(--shadow-md);
     backdrop-filter: blur(10px);
     transition: all 0.2s ease;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-body), sans-serif;
     text-decoration: none;
     display: inline-flex;
     align-items: center;
@@ -604,7 +815,7 @@ html, body {
     position: fixed;
     bottom: 80px;
     right: 20px;
-    background: rgba(255,255,255,0.95);
+    background: var(--bg-primary);
     padding: 12px 16px;
     border-radius: var(--radius);
     font-size: 11px;
@@ -614,7 +825,7 @@ html, body {
     z-index: 100;
     line-height: 1.8;
     opacity: 0.7;
-    transition: opacity 0.3s;
+    transition: opacity 0.3s, background-color 0.3s, border-color 0.3s;
 }
 
 .shortcuts-hint:hover {
@@ -626,9 +837,10 @@ html, body {
     padding: 2px 6px;
     background: var(--bg-secondary);
     border-radius: 4px;
-    font-family: 'Fira Code', monospace;
+    font-family: monospace;
     font-size: 10px;
     border: 1px solid var(--card-border);
+    color: var(--text-primary);
 }
 
 /* ===== ARCHITECTURE DIAGRAM ===== */
@@ -691,21 +903,22 @@ html, body {
 
 /* ===== COMPARISON / HIGHLIGHT BOXES ===== */
 .highlight-box {
-    background: #eff6ff;
-    border: 1px solid #bfdbfe;
+    background: var(--hl-blue-bg);
+    border: 1px solid var(--hl-blue-border);
     border-radius: var(--radius);
     padding: 16px;
     width: 100%;
+    transition: background 0.3s, border-color 0.3s;
 }
 
 .highlight-box.green {
-    background: #ecfdf5;
-    border-color: #a7f3d0;
+    background: var(--hl-green-bg);
+    border-color: var(--hl-green-border);
 }
 
 .highlight-box.orange {
-    background: #fffbeb;
-    border-color: #fde68a;
+    background: var(--hl-orange-bg);
+    border-color: var(--hl-orange-border);
 }
 
 .highlight-box h4 {
