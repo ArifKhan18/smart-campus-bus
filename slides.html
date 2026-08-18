@@ -30,7 +30,7 @@
         <div class="slide slide-title active" id="slide-1">
             <span class="title-badge">SOFTWARE DEVELOPMENT PROJECT 400</span>
             <h1 contenteditable="false">Smart Campus Bus<br>Tracking System</h1>
-            <p class="subtitle" contenteditable="false">A real-time GPS-based bus tracking web application for university campus transportation</p>
+            <p class="subtitle" contenteditable="false">A real-time GPS-based bus tracking & campus transit management web application</p>
             <div class="team-info">
                 <span><strong>Supervisor:</strong> Humayra Ahmed, Assistant Professor</span>
                 <span><strong>Intake 51 | Section 3</strong></span>
@@ -44,102 +44,34 @@
             </div>
         </div>
 
-        <!-- ==================== SLIDE 2: AGENDA ==================== -->
+        <!-- ==================== SLIDE 2: PROBLEM & OBJECTIVES ==================== -->
         <div class="slide slide-content" id="slide-2">
             <div class="slide-header">
-                <h2 contenteditable="false">Presentation Agenda</h2>
+                <h2 contenteditable="false">Problem Statement & Project Objectives</h2>
                 <span class="slide-number">02</span>
             </div>
             <div class="slide-body">
-                <p class="slide-description" contenteditable="false">Overview of the key topics covered in this Software Development Project (SDP) presentation:</p>
-                <div class="slide-body-row">
-                    <div class="slide-body-col">
-                        <div class="highlight-box">
-                            <h4>📌 Core Project Context</h4>
-                            <ul class="feature-list">
-                                <li><span class="bullet">01</span> Problem Statement & Context</li>
-                                <li><span class="bullet">02</span> Project Objectives & Goals</li>
-                                <li><span class="bullet">03</span> Proposed Solution & Features</li>
-                                <li><span class="bullet">04</span> Tech Stack & Architecture</li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div class="slide-body-col">
-                        <div class="highlight-box green">
-                            <h4>🚀 Development & Walkthrough</h4>
-                            <ul class="feature-list">
-                                <li><span class="bullet">05</span> Development Methodology</li>
-                                <li><span class="bullet">06</span> Interface Walkthrough & Workflows</li>
-                                <li><span class="bullet">07</span> Project Outcomes & Impact</li>
-                                <li><span class="bullet">08</span> Conclusion & Future Scope</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ==================== SLIDE 3: PROBLEM STATEMENT ==================== -->
-        <div class="slide slide-content" id="slide-3">
-            <div class="slide-header">
-                <h2 contenteditable="false">Problem Statement</h2>
-                <span class="slide-number">03</span>
-            </div>
-            <div class="slide-body">
-                <p class="slide-description" contenteditable="false">Traditional university transport systems suffer from structural inefficiencies that affect students, drivers, and administration.</p>
+                <p class="slide-description" contenteditable="false">Addressing campus transit inefficiencies through an automated, real-time tracking and communication ecosystem.</p>
                 <div class="slide-body-row">
                     <div class="slide-body-col">
                         <div class="highlight-box orange">
-                            <h4>❌ Student Challenges</h4>
+                            <h4>❌ Existing Challenges</h4>
                             <ul class="feature-list">
-                                <li><span class="bullet">1.</span> Blind Waiting: No real-time ETA or bus location details</li>
-                                <li><span class="bullet">2.</span> Schedule Chaos: Paper-based schedules change without notifications</li>
-                                <li><span class="bullet">3.</span> Isolation: No instant passenger-driver communication channel</li>
+                                <li><span class="bullet">1.</span> <strong>Blind Waiting:</strong> No live bus location or arrival ETA at stops</li>
+                                <li><span class="bullet">2.</span> <strong>Unreliable Schedules:</strong> Paper notices with unexpected delays</li>
+                                <li><span class="bullet">3.</span> <strong>Communication Gap:</strong> No passenger-driver coordination channel</li>
+                                <li><span class="bullet">4.</span> <strong>Administrative Blindness:</strong> Zero real-time fleet overview or reports</li>
                             </ul>
                         </div>
                     </div>
-                    <div class="slide-body-col">
-                        <div class="highlight-box">
-                            <h4>❌ Driver & Admin Bottlenecks</h4>
-                            <ul class="feature-list">
-                                <li><span class="bullet">4.</span> Driver Distraction: Managing notifications manually while driving</li>
-                                <li><span class="bullet">5.</span> Zero Visibility: Admins cannot track bus status or route speeds</li>
-                                <li><span class="bullet">6.</span> Report Delay: Student safety/issue complaints take days to process</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ==================== SLIDE 4: OBJECTIVES & GOALS ==================== -->
-        <div class="slide slide-content" id="slide-4">
-            <div class="slide-header">
-                <h2 contenteditable="false">Project Objectives & Goals</h2>
-                <span class="slide-number">04</span>
-            </div>
-            <div class="slide-body">
-                <p class="slide-description" contenteditable="false">Our primary goal is to build an automated, real-time bus tracking and communication system tailored for campus transit.</p>
-                <div class="slide-body-row">
                     <div class="slide-body-col">
                         <div class="highlight-box green">
-                            <h4>🎯 Primary Objectives</h4>
+                            <h4>🎯 Target Objectives & Solutions</h4>
                             <ul class="feature-list">
-                                <li><span class="bullet">✓</span> Develop high-accuracy GPS tracking with 5s updates</li>
-                                <li><span class="bullet">✓</span> Integrate Haversine engine for precise stop-wise distance & ETA</li>
-                                <li><span class="bullet">✓</span> Provide real-time communication grouped by active buses</li>
-                                <li><span class="bullet">✓</span> Establish dynamic administration fleet management</li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div class="slide-body-col">
-                        <div class="highlight-box">
-                            <h4>📈 Key Target Benefits</h4>
-                            <ul class="feature-list">
-                                <li><span class="bullet">⚡</span> Reduce student waiting times at campus stops</li>
-                                <li><span class="bullet">⚡</span> Replace manual notices with automatic push alerts</li>
-                                <li><span class="bullet">⚡</span> Facilitate immediate response to breakdown reports</li>
-                                <li><span class="bullet">⚡</span> Generate fleet analytics to optimize transit scheduling</li>
+                                <li><span class="bullet">✓</span> <strong>Real-Time GPS Tracking:</strong> High-precision location updates every 5s</li>
+                                <li><span class="bullet">✓</span> <strong>Haversine ETA Engine:</strong> Accurate stop-wise distance & arrival times</li>
+                                <li><span class="bullet">✓</span> <strong>Live Community Chat:</strong> Bus-specific instant communication</li>
+                                <li><span class="bullet">✓</span> <strong>Fleet Management Portal:</strong> Interactive route builder & analytics</li>
                             </ul>
                         </div>
                     </div>
@@ -147,51 +79,23 @@
             </div>
         </div>
 
-        <!-- ==================== SLIDE 5: OUR SOLUTION ==================== -->
-        <div class="slide slide-content" id="slide-5">
+        <!-- ==================== SLIDE 3: TECH STACK & ARCHITECTURE ==================== -->
+        <div class="slide slide-content" id="slide-3">
             <div class="slide-header">
-                <h2 contenteditable="false">Proposed Solution — SmartBus</h2>
-                <span class="slide-number">05</span>
-            </div>
-            <div class="slide-body">
-                <p class="slide-description" contenteditable="false">A secure, multi-role web platform linking students, drivers, and admins in a single real-time ecosystem.</p>
-                <div class="slide-body-row">
-                    <div class="slide-body-col">
-                        <div class="highlight-box">
-                            <h4>📱 Student Portal</h4>
-                            <p style="margin-bottom:8px;">Live Leaflet mapping, distance/ETA tracker, bus chatroom, campus notices, admin reporting dashboard.</p>
-                            <h4>👨‍✈️ Driver Dashboard</h4>
-                            <p style="margin-bottom:8px;">Single-tap trip setup, automatic Geolocation tracking broadcaster, instant delay alerts, Bangla UI.</p>
-                            <h4>💼 Admin Control Panel</h4>
-                            <p>Interactive route mapping, bus/driver matching, user blocking, broadcast notice publisher, real-time analytics graphs.</p>
-                        </div>
-                    </div>
-                    <div class="slide-body-col">
-                        <div class="screenshot-single">
-                            <img src="project picture/Screenshot 2026-08-16 110344.png" alt="SmartBus Landing Page">
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ==================== SLIDE 6: TECH STACK ==================== -->
-        <div class="slide slide-content" id="slide-6">
-            <div class="slide-header">
-                <h2 contenteditable="false">Technology Stack & Architecture</h2>
-                <span class="slide-number">06</span>
+                <h2 contenteditable="false">System Architecture & Tech Stack</h2>
+                <span class="slide-number">03</span>
             </div>
             <div class="slide-body" style="justify-content: center;">
                 <div class="tech-grid">
                     <div class="tech-card">
                         <span class="tech-icon">🖥️</span>
-                        <div class="tech-name" contenteditable="false">HTML / CSS / JS</div>
-                        <div class="tech-desc">Vanilla UI (Responsive)</div>
+                        <div class="tech-name" contenteditable="false">HTML5 / CSS3 / JS</div>
+                        <div class="tech-desc">Responsive Vanilla UI</div>
                     </div>
                     <div class="tech-card">
                         <span class="tech-icon">🟣</span>
-                        <div class="tech-name" contenteditable="false">ASP.NET Core</div>
-                        <div class="tech-desc">REST API (C# .NET 8)</div>
+                        <div class="tech-name" contenteditable="false">ASP.NET Core 8</div>
+                        <div class="tech-desc">REST API & JWT Auth</div>
                     </div>
                     <div class="tech-card">
                         <span class="tech-icon">🔥</span>
@@ -205,256 +109,187 @@
                     </div>
                 </div>
 
-                <div class="arch-diagram" style="margin-top: 20px;">
+                <div class="arch-diagram" style="margin-top: 15px;">
                     <div class="arch-layer">
                         <div class="arch-box frontend">
-                            <div class="arch-label">Frontend Layer</div>
-                            <div class="arch-tech">Vanilla JS UI & Leaflet.js</div>
+                            <div class="arch-label">Client Layer</div>
+                            <div class="arch-tech">Vanilla JS, Leaflet.js, Chart.js, HTML5 Geolocation</div>
                         </div>
                         <div class="arch-box database">
-                            <div class="arch-label">Real-Time Sync</div>
-                            <div class="arch-tech">Firebase Web SDK</div>
+                            <div class="arch-label">Real-Time Layer</div>
+                            <div class="arch-tech">Firestore Snapshot Listeners (GPS & Chat)</div>
                         </div>
                     </div>
-                    <div class="arch-arrow">⬇️ REST API Queries & Real-time Sync ⬇️</div>
+                    <div class="arch-arrow">⬇️ REST API Endpoints & Real-Time Data Sync ⬇️</div>
                     <div class="arch-layer">
                         <div class="arch-box backend">
-                            <div class="arch-label">ASP.NET Core Web API</div>
-                            <div class="arch-tech">JWT Auth, Haversine Engine</div>
+                            <div class="arch-label">Backend API Layer (C#)</div>
+                            <div class="arch-tech">ASP.NET Core, JWT Authentication, Haversine Engine</div>
                         </div>
                         <div class="arch-box database">
-                            <div class="arch-label">Data & SMTP services</div>
-                            <div class="arch-tech">Firestore NoSQL & Brevo SMTP</div>
+                            <div class="arch-label">Data & Email Services</div>
+                            <div class="arch-tech">Firestore NoSQL DB & Brevo SMTP OTP Service</div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- ==================== SLIDE 7: DEVELOPMENT METHODOLOGY ==================== -->
-        <div class="slide slide-content" id="slide-7">
+        <!-- ==================== SLIDE 4: DEVELOPMENT METHODOLOGY & WORKFLOW ==================== -->
+        <div class="slide slide-content" id="slide-4">
             <div class="slide-header">
                 <h2 contenteditable="false">Development Methodology & Workflow</h2>
-                <span class="slide-number">07</span>
+                <span class="slide-number">04</span>
             </div>
             <div class="slide-body">
-                <p class="slide-description" contenteditable="false">Our development followed an iterative agile model, focusing on real-time data sync and security at every phase.</p>
+                <p class="slide-description" contenteditable="false">Iterative Agile development process emphasizing high reliability, real-time synchronization, and modularity.</p>
                 <div class="slide-body-row">
                     <div class="slide-body-col">
                         <div class="highlight-box">
-                            <h4>📋 Phase 1: Planning & Database Design</h4>
-                            <p style="font-size:12px; margin-bottom:8px;">Defined User, Bus, Route, and Notice models. Configured Firebase Firestore indexes for quick querying.</p>
-                            <h4>🎨 Phase 2: Responsive Prototyping</h4>
-                            <p style="font-size:12px; margin-bottom:8px;">Built standard dark and light interfaces for mobile, tablet, and desktop screens.</p>
-                            <h4>🔧 Phase 3: REST API & Auth Engine</h4>
-                            <p style="font-size:12px;">Implemented JWT Bearer tokens and safe OTP authentication via Brevo SMTP API.</p>
+                            <h4>📋 Agile Phases (1 — 3)</h4>
+                            <p style="font-size:12px; margin-bottom:8px;"><strong>Phase 1: Architecture & NoSQL Schema:</strong> Designed normalized User, Bus, Route, and Notice models in Firestore with indexed queries.</p>
+                            <p style="font-size:12px; margin-bottom:8px;"><strong>Phase 2: Responsive Prototyping:</strong> Built mobile-first interfaces with full multi-theme support (Classic Navy, Terracotta, Oceanic).</p>
+                            <p style="font-size:12px;"><strong>Phase 3: Secure REST API:</strong> Implemented ASP.NET Core endpoints with Brevo SMTP 6-digit OTP verification and JWT claims.</p>
                         </div>
                     </div>
                     <div class="slide-body-col">
                         <div class="highlight-box green">
-                            <h4>🗺️ Phase 4: GPS Location Broadcast Engine</h4>
-                            <p style="font-size:12px; margin-bottom:8px;">Integrated HTML5 Geolocation API with Leaflet mapping and dynamic coordinate pan.</p>
-                            <h4>💬 Phase 5: Real-time Communication Integration</h4>
-                            <p style="font-size:12px; margin-bottom:8px;">Implemented Firestore snapshots for live bus-wise community group chats.</p>
-                            <h4>🧪 Phase 6: Testing & Cloud Deployment</h4>
-                            <p style="font-size:12px;">Conducted xUnit backend tests and Playwright frontend E2E tests before cloud deployment.</p>
+                            <h4>🚀 Agile Phases (4 — 6)</h4>
+                            <p style="font-size:12px; margin-bottom:8px;"><strong>Phase 4: GPS Tracking & ETA Calculation:</strong> Integrated HTML5 Geolocation API with Leaflet and Haversine distance engine.</p>
+                            <p style="font-size:12px; margin-bottom:8px;"><strong>Phase 5: Real-time Messaging & Broadcast:</strong> Built bus-wise community group chats and urgent notice board.</p>
+                            <p style="font-size:12px;"><strong>Phase 6: Verification & Testing:</strong> Executed xUnit backend unit tests and Playwright E2E integration test suites.</p>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- ==================== SLIDE 8: WALKTHROUGH 1 ==================== -->
-        <div class="slide slide-content" id="slide-8">
+        <!-- ==================== SLIDE 5: WALKTHROUGH: ONBOARDING & AUTHENTICATION ==================== -->
+        <div class="slide slide-content" id="slide-5">
             <div class="slide-header">
-                <h2 contenteditable="false">Walkthrough: Onboarding & Role Selection</h2>
-                <span class="slide-number">08</span>
+                <h2 contenteditable="false">Walkthrough: Onboarding & Multi-Role Authentication</h2>
+                <span class="slide-number">05</span>
             </div>
             <div class="slide-body">
-                <p class="slide-description" contenteditable="false">User Onboarding workflow: Pick your role (Student, Driver, or Admin) to redirect to specific features and access dashboards.</p>
+                <p class="slide-description" contenteditable="false">Role-based access system (Student, Driver, Admin) with secure registration, Brevo SMTP OTP verification, and JWT session handling.</p>
                 <div class="screenshot-duo">
-                    <div class="screenshot-item">
-                        <img src="project picture/Screenshot 2026-08-16 110407.png" alt="Features Guide">
-                        <div class="caption">Onboarding Guide & How It Works</div>
-                    </div>
                     <div class="screenshot-item">
                         <img src="project picture/Screenshot 2026-08-16 110246.png" alt="Role Selection">
                         <div class="caption">Role Selection — Student / Driver / Admin</div>
                     </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ==================== SLIDE 9: WALKTHROUGH 2 ==================== -->
-        <div class="slide slide-content" id="slide-9">
-            <div class="slide-header">
-                <h2 contenteditable="false">Walkthrough: Secure Multi-Role Authentication</h2>
-                <span class="slide-number">09</span>
-            </div>
-            <div class="slide-body">
-                <p class="slide-description" contenteditable="false">Registration triggers a 6-digit verification code via Brevo SMTP API. Access is protected using JWT Bearer authentication tokens.</p>
-                <div class="screenshot-duo">
                     <div class="screenshot-item">
                         <img src="project picture/Screenshot 2026-08-16 110301.png" alt="Student Login">
-                        <div class="caption">Student Login Screen (Dark Theme)</div>
-                    </div>
-                    <div class="screenshot-item">
-                        <img src="project picture/Screenshot 2026-08-16 110319.png" alt="Student Registration">
-                        <div class="caption">Student Registration with Role Badge</div>
+                        <div class="caption">Secure Multi-Role Login Screen</div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- ==================== SLIDE 10: WALKTHROUGH 3 ==================== -->
-        <div class="slide slide-content" id="slide-10">
+        <!-- ==================== SLIDE 6: WALKTHROUGH: REAL-TIME GPS TRACKING & ETA ==================== -->
+        <div class="slide slide-content" id="slide-6">
             <div class="slide-header">
-                <h2 contenteditable="false">Walkthrough: Real-Time GPS Tracking & ETA</h2>
-                <span class="slide-number">10</span>
+                <h2 contenteditable="false">Walkthrough: Real-Time GPS Tracking & Dynamic ETA</h2>
+                <span class="slide-number">06</span>
             </div>
             <div class="slide-body">
-                <p class="slide-description" contenteditable="false">Live Leaflet map pins bus coordinates updated every 5s. Haversine engine processes coordinates to calculate route distance & ETA.</p>
+                <p class="slide-description" contenteditable="false">Live Leaflet map pins bus coordinates updated every 5s. Haversine engine calculates exact stop distances and arrival estimates.</p>
                 <div class="screenshot-single">
                     <img src="project picture/Screenshot 2026-08-16 105418.png" alt="Live Map Tracking">
                 </div>
             </div>
         </div>
 
-        <!-- ==================== SLIDE 11: WALKTHROUGH 4 ==================== -->
-        <div class="slide slide-content" id="slide-11">
+        <!-- ==================== SLIDE 7: WALKTHROUGH: DRIVER CONSOLE & COMMUNITY CHAT ==================== -->
+        <div class="slide slide-content" id="slide-7">
             <div class="slide-header">
-                <h2 contenteditable="false">Walkthrough: Community Chats & Notifications</h2>
-                <span class="slide-number">11</span>
+                <h2 contenteditable="false">Walkthrough: Driver Console & Community Chat</h2>
+                <span class="slide-number">07</span>
             </div>
             <div class="slide-body">
-                <p class="slide-description" contenteditable="false">Real-time bus group chat powered by Firestore listeners. Dynamic notification list alerts students of delay events instantly.</p>
+                <p class="slide-description" contenteditable="false">Driver dashboard with single-tap trip start, delay broadcast, and bilingual UI, paired with real-time bus-wise group chat.</p>
                 <div class="screenshot-duo">
                     <div class="screenshot-item">
+                        <img src="project picture/WhatsApp Image 2026-08-16 at 10.55.43 AM (1).jpeg" alt="Driver Console">
+                        <div class="caption">Driver Trip Controller & Delay Alerts (Mobile)</div>
+                    </div>
+                    <div class="screenshot-item">
                         <img src="project picture/Screenshot 2026-08-16 110042.png" alt="Bus Chat">
-                        <div class="caption">Bus-wise real-time group chat</div>
-                    </div>
-                    <div class="screenshot-item" style="flex: 0 0 320px;">
-                        <img src="project picture/Screenshot 2026-08-16 105153.png" alt="Notifications">
-                        <div class="caption">Instant Delay Notification Alerts</div>
+                        <div class="caption">Bus-Wise Real-Time Passenger Community Chat</div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- ==================== SLIDE 12: WALKTHROUGH 5 ==================== -->
-        <div class="slide slide-content" id="slide-12">
+        <!-- ==================== SLIDE 8: WALKTHROUGH: MAP ROUTE BUILDER & FLEET CRUD ==================== -->
+        <div class="slide slide-content" id="slide-8">
             <div class="slide-header">
-                <h2 contenteditable="false">Walkthrough: Driver Console & Mobile UI</h2>
-                <span class="slide-number">12</span>
+                <h2 contenteditable="false">Walkthrough: Map Route Builder & Fleet Management</h2>
+                <span class="slide-number">08</span>
             </div>
             <div class="slide-body">
-                <p class="slide-description" contenteditable="false">Driver dashboard is mobile-first responsive. Broadcaster sends GPS updates on active trip with DELAY and STOP controllers.</p>
-                <div class="mobile-grid">
-                    <div class="screenshot-item screenshot-mobile">
-                        <img src="project picture/Screenshot 2026-08-16 104822.png" alt="Driver Desktop Ready">
-                        <div class="caption">Desktop Dashboard Console</div>
-                    </div>
-                    <div class="screenshot-item screenshot-mobile">
-                        <img src="project picture/WhatsApp Image 2026-08-16 at 10.55.42 AM.jpeg" alt="Mobile Setup">
-                        <div class="caption">Mobile Ready State</div>
-                    </div>
-                    <div class="screenshot-item screenshot-mobile">
-                        <img src="project picture/WhatsApp Image 2026-08-16 at 10.55.43 AM (1).jpeg" alt="Mobile Active">
-                        <div class="caption">Active Trip Controls (EN)</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ==================== SLIDE 13: WALKTHROUGH 6 ==================== -->
-        <div class="slide slide-content" id="slide-13">
-            <div class="slide-header">
-                <h2 contenteditable="false">Walkthrough: Map Route Builder & Fleet CRUD</h2>
-                <span class="slide-number">13</span>
-            </div>
-            <div class="slide-body">
-                <p class="slide-description" contenteditable="false">Interactive map tool lets admins click to set stops, drag-drop coordinates, and manage bus fleet data records directly.</p>
+                <p class="slide-description" contenteditable="false">Admin map coordinator enables clicking and dragging stop coordinates directly on OSM, alongside complete bus fleet CRUD operations.</p>
                 <div class="screenshot-duo">
                     <div class="screenshot-item">
                         <img src="project picture/Screenshot 2026-08-16 103443.png" alt="Map Route Builder">
-                        <div class="caption">Map Coordinator Route Builder</div>
+                        <div class="caption">Interactive Map Route Coordinator & Stop Editor</div>
                     </div>
                     <div class="screenshot-item">
                         <img src="project picture/Screenshot 2026-08-16 102304.png" alt="Bus Fleet CRUD">
-                        <div class="caption">Bus Fleet Add/Modify CRUD Console</div>
+                        <div class="caption">Bus Fleet Add / Modify / Delete CRUD Console</div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- ==================== SLIDE 14: WALKTHROUGH 7 ==================== -->
-        <div class="slide slide-content" id="slide-14">
+        <!-- ==================== SLIDE 9: WALKTHROUGH: ADMIN ANALYTICS, USERS & SAFETY ==================== -->
+        <div class="slide slide-content" id="slide-9">
             <div class="slide-header">
-                <h2 contenteditable="false">Walkthrough: User Control & Safety Reports</h2>
-                <span class="slide-number">14</span>
+                <h2 contenteditable="false">Walkthrough: Admin Analytics & Safety Management</h2>
+                <span class="slide-number">09</span>
             </div>
             <div class="slide-body">
-                <p class="slide-description" contenteditable="false">Admins manage registered users, promote Co-Admins, and respond to safety/issue report pipelines directly in real-time.</p>
+                <p class="slide-description" contenteditable="false">Admins monitor user statistics with Chart.js, broadcast urgent notices, manage user roles, and resolve student safety reports.</p>
                 <div class="screenshot-duo">
                     <div class="screenshot-item">
-                        <img src="project picture/Screenshot 2026-08-16 101700.png" alt="User list admin">
-                        <div class="caption">Admin User Management Dashboard</div>
+                        <img src="project picture/Screenshot 2026-08-16 103910.png" alt="Analytics Dashboard">
+                        <div class="caption">Chart.js Visual Analytics Dashboard</div>
                     </div>
                     <div class="screenshot-item">
-                        <img src="project picture/Screenshot 2026-08-16 104456.png" alt="Student reporting">
-                        <div class="caption">Student Safety & Bug Reporting UI</div>
+                        <img src="project picture/Screenshot 2026-08-16 104456.png" alt="Safety Reporting">
+                        <div class="caption">Student Safety & Bug Reporting Pipeline</div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- ==================== SLIDE 15: WALKTHROUGH 8 ==================== -->
-        <div class="slide slide-content" id="slide-15">
+        <!-- ==================== SLIDE 10: KEY DIFFERENTIATORS & IMPACT ==================== -->
+        <div class="slide slide-content" id="slide-10">
             <div class="slide-header">
-                <h2 contenteditable="false">Walkthrough: Admin Analytics & Notices</h2>
-                <span class="slide-number">15</span>
+                <h2 contenteditable="false">Key Differentiators & Measurable Impact</h2>
+                <span class="slide-number">10</span>
             </div>
             <div class="slide-body">
-                <p class="slide-description" contenteditable="false">Admins monitor user statistics via dynamic Chart.js donuts and post notice board announcements categorized by urgency level.</p>
-                <div class="screenshot-duo">
-                    <div class="screenshot-item">
-                        <img src="project picture/Screenshot 2026-08-16 103910.png" alt="Chartjs dashboard">
-                        <div class="caption">Chart.js Analytics Overview Dashboard</div>
-                    </div>
-                    <div class="screenshot-item" style="flex: 0 0 350px;">
-                        <img src="project picture/Screenshot 2026-08-16 103851.png" alt="Broadcaster">
-                        <div class="caption">Urgency-based notices broadcaster</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ==================== SLIDE 16: OUTCOMES & IMPACT ==================== -->
-        <div class="slide slide-content" id="slide-16">
-            <div class="slide-header">
-                <h2 contenteditable="false">Project Outcomes & Impact</h2>
-                <span class="slide-number">16</span>
-            </div>
-            <div class="slide-body">
-                <p class="slide-description" contenteditable="false">The automated system replaces guesswork and manual updates, improving campus transport operations.</p>
+                <p class="slide-description" contenteditable="false">SmartBus combines mathematical precision with seamless real-time interaction to deliver a superior campus commute.</p>
                 <div class="slide-body-row">
                     <div class="slide-body-col">
                         <div class="highlight-box green">
-                            <h4>📈 Measurable Outcomes</h4>
+                            <h4>✨ Key Differentiators</h4>
                             <ul class="feature-list">
-                                <li><span class="bullet">✓</span> **Zero Blind Waiting**: Real-time map eliminates stop waiting periods</li>
-                                <li><span class="bullet">✓</span> **Centralized Alerts**: Immediate breakdown notices reduce student confusion</li>
-                                <li><span class="bullet">✓</span> **Enhanced Accountability**: Safety reporting ensures swift driver/admin reply</li>
+                                <li><span class="bullet">🧮</span> <strong>Haversine Formula ETA:</strong> Mathematical calculation based on geographical coordinates</li>
+                                <li><span class="bullet">💬</span> <strong>Bus-Wise Chatrooms:</strong> Real-time Firestore communication per active bus</li>
+                                <li><span class="bullet">🌐</span> <strong>Bilingual Driver UI:</strong> Full English & বাংলা localization</li>
+                                <li><span class="bullet">🗺️</span> <strong>Visual Route Builder:</strong> Click-to-place stops directly on the map</li>
                             </ul>
                         </div>
                     </div>
                     <div class="slide-body-col">
                         <div class="highlight-box">
-                            <h4>🌐 Broader Academic Value</h4>
+                            <h4>📈 Measurable Impact</h4>
                             <ul class="feature-list">
-                                <li><span class="bullet">✓</span> **Bilingual Access**: Full English/Bangla UI for drivers and staff</li>
-                                <li><span class="bullet">✓</span> **Data Optimization**: Admin charts allow route planning based on real data</li>
-                                <li><span class="bullet">✓</span> **Security Integrity**: JWT tokens keep user profiles and reports safe</li>
+                                <li><span class="bullet">⚡</span> <strong>Zero Blind Waiting:</strong> Students track bus locations before heading to stops</li>
+                                <li><span class="bullet">📢</span> <strong>Instant Delay Alerts:</strong> Push notices reduce campus confusion during delays</li>
+                                <li><span class="bullet">🛡️</span> <strong>Enhanced Student Safety:</strong> Direct reporting pipeline with admin response</li>
+                                <li><span class="bullet">📊</span> <strong>Data-Driven Transit:</strong> Analytics help optimize bus schedules and fleet size</li>
                             </ul>
                         </div>
                     </div>
@@ -462,70 +297,88 @@
             </div>
         </div>
 
-        <!-- ==================== SLIDE 17: DIFFERENTIATORS ==================== -->
-        <div class="slide slide-content" id="slide-17">
+        <!-- ==================== SLIDE 11: BUSINESS MODEL & MONETIZATION ==================== -->
+        <div class="slide slide-content" id="slide-11">
             <div class="slide-header">
-                <h2 contenteditable="false">What Makes SmartBus Different</h2>
-                <span class="slide-number">17</span>
+                <h2 contenteditable="false">Business Model & Monetization Strategy</h2>
+                <span class="slide-number">11</span>
             </div>
-            <div class="slide-body" style="justify-content: center;">
-                <div class="slide-body-row">
-                    <div class="slide-body-col">
-                        <div class="highlight-box green">
-                            <h4>🧮 Haversine Formula ETA</h4>
-                            <p>Calculates geographical distance and arrival times using GPS coordinates — not straight-line guesses.</p>
-                        </div>
-                        <div class="highlight-box">
-                            <h4>💬 Bus-Wise Group Chat</h4>
-                            <p>Firebase-powered real-time chat grouped by active bus for immediate passenger communications.</p>
-                        </div>
+            <div class="slide-body">
+                <p class="slide-description" contenteditable="false">A scalable B2B SaaS and zero-hardware transit management model designed for educational institutions and corporate fleets.</p>
+                <div class="slide-body-row" style="grid-template-columns: repeat(4, 1fr); gap: 15px;">
+                    
+                    <div class="highlight-box" style="padding: 14px;">
+                        <h4 style="font-size: 14px; margin-bottom: 8px;">🎯 Target Market</h4>
+                        <ul class="feature-list" style="font-size: 11.5px; line-height: 1.5;">
+                            <li><span class="bullet">🏫</span> <strong>Private & Public Varsities:</strong> BUBT, NSU, BRACU, etc.</li>
+                            <li><span class="bullet">🎒</span> <strong>Schools & Colleges:</strong> Student safety tracking</li>
+                            <li><span class="bullet">🏢</span> <strong>Corporate Shuttles:</strong> Employee transport fleets</li>
+                        </ul>
                     </div>
-                    <div class="slide-body-col">
-                        <div class="highlight-box">
-                            <h4>🌐 Full Bilingual UI</h4>
-                            <p>Complete interface localization. Driver trip console works in both English & বাংলা.</p>
-                        </div>
-                        <div class="highlight-box green">
-                            <h4>📊 Fleet Analytics & Builder</h4>
-                            <p>Dynamic Leaflet map coordinates builder combined with Chart.js analytics for administrative control.</p>
-                        </div>
+
+                    <div class="highlight-box green" style="padding: 14px;">
+                        <h4 style="font-size: 14px; margin-bottom: 8px;">💎 Value Proposition</h4>
+                        <ul class="feature-list" style="font-size: 11.5px; line-height: 1.5;">
+                            <li><span class="bullet">📱</span> <strong>Zero Hardware Cost:</strong> Runs on driver smartphones</li>
+                            <li><span class="bullet">⏱️</span> <strong>Zero Blind Waiting:</strong> Real-time GPS & Haversine ETA</li>
+                            <li><span class="bullet">⛽</span> <strong>Cost Reduction:</strong> 20-30% fuel & schedule optimization</li>
+                        </ul>
                     </div>
+
+                    <div class="highlight-box orange" style="padding: 14px;">
+                        <h4 style="font-size: 14px; margin-bottom: 8px;">💰 Revenue Streams</h4>
+                        <ul class="feature-list" style="font-size: 11.5px; line-height: 1.5;">
+                            <li><span class="bullet">🔄</span> <strong>B2B SaaS Model:</strong> $15 - $25/bus/month subscription</li>
+                            <li><span class="bullet">🏷️</span> <strong>White-Label Solution:</strong> Custom university branding</li>
+                            <li><span class="bullet">📢</span> <strong>Hyperlocal Ads:</strong> Campus food court/bookshop promos</li>
+                        </ul>
+                    </div>
+
+                    <div class="highlight-box" style="padding: 14px;">
+                        <h4 style="font-size: 14px; margin-bottom: 8px;">🚀 Scalability & Edge</h4>
+                        <ul class="feature-list" style="font-size: 11.5px; line-height: 1.5;">
+                            <li><span class="bullet">⚡</span> <strong>Rapid Onboarding:</strong> Deploy fleet in < 10 mins</li>
+                            <li><span class="bullet">🗺️</span> <strong>Zero Map API Fees:</strong> Free Leaflet & OpenStreetMap</li>
+                            <li><span class="bullet">📊</span> <strong>Transit Analytics:</strong> Schedule & demand optimization</li>
+                        </ul>
+                    </div>
+
                 </div>
             </div>
         </div>
 
-        <!-- ==================== SLIDE 18: CONCLUSION ==================== -->
-        <div class="slide slide-content" id="slide-18">
+        <!-- ==================== SLIDE 12: CONCLUSION & FUTURE SCOPE ==================== -->
+        <div class="slide slide-content" id="slide-12">
             <div class="slide-header">
-                <h2 contenteditable="false">Conclusion & Future Scope</h2>
-                <span class="slide-number">18</span>
+                <h2 contenteditable="false">Conclusion & Future Roadmap</h2>
+                <span class="slide-number">12</span>
             </div>
             <div class="slide-body">
-                <p class="slide-description" contenteditable="false">SmartBus bridges the gap between campus transport and real-time connectivity, making commutes safer and more predictable.</p>
+                <p class="slide-description" contenteditable="false">A complete, tested, and reliable university transit solution with clear paths for future expansion.</p>
                 <div class="slide-body-row">
                     <div class="slide-body-col">
                         <div class="highlight-box">
-                            <h4>🏁 Summary Conclusion</h4>
-                            <p style="font-size:12px; line-height:1.6; margin-bottom:8px;">- Successfully developed a robust real-time tracking application for campus fleet transit.</p>
-                            <p style="font-size:12px; line-height:1.6; margin-bottom:8px;">- Successfully integrated NoSQL Firestore and C# REST services for multi-role security and data synchronization.</p>
-                            <p style="font-size:12px; line-height:1.6;">- Validated features through rigorous xUnit unit tests and Playwright E2E testing pipelines.</p>
+                            <h4>🏁 Project Summary</h4>
+                            <p style="font-size:12px; line-height:1.6; margin-bottom:8px;">- Successfully developed and integrated a real-time GPS transit platform for university campuses.</p>
+                            <p style="font-size:12px; line-height:1.6; margin-bottom:8px;">- Integrated ASP.NET Core REST API, Firestore real-time sync, and Brevo OTP authentication.</p>
+                            <p style="font-size:12px; line-height:1.6;">- Validated through comprehensive xUnit backend testing and Playwright E2E browser automation.</p>
                         </div>
                     </div>
                     <div class="slide-body-col">
                         <div class="highlight-box green">
                             <h4>🔮 Future Roadmap</h4>
-                            <p style="font-size:12px; line-height:1.6; margin-bottom:8px;">- **Passenger Load Estimation**: Track density inside buses using sensor triggers.</p>
-                            <p style="font-size:12px; line-height:1.6; margin-bottom:8px;">- **Speed Alert System**: Automatically notify admins of driver overspeeding events.</p>
-                            <p style="font-size:12px; line-height:1.6; margin-bottom:8px;">- **Offline SMS Fallback**: Request bus details and notices via SMS queries.</p>
-                            <p style="font-size:12px; line-height:1.6;">- **Ticket Billing Engine**: Integrated bus ticketing payment portal for off-campus trips.</p>
+                            <p style="font-size:12px; line-height:1.6; margin-bottom:8px;">- <strong>IoT Passenger Crowding Sensor:</strong> Real-time bus seat occupancy tracking.</p>
+                            <p style="font-size:12px; line-height:1.6; margin-bottom:8px;">- <strong>Automated Speed Alerts:</strong> Instant notifications for bus overspeeding events.</p>
+                            <p style="font-size:12px; line-height:1.6; margin-bottom:8px;">- <strong>Offline SMS Fallback:</strong> Check bus timings and alerts via standard SMS queries.</p>
+                            <p style="font-size:12px; line-height:1.6;">- <strong>Digital Ticketing Engine:</strong> Integrated payment gateway for special inter-campus routes.</p>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- ==================== SLIDE 19: THANK YOU ==================== -->
-        <div class="slide slide-thankyou" id="slide-19">
+        <!-- ==================== SLIDE 13: THANK YOU ==================== -->
+        <div class="slide slide-thankyou" id="slide-13" style="padding-bottom: 80px;">
             <h2 contenteditable="false">Thank You!</h2>
             <p class="thankyou-subtitle" contenteditable="false">Smart Campus Bus Tracking System</p>
             <div class="thankyou-details">
@@ -548,7 +401,7 @@
     <!-- Navigation Controls -->
     <div class="nav-controls" id="navControls">
         <button class="nav-btn" id="prevBtn" onclick="prevSlide()">◀</button>
-        <span class="slide-counter" id="slideCounter">1 / 19</span>
+        <span class="slide-counter" id="slideCounter">1 / 13</span>
         <button class="nav-btn" id="nextBtn" onclick="nextSlide()">▶</button>
     </div>
 

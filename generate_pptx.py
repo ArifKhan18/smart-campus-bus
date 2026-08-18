@@ -5,30 +5,43 @@ from pptx.enum.text import PP_ALIGN
 from pptx.dml.color import RGBColor
 from pptx.enum.shapes import MSO_SHAPE
 
-# Core Color Palette (matching HTML CSS)
-DARK_BLUE = RGBColor(26, 54, 93)      # #1a365d (deep navy blue for Title/Thank You)
-BLUE = RGBColor(37, 99, 235)          # #2563eb (accent blue)
-WHITE = RGBColor(255, 255, 255)       # #ffffff
-DARK_TEXT = RGBColor(26, 32, 44)      # #1a202c
-GRAY_TEXT = RGBColor(74, 85, 104)     # #4a5568
-LIGHT_GRAY = RGBColor(240, 244, 248)  # #f0f4f8 (slide background / card labels)
-BORDER_GRAY = RGBColor(226, 232, 240) # #e2e8f0
+# 16:9 Widescreen Presentation Colors (Exact match to HTML Classic & Dynamic palettes)
+DARK_BLUE = RGBColor(26, 54, 93)        # #1a365d (deep navy blue for Title/Thank You)
+BLUE = RGBColor(37, 99, 235)            # #2563eb (accent primary blue)
+LIGHT_BLUE_BG = RGBColor(239, 246, 255) # #eff6ff
+BLUE_BORDER = RGBColor(191, 219, 254)   # #bfdbfe
 
-# Highlight Colors
-GREEN = RGBColor(16, 185, 129)        # #10b981
-ORANGE = RGBColor(245, 158, 11)       # #f59e0b
+WHITE = RGBColor(255, 255, 255)         # #ffffff
+DARK_TEXT = RGBColor(26, 32, 44)        # #1a202c (primary dark text)
+GRAY_TEXT = RGBColor(74, 85, 104)       # #4a5568 (secondary body text)
+LIGHT_GRAY = RGBColor(240, 244, 248)    # #f0f4f8 (slide background / card label strips)
+BORDER_GRAY = RGBColor(226, 232, 240)   # #e2e8f0 (subtle card borders)
+
+# Highlight Palettes
+GREEN_BG = RGBColor(236, 253, 245)      # #ecfdf5
+GREEN_BORDER = RGBColor(167, 243, 208)  # #a7f3d0
+GREEN_TEXT = RGBColor(6, 95, 70)        # #065f46
+GREEN_ACCENT = RGBColor(16, 185, 129)   # #10b981
+
+ORANGE_BG = RGBColor(255, 251, 235)     # #fffbeb
+ORANGE_BORDER = RGBColor(253, 230, 138) # #fde68a
+ORANGE_TEXT = RGBColor(146, 64, 14)     # #92400e
+ORANGE_ACCENT = RGBColor(245, 158, 11)  # #f59e0b
+
+PURPLE_BG = RGBColor(245, 243, 255)     # #f5f3ff
+PURPLE_BORDER = RGBColor(221, 214, 254) # #ddd6fe
 
 IMG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'project picture')
 
 def add_dark_bg(slide):
-    """Add solid deep navy background (like HTML title/thank you slides)"""
+    """Add solid deep navy background for Title & Thank You slides"""
     bg = slide.background
     fill = bg.fill
     fill.solid()
     fill.fore_color.rgb = DARK_BLUE
 
 def add_light_bg(slide):
-    """Add light gray background (matching HTML secondary background)"""
+    """Add light gray background matching HTML secondary body background"""
     bg = slide.background
     fill = bg.fill
     fill.solid()
@@ -41,79 +54,110 @@ def add_content_card(slide, left, top, width, height, bg_color=WHITE, border_col
     card.fill.fore_color.rgb = bg_color
     card.line.color.rgb = border_color
     card.line.width = Pt(1)
-    card.adjustments[0] = 0.04  # Sleek, soft rounded corners (matching border-radius: 12px)
+    card.adjustments[0] = 0.03
     return card
 
 def add_title_bar(slide, title_text, icon="", slide_num=""):
-    """Add consistent clean top header bar matching slides.html"""
-    # Title textbox
-    title_box = slide.shapes.add_textbox(Inches(0.5), Inches(0.3), Inches(8.5), Inches(0.6))
+    """Add consistent top header bar matching slides.html in 16:9 widescreen"""
+    title_box = slide.shapes.add_textbox(Inches(0.8), Inches(0.35), Inches(10.5), Inches(0.6))
     tf = title_box.text_frame
     tf.word_wrap = True
     tf.margin_left = tf.margin_right = tf.margin_top = tf.margin_bottom = Inches(0)
     p = tf.paragraphs[0]
     run = p.add_run()
     run.text = title_text
-    run.font.size = Pt(26)
+    run.font.size = Pt(24)
     run.font.bold = True
     run.font.color.rgb = DARK_TEXT
     run.font.name = "Outfit"
 
-    # Bottom border line
-    line = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(0.5), Inches(0.95), Inches(9), Emu(36000))
+    # Blue header accent underline
+    line = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(0.8), Inches(0.98), Inches(11.733), Emu(30000))
     line.fill.solid()
     line.fill.fore_color.rgb = BLUE
     line.line.fill.background()
 
-    # Slide number
+    # Slide number badge
     if slide_num:
-        num_box = slide.shapes.add_textbox(Inches(8.8), Inches(0.4), Inches(0.8), Inches(0.4))
+        num_box = slide.shapes.add_textbox(Inches(11.3), Inches(0.38), Inches(1.233), Inches(0.5))
         tf2 = num_box.text_frame
         tf2.margin_left = tf2.margin_right = tf2.margin_top = tf2.margin_bottom = Inches(0)
         p2 = tf2.paragraphs[0]
         p2.alignment = PP_ALIGN.RIGHT
         run2 = p2.add_run()
         run2.text = slide_num
-        run2.font.size = Pt(12)
+        run2.font.size = Pt(16)
+        run2.font.bold = True
         run2.font.color.rgb = GRAY_TEXT
         run2.font.name = "Inter"
 
-def add_description(slide, text, top=Inches(1.1)):
-    """Add description text below header"""
-    desc_box = slide.shapes.add_textbox(Inches(0.5), top, Inches(9), Inches(0.5))
+def add_description(slide, text, top=Inches(1.15)):
+    """Add description subtitle text below header"""
+    desc_box = slide.shapes.add_textbox(Inches(0.8), top, Inches(11.733), Inches(0.45))
     tf = desc_box.text_frame
     tf.word_wrap = True
     tf.margin_left = tf.margin_right = tf.margin_top = tf.margin_bottom = Inches(0)
     p = tf.paragraphs[0]
     run = p.add_run()
     run.text = text
-    run.font.size = Pt(13)
+    run.font.size = Pt(12)
     run.font.color.rgb = GRAY_TEXT
     run.font.name = "Inter"
 
-def add_bullet_points(slide, points, left, top, width, height, font_size=12, color=GRAY_TEXT, use_checkmark=True):
-    """Add styled bullet points with custom symbols"""
+def add_rich_bullet_points(slide, points, left, top, width, height, font_size=11, bullet_type="check"):
+    """Add styled bullet points with bold titles matching HTML feature lists"""
     box = slide.shapes.add_textbox(left, top, width, height)
     tf = box.text_frame
     tf.word_wrap = True
     tf.margin_left = tf.margin_right = tf.margin_top = tf.margin_bottom = Inches(0)
-    for i, point in enumerate(points):
+    
+    for i, item in enumerate(points):
         p = tf.paragraphs[0] if i == 0 else tf.add_paragraph()
-        p.space_after = Pt(6)
+        p.space_after = Pt(10)
         
-        if use_checkmark:
-            run_bullet = p.add_run()
-            run_bullet.text = "✓  "
-            run_bullet.font.bold = True
-            run_bullet.font.color.rgb = GREEN
-            run_bullet.font.size = Pt(font_size)
-            run_bullet.font.name = "Inter"
+        # Add Bullet
+        bullet_run = p.add_run()
+        if bullet_type == "check":
+            bullet_run.text = "✓  "
+            bullet_run.font.bold = True
+            bullet_run.font.color.rgb = GREEN_ACCENT
+        elif bullet_type == "num":
+            bullet_run.text = f"{i+1}.  "
+            bullet_run.font.bold = True
+            bullet_run.font.color.rgb = ORANGE_ACCENT
+        elif bullet_type == "star":
+            bullet_run.text = "•  "
+            bullet_run.font.bold = True
+            bullet_run.font.color.rgb = BLUE
+        elif bullet_type == "icon":
+            bullet_run.text = f"{item[0]}  "
+        
+        bullet_run.font.size = Pt(font_size)
+        bullet_run.font.name = "Inter"
+
+        # Content Text (can be tuple: (bold_prefix, normal_desc) or just string)
+        if isinstance(item, tuple):
+            prefix = item[1] if bullet_type == "icon" else item[0]
+            desc = item[2] if bullet_type == "icon" else item[1]
             
-        run = p.add_run()
-        run.text = point
-        run.font.size = Pt(font_size)
-        run.font.color.rgb = color
-        run.font.name = "Inter"
+            run_bold = p.add_run()
+            run_bold.text = prefix + " "
+            run_bold.font.bold = True
+            run_bold.font.size = Pt(font_size)
+            run_bold.font.color.rgb = DARK_TEXT
+            run_bold.font.name = "Inter"
+            
+            run_desc = p.add_run()
+            run_desc.text = desc
+            run_desc.font.size = Pt(font_size)
+            run_desc.font.color.rgb = GRAY_TEXT
+            run_desc.font.name = "Inter"
+        else:
+            run_desc = p.add_run()
+            run_desc.text = item
+            run_desc.font.size = Pt(font_size)
+            run_desc.font.color.rgb = GRAY_TEXT
+            run_desc.font.name = "Inter"
 
 def add_image_safe(slide, img_name, left, top, width=None, height=None):
     """Add image with standard thin border"""
@@ -123,8 +167,6 @@ def add_image_safe(slide, img_name, left, top, width=None, height=None):
         if width: kwargs['width'] = width
         if height: kwargs['height'] = height
         pic = slide.shapes.add_picture(**kwargs)
-        
-        # Add thin elegant border around screenshots (like HTML cards)
         pic.line.color.rgb = BORDER_GRAY
         pic.line.width = Pt(1)
         return True
@@ -132,26 +174,25 @@ def add_image_safe(slide, img_name, left, top, width=None, height=None):
         print(f"[WARN] Image not found: {img_name}")
         return False
 
-def add_screenshot_card(slide, img_name, caption, left, top, width, height, caption_height=Inches(0.5)):
-    """Add screenshot card with title/image at top and gray label strip at bottom (matching HTML)"""
-    # Card background
+def add_screenshot_card(slide, img_name, caption, left, top, width, height, caption_height=Inches(0.42)):
+    """Add screenshot card with image at top and label strip at bottom matching HTML"""
+    # Outer card
     add_content_card(slide, left, top, width, height + caption_height)
     
-    # Image
-    img_top = top + Inches(0.1)
-    img_left = left + Inches(0.1)
-    img_width = width - Inches(0.2)
-    img_height = height - Inches(0.1)
+    # Inner image
+    img_top = top + Inches(0.08)
+    img_left = left + Inches(0.08)
+    img_width = width - Inches(0.16)
+    img_height = height - Inches(0.12)
     add_image_safe(slide, img_name, img_left, img_top, width=img_width, height=img_height)
     
-    # Caption container background band at the bottom
+    # Caption strip
     cap_bg = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, left, top + height, width, caption_height)
     cap_bg.fill.solid()
     cap_bg.fill.fore_color.rgb = LIGHT_GRAY
     cap_bg.line.fill.background()
     
-    # Caption text
-    cap_box = slide.shapes.add_textbox(left, top + height + Inches(0.08), width, caption_height - Inches(0.1))
+    cap_box = slide.shapes.add_textbox(left, top + height + Inches(0.06), width, caption_height - Inches(0.08))
     tf = cap_box.text_frame
     tf.word_wrap = True
     tf.margin_left = tf.margin_right = tf.margin_top = tf.margin_bottom = Inches(0)
@@ -166,14 +207,16 @@ def add_screenshot_card(slide, img_name, caption, left, top, width, height, capt
 
 def create_presentation():
     prs = Presentation()
-    prs.slide_width = Inches(10)
+    # 16:9 Widescreen dimensions
+    prs.slide_width = Inches(13.333)
     prs.slide_height = Inches(7.5)
 
-    # ===== SLIDE 1: TITLE =====
+    # ==================== SLIDE 1: TITLE ====================
     slide = prs.slides.add_slide(prs.slide_layouts[6])
     add_dark_bg(slide)
 
-    badge_box = slide.shapes.add_textbox(Inches(2), Inches(1.4), Inches(6), Inches(0.4))
+    # Badge
+    badge_box = slide.shapes.add_textbox(Inches(3.666), Inches(1.1), Inches(6.0), Inches(0.4))
     tf = badge_box.text_frame
     p = tf.paragraphs[0]
     p.alignment = PP_ALIGN.CENTER
@@ -184,396 +227,472 @@ def create_presentation():
     run.font.name = "Inter"
     run.font.bold = True
 
-    title_box = slide.shapes.add_textbox(Inches(1), Inches(2.0), Inches(8), Inches(1.5))
+    # Main Title
+    title_box = slide.shapes.add_textbox(Inches(1.5), Inches(1.7), Inches(10.333), Inches(1.6))
     tf = title_box.text_frame
     tf.word_wrap = True
     p = tf.paragraphs[0]
     p.alignment = PP_ALIGN.CENTER
     run = p.add_run()
     run.text = "Smart Campus Bus\nTracking System"
-    run.font.size = Pt(42)
+    run.font.size = Pt(44)
     run.font.bold = True
     run.font.color.rgb = WHITE
     run.font.name = "Outfit"
 
-    sub_box = slide.shapes.add_textbox(Inches(1.5), Inches(3.7), Inches(7), Inches(0.8))
+    # Subtitle
+    sub_box = slide.shapes.add_textbox(Inches(1.5), Inches(3.6), Inches(10.333), Inches(0.6))
     tf = sub_box.text_frame
     tf.word_wrap = True
     p = tf.paragraphs[0]
     p.alignment = PP_ALIGN.CENTER
     run = p.add_run()
-    run.text = "A real-time GPS-based bus tracking web application\nfor university campus transportation"
-    run.font.size = Pt(16)
+    run.text = "A real-time GPS-based bus tracking & campus transit management web application"
+    run.font.size = Pt(15)
     run.font.color.rgb = RGBColor(200, 220, 255)
     run.font.name = "Inter"
 
-    info_items = [
-        "Supervisor: Humayra Ahmed, Assistant Professor",
-        "Intake 51 | Section 3",
-        "",
-        "Md Arif Khan  |  Karnia Binte Rafique  |  Suraiya Karim",
-        "Prosenjit Biswas  |  Proshanta Saha"
-    ]
-    info_box = slide.shapes.add_textbox(Inches(1.5), Inches(4.8), Inches(7), Inches(2.5))
+    # Team & Supervisor Card
+    info_box = slide.shapes.add_textbox(Inches(1.5), Inches(4.5), Inches(10.333), Inches(2.2))
     tf = info_box.text_frame
     tf.word_wrap = True
-    for i, item in enumerate(info_items):
-        p = tf.paragraphs[0] if i == 0 else tf.add_paragraph()
-        p.alignment = PP_ALIGN.CENTER
-        p.space_after = Pt(3)
-        run = p.add_run()
-        run.text = item
-        run.font.size = Pt(13)
-        run.font.color.rgb = RGBColor(180, 200, 230)
-        run.font.name = "Inter"
-        if i == 0:
-            run.font.bold = True
 
-    # ===== SLIDE 2: PROBLEM & SOLUTION =====
+    p1 = tf.paragraphs[0]
+    p1.alignment = PP_ALIGN.CENTER
+    p1.space_after = Pt(4)
+    r1 = p1.add_run()
+    r1.text = "Supervisor: "
+    r1.font.bold = True
+    r1.font.size = Pt(14)
+    r1.font.color.rgb = WHITE
+    r2 = p1.add_run()
+    r2.text = "Humayra Ahmed, Assistant Professor"
+    r2.font.size = Pt(14)
+    r2.font.color.rgb = RGBColor(220, 235, 255)
+
+    p2 = tf.add_paragraph()
+    p2.alignment = PP_ALIGN.CENTER
+    p2.space_after = Pt(8)
+    r3 = p2.add_run()
+    r3.text = "Intake 51 | Section 3"
+    r3.font.bold = True
+    r3.font.size = Pt(13)
+    r3.font.color.rgb = RGBColor(190, 215, 250)
+
+    p3 = tf.add_paragraph()
+    p3.alignment = PP_ALIGN.CENTER
+    r4 = p3.add_run()
+    r4.text = "Md Arif Khan  •  Karnia Binte Rafique  •  Suraiya Karim  •  Prosenjit Biswas  •  Proshanta Saha"
+    r4.font.size = Pt(13)
+    r4.font.color.rgb = RGBColor(220, 235, 255)
+
+    # ==================== SLIDE 2: PROBLEM & OBJECTIVES ====================
     slide = prs.slides.add_slide(prs.slide_layouts[6])
     add_light_bg(slide)
-    add_title_bar(slide, "Problem Statement & Our Solution", "", "02")
+    add_title_bar(slide, "Problem Statement & Project Objectives", "", "02")
+    add_description(slide, "Addressing campus transit inefficiencies through an automated, real-time tracking and communication ecosystem.")
 
-    # Problem box card
-    add_content_card(slide, Inches(0.5), Inches(1.3), Inches(4.3), Inches(2.6), bg_color=RGBColor(255, 251, 235), border_color=RGBColor(253, 230, 138))
-    ptitle = slide.shapes.add_textbox(Inches(0.7), Inches(1.4), Inches(3.9), Inches(0.4))
-    run = ptitle.text_frame.paragraphs[0].add_run()
-    run.text = "The Problem"
-    run.font.size = Pt(15)
-    run.font.bold = True
-    run.font.color.rgb = DARK_TEXT
-    run.font.name = "Outfit"
+    # Left: Problems
+    add_content_card(slide, Inches(0.8), Inches(1.7), Inches(5.666), Inches(5.2), bg_color=ORANGE_BG, border_color=ORANGE_BORDER)
+    ttl = slide.shapes.add_textbox(Inches(1.1), Inches(1.9), Inches(5.0), Inches(0.4))
+    r = ttl.text_frame.paragraphs[0].add_run()
+    r.text = "❌ Existing Challenges"
+    r.font.size = Pt(17)
+    r.font.bold = True
+    r.font.color.rgb = ORANGE_TEXT
 
-    add_bullet_points(slide, [
-        "Students have no idea where the campus bus is",
-        "No real-time location tracking or ETA info",
-        "No centralized schedule or route system",
-        "No communication channel between riders",
-        "Admin has zero fleet visibility or analytics"
-    ], Inches(0.7), Inches(1.85), Inches(3.9), Inches(1.9), font_size=11, color=GRAY_TEXT, use_checkmark=False)
-
-    # Solution box card
-    add_content_card(slide, Inches(0.5), Inches(4.1), Inches(4.3), Inches(3.0), bg_color=RGBColor(236, 253, 245), border_color=RGBColor(167, 243, 208))
-    stitle = slide.shapes.add_textbox(Inches(0.7), Inches(4.2), Inches(3.9), Inches(0.4))
-    run = stitle.text_frame.paragraphs[0].add_run()
-    run.text = "Our Solution — SmartBus"
-    run.font.size = Pt(15)
-    run.font.bold = True
-    run.font.color.rgb = DARK_TEXT
-    run.font.name = "Outfit"
-
-    add_bullet_points(slide, [
-        "Live GPS tracking with interactive map & ETA",
-        "Haversine formula for distance calculation",
-        "3 roles: Student, Driver, Admin",
-        "Bus-wise group chat (Firebase Firestore)",
-        "Full admin dashboard with analytics",
-        "Bilingual support (English & বাংলা)",
-        "Push notifications for trip events"
-    ], Inches(0.7), Inches(4.65), Inches(3.9), Inches(2.3), font_size=11, color=GRAY_TEXT, use_checkmark=True)
-
-    add_image_safe(slide, "Screenshot 2026-08-16 110344.png", Inches(5.1), Inches(1.3), width=Inches(4.4))
-
-    # ===== SLIDE 3: LANDING PAGE =====
-    slide = prs.slides.add_slide(prs.slide_layouts[6])
-    add_light_bg(slide)
-    add_title_bar(slide, "Landing Page & Role Selection", "", "03")
-    add_screenshot_card(slide, "Screenshot 2026-08-16 110407.png", "Feature Highlights & How It Works", Inches(0.5), Inches(1.3), Inches(4.3), Inches(5.0))
-    add_screenshot_card(slide, "Screenshot 2026-08-16 110246.png", "Role Selection — Student / Driver / Admin", Inches(5.2), Inches(1.3), Inches(4.3), Inches(5.0))
-
-    # ===== SLIDE 4: ONBOARDING =====
-    slide = prs.slides.add_slide(prs.slide_layouts[6])
-    add_light_bg(slide)
-    add_title_bar(slide, "Onboarding & Multi-Role Access", "", "04")
-    add_description(slide, "Three-step onboarding: Pick your role > Sign up > Start moving. Custom features for each user type.")
-    add_screenshot_card(slide, "Screenshot 2026-08-16 110420.png", "Onboarding & Role System Guide", Inches(0.5), Inches(1.7), Inches(9.0), Inches(4.8))
-
-    # ===== SLIDE 5: STUDENT LOGIN & REGISTRATION =====
-    slide = prs.slides.add_slide(prs.slide_layouts[6])
-    add_light_bg(slide)
-    add_title_bar(slide, "Student Login & Registration", "", "05")
-    add_description(slide, "Secure OTP email verification via Brevo API. JWT bearer tokens. Badges for user roles.")
-    add_screenshot_card(slide, "Screenshot 2026-08-16 110301.png", "Student Login (Dark Mode)", Inches(0.5), Inches(1.7), Inches(4.3), Inches(4.8))
-    add_screenshot_card(slide, "Screenshot 2026-08-16 110319.png", "Student Registration", Inches(5.2), Inches(1.7), Inches(4.3), Inches(4.8))
-
-    # ===== SLIDE 6: STUDENT DASHBOARD =====
-    slide = prs.slides.add_slide(prs.slide_layouts[6])
-    add_light_bg(slide)
-    add_title_bar(slide, "Student Dashboard", "", "06")
-    add_description(slide, "Personalized welcome portal, real-time stats, and sidebar navigation controls.")
-    add_screenshot_card(slide, "Screenshot 2026-08-16 105144.png", "Student Portal Dashboard with Real-Time Stats", Inches(0.5), Inches(1.7), Inches(9.0), Inches(4.8))
-
-    # ===== SLIDE 7: LIVE GPS TRACKING =====
-    slide = prs.slides.add_slide(prs.slide_layouts[6])
-    add_light_bg(slide)
-    add_title_bar(slide, "Real-Time GPS Bus Tracking", "", "07")
-    add_description(slide, "Live Leaflet map. Position updates every 5s. Haversine distance engine. Shows stops and ETA.")
-    add_screenshot_card(slide, "Screenshot 2026-08-16 105418.png", "Live Map Bus Tracking with ETA & Distance Calculations", Inches(0.5), Inches(1.7), Inches(9.0), Inches(4.8))
-
-    # ===== SLIDE 8: AVAILABLE BUSES & NOTIFICATIONS =====
-    slide = prs.slides.add_slide(prs.slide_layouts[6])
-    add_light_bg(slide)
-    add_title_bar(slide, "Available Buses & Push Notifications", "", "08")
-    add_description(slide, "View status of all active buses. Real-time push notifications for trip events.")
-    add_screenshot_card(slide, "Screenshot 2026-08-16 105133.png", "Available Buses List", Inches(0.5), Inches(1.7), Inches(6.0), Inches(4.8))
-    add_screenshot_card(slide, "Screenshot 2026-08-16 105153.png", "Real-Time Notifications Panel", Inches(7.0), Inches(1.7), Inches(2.5), Inches(4.8))
-
-    # ===== SLIDE 9: STUDENT ROUTES & SCHEDULES =====
-    slide = prs.slides.add_slide(prs.slide_layouts[6])
-    add_light_bg(slide)
-    add_title_bar(slide, "Student: Routes & Schedules", "", "09")
-    add_screenshot_card(slide, "Screenshot 2026-08-16 105122.png", "Routes & Stops (Student View)", Inches(0.5), Inches(1.3), Inches(4.3), Inches(5.0))
-    add_screenshot_card(slide, "Screenshot 2026-08-16 105106.png", "Schedules & Departure Times (Student View)", Inches(5.2), Inches(1.3), Inches(4.3), Inches(5.0))
-
-    # ===== SLIDE 10: STUDENT ANNOUNCEMENTS & SETTINGS =====
-    slide = prs.slides.add_slide(prs.slide_layouts[6])
-    add_light_bg(slide)
-    add_title_bar(slide, "Student: Announcements & Settings", "", "10")
-    add_screenshot_card(slide, "Screenshot 2026-08-16 105057.png", "Campus Announcements & Notices", Inches(0.5), Inches(1.3), Inches(4.3), Inches(5.0))
-    add_screenshot_card(slide, "Screenshot 2026-08-16 105046.png", "Student Profile & Security Settings", Inches(5.2), Inches(1.3), Inches(4.3), Inches(5.0))
-
-    # ===== SLIDE 11: BUS CHAT =====
-    slide = prs.slides.add_slide(prs.slide_layouts[6])
-    add_light_bg(slide)
-    add_title_bar(slide, "Bus-Wise Group Chat", "", "11")
-    add_description(slide, "Firebase Firestore real-time group chat by bus. Messages with timestamps and read receipts.")
-    add_screenshot_card(slide, "Screenshot 2026-08-16 110042.png", "Bus Chat - Student View", Inches(0.5), Inches(1.7), Inches(4.3), Inches(4.8))
-    add_screenshot_card(slide, "Screenshot 2026-08-16 110050.png", "Bus Chat - Driver View", Inches(5.2), Inches(1.7), Inches(4.3), Inches(4.8))
-
-    # ===== SLIDE 12: REPORT SYSTEM =====
-    slide = prs.slides.add_slide(prs.slide_layouts[6])
-    add_light_bg(slide)
-    add_title_bar(slide, "Report Management System", "", "12")
-    add_description(slide, "Categorized reporting workflow (Bug, Driver behavior, Bus issue). Admin reply view.")
-    add_screenshot_card(slide, "Screenshot 2026-08-16 104456.png", "Submit Report to Admin", Inches(0.5), Inches(1.7), Inches(4.3), Inches(4.8))
-    add_screenshot_card(slide, "Screenshot 2026-08-16 105036.png", "Previous Reports & Admin Responses", Inches(5.2), Inches(1.7), Inches(4.3), Inches(4.8))
-
-    # ===== SLIDE 13: ADMIN REPORTS =====
-    slide = prs.slides.add_slide(prs.slide_layouts[6])
-    add_light_bg(slide)
-    add_title_bar(slide, "Admin: Student Reports Dashboard", "", "13")
-    add_screenshot_card(slide, "Screenshot 2026-08-16 104738.png", "Admin Reports List & Status Management", Inches(0.5), Inches(1.3), Inches(5.8), Inches(5.0))
-    add_screenshot_card(slide, "Screenshot 2026-08-16 104110.png", "Report Topic Selection Categories", Inches(6.6), Inches(1.5), Inches(2.9), Inches(4.8))
-
-    # ===== SLIDE 14: DRIVER DASHBOARD =====
-    slide = prs.slides.add_slide(prs.slide_layouts[6])
-    add_light_bg(slide)
-    add_title_bar(slide, "Driver Dashboard & Trip Controls", "", "14")
-    add_description(slide, "Bilingual interface. START button, GPS location broadcaster, and STOP/DELAY alerts.")
-    add_screenshot_card(slide, "Screenshot 2026-08-16 104822.png", "Driver Dashboard - Ready State", Inches(0.5), Inches(1.7), Inches(4.3), Inches(4.8))
-    add_screenshot_card(slide, "Screenshot 2026-08-16 104846.png", "Driver Settings (Bangla Interface)", Inches(5.2), Inches(1.7), Inches(4.3), Inches(4.8))
-
-    # ===== SLIDE 15: DRIVER MOBILE =====
-    slide = prs.slides.add_slide(prs.slide_layouts[6])
-    add_light_bg(slide)
-    add_title_bar(slide, "Driver Mobile Experience - Responsive", "", "15")
-    add_description(slide, "Mobile-first layouts: Onboarding > Setup Trip > GPS Connecting > Live Trip Active.")
-    add_screenshot_card(slide, "WhatsApp Image 2026-08-16 at 10.55.42 AM.jpeg", "Ready State", Inches(0.4), Inches(1.7), Inches(1.7), Inches(4.5))
-    add_screenshot_card(slide, "WhatsApp Image 2026-08-16 at 10.55.42 AM (1).jpeg", "Setup Trip", Inches(2.2), Inches(1.7), Inches(1.7), Inches(4.5))
-    add_screenshot_card(slide, "WhatsApp Image 2026-08-16 at 10.55.43 AM.jpeg", "GPS Connecting", Inches(4.0), Inches(1.7), Inches(1.7), Inches(4.5))
-    add_screenshot_card(slide, "WhatsApp Image 2026-08-16 at 10.55.43 AM (1).jpeg", "Active (EN)", Inches(5.8), Inches(1.7), Inches(1.7), Inches(4.5))
-    add_screenshot_card(slide, "WhatsApp Image 2026-08-16 at 10.56.11 AM.jpeg", "Active (BN)", Inches(7.6), Inches(1.7), Inches(1.7), Inches(4.5))
-
-    # ===== SLIDE 16: ADMIN USER MANAGEMENT =====
-    slide = prs.slides.add_slide(prs.slide_layouts[6])
-    add_light_bg(slide)
-    add_title_bar(slide, "Admin: User Management Dashboard", "", "16")
-    add_description(slide, "Total User lists, promotion systems, search filters, and block/unblock actions.")
-    add_screenshot_card(slide, "Screenshot 2026-08-16 101700.png", "Admin Panel - Student, Driver, and Co-Admin Users List", Inches(0.5), Inches(1.7), Inches(9.0), Inches(4.8))
-
-    # ===== SLIDE 17: ADMIN & DRIVER APPROVALS =====
-    slide = prs.slides.add_slide(prs.slide_layouts[6])
-    add_light_bg(slide)
-    add_title_bar(slide, "Admin: Co-Admin & Driver Approvals", "", "17")
-    add_screenshot_card(slide, "Screenshot 2026-08-16 101839.png", "Co-Admin Permissions & Access Management", Inches(0.5), Inches(1.3), Inches(4.3), Inches(5.0))
-    add_screenshot_card(slide, "Screenshot 2026-08-16 102136.png", "Driver Registration Application Review", Inches(5.2), Inches(1.3), Inches(4.3), Inches(5.0))
-
-    # ===== SLIDE 18: BUS & ROUTE MANAGEMENT =====
-    slide = prs.slides.add_slide(prs.slide_layouts[6])
-    add_light_bg(slide)
-    add_title_bar(slide, "Admin: Bus & Route Management", "", "18")
-    add_screenshot_card(slide, "Screenshot 2026-08-16 102304.png", "Bus Fleet Management", Inches(0.5), Inches(1.3), Inches(4.3), Inches(5.0))
-    add_screenshot_card(slide, "Screenshot 2026-08-16 103430.png", "Routes & Stoppages Management", Inches(5.2), Inches(1.3), Inches(4.3), Inches(5.0))
-
-    # ===== SLIDE 19: MAP ROUTE BUILDER =====
-    slide = prs.slides.add_slide(prs.slide_layouts[6])
-    add_light_bg(slide)
-    add_title_bar(slide, "Interactive Map Route Builder", "", "19")
-    add_description(slide, "Interactive map picker utilizing Leaflet + OpenStreetMap coordinates sequence builder.")
-    add_screenshot_card(slide, "Screenshot 2026-08-16 103443.png", "Interactive Leaflet Map - Coordinate Selection & Stop Sequencing", Inches(2.2), Inches(1.7), Inches(5.6), Inches(4.8))
-
-    # ===== SLIDE 20: SCHEDULE & ANNOUNCEMENTS =====
-    slide = prs.slides.add_slide(prs.slide_layouts[6])
-    add_light_bg(slide)
-    add_title_bar(slide, "Admin: Schedule & Announcements", "", "20")
-    add_screenshot_card(slide, "Screenshot 2026-08-16 103643.png", "Schedules & Assignments Management", Inches(0.5), Inches(1.3), Inches(3.6), Inches(5.0))
-    add_screenshot_card(slide, "Screenshot 2026-08-16 103459.png", "Add Schedule Modal Window", Inches(4.3), Inches(1.3), Inches(2.4), Inches(5.0))
-    add_screenshot_card(slide, "Screenshot 2026-08-16 103851.png", "Broadcast Notices & Urgencies Panel", Inches(6.9), Inches(1.3), Inches(2.6), Inches(5.0))
-
-    # ===== SLIDE 21: ANALYTICS =====
-    slide = prs.slides.add_slide(prs.slide_layouts[6])
-    add_light_bg(slide)
-    add_title_bar(slide, "Admin: Analytics Dashboard", "", "21")
-    add_description(slide, "Charts powered by Chart.js showing role distributions and driver status analytics.")
-    add_screenshot_card(slide, "Screenshot 2026-08-16 103910.png", "Admin Charts - User Roles Distribution & Active Driver Status", Inches(0.5), Inches(1.7), Inches(9.0), Inches(4.8))
-
-    # ===== SLIDE 22: TECH STACK =====
-    slide = prs.slides.add_slide(prs.slide_layouts[6])
-    add_light_bg(slide)
-    add_title_bar(slide, "Technology Stack & Architecture", "", "22")
-
-    tech_items = [
-        ("Frontend", "HTML, CSS, JavaScript (Vanilla UI)"),
-        ("Backend API", "ASP.NET Core (C# .NET 8)"),
-        ("Real-Time Data", "Firebase Cloud Firestore"),
-        ("Interactive Maps", "Leaflet.js + OpenStreetMap"),
-        ("Authentication", "JWT + Email OTP Security"),
-        ("Notifications", "Brevo SMTP & Sendinblue API"),
-        ("Visualizations", "Chart.js Analytics Charts"),
-        ("Deployment", "Vercel Frontend + Cloud API"),
+    prob_items = [
+        ("Blind Waiting:", "No live bus location or arrival ETA available at campus stops."),
+        ("Unreliable Schedules:", "Paper notices with unexpected delays cause missed classes."),
+        ("Communication Gap:", "No passenger-driver coordination channel during breakdown events."),
+        ("Administrative Blindness:", "Zero real-time fleet overview, speed metrics, or instant safety reports.")
     ]
+    add_rich_bullet_points(slide, prob_items, Inches(1.1), Inches(2.45), Inches(5.1), Inches(4.2), font_size=11, bullet_type="num")
 
-    for i, (name, desc) in enumerate(tech_items):
-        col = i % 4
-        row = i // 4
-        x = Inches(0.5 + col * 2.3)
-        y = Inches(1.3 + row * 1.5)
+    # Right: Objectives
+    add_content_card(slide, Inches(6.866), Inches(1.7), Inches(5.666), Inches(5.2), bg_color=GREEN_BG, border_color=GREEN_BORDER)
+    ttl2 = slide.shapes.add_textbox(Inches(7.166), Inches(1.9), Inches(5.0), Inches(0.4))
+    r2 = ttl2.text_frame.paragraphs[0].add_run()
+    r2.text = "🎯 Target Objectives & Solutions"
+    r2.font.size = Pt(17)
+    r2.font.bold = True
+    r2.font.color.rgb = GREEN_TEXT
 
-        # Card
-        add_content_card(slide, x, y, Inches(2.1), Inches(1.2))
-
-        # Title
-        name_box = slide.shapes.add_textbox(x + Inches(0.1), y + Inches(0.15), Inches(1.9), Inches(0.35))
-        tf = name_box.text_frame
-        tf.word_wrap = True
-        tf.margin_left = tf.margin_right = tf.margin_top = tf.margin_bottom = Inches(0)
-        p = tf.paragraphs[0]
-        p.alignment = PP_ALIGN.CENTER
-        run = p.add_run()
-        run.text = name
-        run.font.size = Pt(13)
-        run.font.bold = True
-        run.font.color.rgb = DARK_TEXT
-        run.font.name = "Outfit"
-
-        # Desc
-        desc_box = slide.shapes.add_textbox(x + Inches(0.1), y + Inches(0.5), Inches(1.9), Inches(0.6))
-        tf2 = desc_box.text_frame
-        tf2.word_wrap = True
-        tf2.margin_left = tf2.margin_right = tf2.margin_top = tf2.margin_bottom = Inches(0)
-        p2 = tf2.paragraphs[0]
-        p2.alignment = PP_ALIGN.CENTER
-        run2 = p2.add_run()
-        run2.text = desc
-        run2.font.size = Pt(10)
-        run2.font.color.rgb = GRAY_TEXT
-        run2.font.name = "Inter"
-
-    # Architecture boxes (exactly matching slides.html colors & design)
-    arch_items = [
-        ("Frontend Layer", "HTML, CSS, JS, Leaflet.js", Inches(0.8), Inches(4.6), RGBColor(239, 246, 255), BLUE),
-        ("Backend API", "ASP.NET Core, JWT, Haversine", Inches(3.8), Inches(4.6), RGBColor(236, 253, 245), GREEN),
-        ("Data Layer", "Firebase Firestore, Brevo SMTP", Inches(6.8), Inches(4.6), RGBColor(255, 251, 235), ORANGE),
+    obj_items = [
+        ("Real-Time GPS Tracking:", "High-precision location updates broadcasted every 5s on Leaflet OSM."),
+        ("Haversine ETA Engine:", "Accurate stop-wise distance and arrival time calculations in real-time."),
+        ("Live Community Chat:", "Bus-specific instant communication grouped by active transit trips."),
+        ("Fleet Management Portal:", "Interactive route coordinator, user role controls, and visual analytics.")
     ]
-    for label, tech, x, y, fill_color, border_color in arch_items:
-        add_content_card(slide, x, y, Inches(2.6), Inches(1.2), bg_color=fill_color, border_color=border_color)
+    add_rich_bullet_points(slide, obj_items, Inches(7.166), Inches(2.45), Inches(5.1), Inches(4.2), font_size=11, bullet_type="check")
 
-        lb = slide.shapes.add_textbox(x + Inches(0.1), y + Inches(0.15), Inches(2.4), Inches(0.3))
-        tf = lb.text_frame
+    # ==================== SLIDE 3: TECH STACK & ARCHITECTURE ====================
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    add_light_bg(slide)
+    add_title_bar(slide, "System Architecture & Tech Stack", "", "03")
+    add_description(slide, "A scalable, decoupled client-server architecture powered by ASP.NET Core and Firebase real-time sync.")
+
+    techs = [
+        ("🖥️ HTML5 / CSS3 / JS", "Vanilla UI, Responsive & Dynamic"),
+        ("🟣 ASP.NET Core 8", "C# REST Web API & JWT Auth"),
+        ("🔥 Firebase Firestore", "NoSQL Real-Time Sync SDK"),
+        ("🗺️ Leaflet.js + OSM", "Interactive GPS Mapping")
+    ]
+    for i, (title, desc) in enumerate(techs):
+        x = Inches(0.8 + i * 2.983)
+        add_content_card(slide, x, Inches(1.7), Inches(2.8), Inches(1.25))
+        box = slide.shapes.add_textbox(x + Inches(0.15), Inches(1.82), Inches(2.5), Inches(1.0))
+        tf = box.text_frame
         tf.word_wrap = True
-        tf.margin_left = tf.margin_right = tf.margin_top = tf.margin_bottom = Inches(0)
-        p = tf.paragraphs[0]
-        p.alignment = PP_ALIGN.CENTER
-        run = p.add_run()
-        run.text = label
-        run.font.size = Pt(13)
-        run.font.bold = True
-        run.font.color.rgb = DARK_TEXT
-        run.font.name = "Outfit"
+        p1 = tf.paragraphs[0]
+        r1 = p1.add_run()
+        r1.text = title
+        r1.font.size = Pt(13)
+        r1.font.bold = True
+        r1.font.color.rgb = DARK_TEXT
+        
+        p2 = tf.add_paragraph()
+        p2.space_before = Pt(3)
+        r2 = p2.add_run()
+        r2.text = desc
+        r2.font.size = Pt(10)
+        r2.font.color.rgb = GRAY_TEXT
 
-        tb = slide.shapes.add_textbox(x + Inches(0.1), y + Inches(0.5), Inches(2.4), Inches(0.6))
-        tf2 = tb.text_frame
-        tf2.word_wrap = True
-        tf2.margin_left = tf2.margin_right = tf2.margin_top = tf2.margin_bottom = Inches(0)
-        p2 = tf2.paragraphs[0]
-        p2.alignment = PP_ALIGN.CENTER
-        run2 = p2.add_run()
-        run2.text = tech
-        run2.font.size = Pt(11)
-        run2.font.color.rgb = GRAY_TEXT
-        run2.font.name = "Inter"
+    # Architecture diagram container
+    add_content_card(slide, Inches(0.8), Inches(3.15), Inches(11.733), Inches(3.75))
+    
+    # Layer 1
+    add_content_card(slide, Inches(1.1), Inches(3.4), Inches(5.4), Inches(1.2), bg_color=LIGHT_BLUE_BG, border_color=BLUE_BORDER)
+    b1 = slide.shapes.add_textbox(Inches(1.25), Inches(3.5), Inches(5.1), Inches(1.0))
+    tf1 = b1.text_frame
+    p = tf1.paragraphs[0]
+    r = p.add_run()
+    r.text = "Client Layer (Frontend UI)"
+    r.font.bold = True
+    r.font.size = Pt(12)
+    r.font.color.rgb = BLUE
+    p_d = tf1.add_paragraph()
+    r_d = p_d.add_run()
+    r_d.text = "Vanilla JS, Leaflet.js Mapping, Chart.js, HTML5 Geolocation API"
+    r_d.font.size = Pt(10)
+    r_d.font.color.rgb = GRAY_TEXT
 
-    # Arrow connector labels
-    arr_box = slide.shapes.add_textbox(Inches(0.5), Inches(6.0), Inches(9.0), Inches(0.4))
+    add_content_card(slide, Inches(6.833), Inches(3.4), Inches(5.4), Inches(1.2), bg_color=ORANGE_BG, border_color=ORANGE_BORDER)
+    b2 = slide.shapes.add_textbox(Inches(6.983), Inches(3.5), Inches(5.1), Inches(1.0))
+    tf2 = b2.text_frame
+    p2 = tf2.paragraphs[0]
+    r2 = p2.add_run()
+    r2.text = "Real-Time Layer (Firebase Web SDK)"
+    r2.font.bold = True
+    r2.font.size = Pt(12)
+    r2.font.color.rgb = ORANGE_TEXT
+    p2_d = tf2.add_paragraph()
+    r2_d = p2_d.add_run()
+    r2_d.text = "Firestore Snapshot Listeners for real-time GPS location pan & live bus group chat"
+    r2_d.font.size = Pt(10)
+    r2_d.font.color.rgb = GRAY_TEXT
+
+    # Arrow divider
+    arr_box = slide.shapes.add_textbox(Inches(0.8), Inches(4.7), Inches(11.733), Inches(0.35))
     tf_arr = arr_box.text_frame
     p_arr = tf_arr.paragraphs[0]
     p_arr.alignment = PP_ALIGN.CENTER
-    run_arr = p_arr.add_run()
-    run_arr.text = "FRONTEND  ↔  REST API + WEBSOCKET  ↔  BACKEND API  ↔  DATA/SERVICES"
-    run_arr.font.size = Pt(9)
-    run_arr.font.bold = True
-    run_arr.font.color.rgb = GRAY_TEXT
-    run_arr.font.name = "Inter"
+    r_arr = p_arr.add_run()
+    r_arr.text = "⬇️ REST API Queries & Real-Time Data Synchronization ⬇️"
+    r_arr.font.size = Pt(11)
+    r_arr.font.bold = True
+    r_arr.font.color.rgb = BLUE
 
-    # ===== SLIDE 23: WHAT MAKES US DIFFERENT =====
+    # Layer 2
+    add_content_card(slide, Inches(1.1), Inches(5.2), Inches(5.4), Inches(1.4), bg_color=GREEN_BG, border_color=GREEN_BORDER)
+    b3 = slide.shapes.add_textbox(Inches(1.25), Inches(5.3), Inches(5.1), Inches(1.2))
+    tf3 = b3.text_frame
+    p3 = tf3.paragraphs[0]
+    r3 = p3.add_run()
+    r3.text = "Backend API Layer (ASP.NET Core 8 C#)"
+    r3.font.bold = True
+    r3.font.size = Pt(12)
+    r3.font.color.rgb = GREEN_TEXT
+    p3_d = tf3.add_paragraph()
+    r3_d = p3_d.add_run()
+    r3_d.text = "REST Controllers, JWT Bearer Auth tokens, Role Authorization, Haversine Distance Engine"
+    r3_d.font.size = Pt(10)
+    r3_d.font.color.rgb = GRAY_TEXT
+
+    add_content_card(slide, Inches(6.833), Inches(5.2), Inches(5.4), Inches(1.4), bg_color=PURPLE_BG, border_color=PURPLE_BORDER)
+    b4 = slide.shapes.add_textbox(Inches(6.983), Inches(5.3), Inches(5.1), Inches(1.2))
+    tf4 = b4.text_frame
+    p4 = tf4.paragraphs[0]
+    r4 = p4.add_run()
+    r4.text = "Data & Third-Party Services"
+    r4.font.bold = True
+    r4.font.size = Pt(12)
+    r4.font.color.rgb = DARK_TEXT
+    p4_d = tf4.add_paragraph()
+    r4_d = p4_d.add_run()
+    r4_d.text = "Cloud Firestore NoSQL database + Brevo SMTP API for 6-digit OTP verification emails"
+    r4_d.font.size = Pt(10)
+    r4_d.font.color.rgb = GRAY_TEXT
+
+    # ==================== SLIDE 4: DEVELOPMENT METHODOLOGY & WORKFLOW ====================
     slide = prs.slides.add_slide(prs.slide_layouts[6])
     add_light_bg(slide)
-    add_title_bar(slide, "What Makes SmartBus Different", "", "23")
+    add_title_bar(slide, "Development Methodology & Workflow", "", "04")
+    add_description(slide, "Iterative Agile development process emphasizing high reliability, real-time synchronization, and modularity.")
+
+    # Phase 1-3
+    add_content_card(slide, Inches(0.8), Inches(1.7), Inches(5.666), Inches(5.2))
+    ttl1 = slide.shapes.add_textbox(Inches(1.1), Inches(1.9), Inches(5.0), Inches(0.4))
+    r1 = ttl1.text_frame.paragraphs[0].add_run()
+    r1.text = "📋 Agile Phases (1 — 3)"
+    r1.font.size = Pt(17)
+    r1.font.bold = True
+    r1.font.color.rgb = DARK_TEXT
+
+    p1_items = [
+        ("Phase 1: Architecture & NoSQL Schema:", "Designed normalized User, Bus, Route, and Notice models in Firestore with indexed queries."),
+        ("Phase 2: Responsive Prototyping:", "Built mobile-first interfaces with full multi-theme support (Classic Navy, Terracotta, Oceanic)."),
+        ("Phase 3: Secure REST API:", "Implemented ASP.NET Core endpoints with Brevo SMTP 6-digit OTP verification and JWT claims.")
+    ]
+    add_rich_bullet_points(slide, p1_items, Inches(1.1), Inches(2.45), Inches(5.1), Inches(4.2), font_size=11, bullet_type="check")
+
+    # Phase 4-6
+    add_content_card(slide, Inches(6.866), Inches(1.7), Inches(5.666), Inches(5.2), bg_color=GREEN_BG, border_color=GREEN_BORDER)
+    ttl2 = slide.shapes.add_textbox(Inches(7.166), Inches(1.9), Inches(5.0), Inches(0.4))
+    r2 = ttl2.text_frame.paragraphs[0].add_run()
+    r2.text = "🚀 Agile Phases (4 — 6)"
+    r2.font.size = Pt(17)
+    r2.font.bold = True
+    r2.font.color.rgb = GREEN_TEXT
+
+    p2_items = [
+        ("Phase 4: GPS Tracking & ETA Calculation:", "Integrated HTML5 Geolocation API with Leaflet pan and Haversine distance engine."),
+        ("Phase 5: Real-time Messaging & Broadcast:", "Built bus-wise community group chats and urgent notice board."),
+        ("Phase 6: Verification & Testing:", "Executed xUnit backend unit tests and Playwright E2E integration test suites.")
+    ]
+    add_rich_bullet_points(slide, p2_items, Inches(7.166), Inches(2.45), Inches(5.1), Inches(4.2), font_size=11, bullet_type="check")
+
+    # ==================== SLIDE 5: WALKTHROUGH: ONBOARDING & AUTH ====================
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    add_light_bg(slide)
+    add_title_bar(slide, "Walkthrough: Onboarding & Multi-Role Authentication", "", "05")
+    add_description(slide, "Role-based access system (Student, Driver, Admin) with secure registration, Brevo SMTP OTP verification, and JWT session handling.")
+
+    add_screenshot_card(slide, "Screenshot 2026-08-16 110246.png", "Role Selection — Student / Driver / Admin", Inches(0.8), Inches(1.7), Inches(5.666), Inches(4.8))
+    add_screenshot_card(slide, "Screenshot 2026-08-16 110301.png", "Secure Multi-Role Login Screen", Inches(6.866), Inches(1.7), Inches(5.666), Inches(4.8))
+
+    # ==================== SLIDE 6: WALKTHROUGH: GPS & ETA ====================
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    add_light_bg(slide)
+    add_title_bar(slide, "Walkthrough: Real-Time GPS Tracking & Dynamic ETA", "", "06")
+    add_description(slide, "Live Leaflet map pins bus coordinates updated every 5s. Haversine engine calculates exact stop distances and arrival estimates.")
+
+    add_screenshot_card(slide, "Screenshot 2026-08-16 105418.png", "Live Map Tracking: Real-Time Location & Stop ETA Panel", Inches(0.8), Inches(1.7), Inches(11.733), Inches(4.8))
+
+    # ==================== SLIDE 7: WALKTHROUGH: DRIVER CONSOLE & CHAT ====================
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    add_light_bg(slide)
+    add_title_bar(slide, "Walkthrough: Driver Console & Community Chat", "", "07")
+    add_description(slide, "Driver dashboard with single-tap trip start, delay broadcast, and bilingual UI, paired with real-time bus-wise group chat.")
+
+    add_screenshot_card(slide, "WhatsApp Image 2026-08-16 at 10.55.43 AM (1).jpeg", "Driver Trip Controller & Delay Alerts (Mobile)", Inches(0.8), Inches(1.7), Inches(5.666), Inches(4.8))
+    add_screenshot_card(slide, "Screenshot 2026-08-16 110042.png", "Bus-Wise Real-Time Passenger Community Chat", Inches(6.866), Inches(1.7), Inches(5.666), Inches(4.8))
+
+    # ==================== SLIDE 8: WALKTHROUGH: MAP ROUTE BUILDER & FLEET CRUD ====================
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    add_light_bg(slide)
+    add_title_bar(slide, "Walkthrough: Map Route Builder & Fleet Management", "", "08")
+    add_description(slide, "Admin map coordinator enables clicking and dragging stop coordinates directly on OSM, alongside complete bus fleet CRUD operations.")
+
+    add_screenshot_card(slide, "Screenshot 2026-08-16 103443.png", "Interactive Map Route Coordinator & Stop Editor", Inches(0.8), Inches(1.7), Inches(5.666), Inches(4.8))
+    add_screenshot_card(slide, "Screenshot 2026-08-16 102304.png", "Bus Fleet Add / Modify / Delete CRUD Console", Inches(6.866), Inches(1.7), Inches(5.666), Inches(4.8))
+
+    # ==================== SLIDE 9: WALKTHROUGH: ADMIN ANALYTICS & SAFETY ====================
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    add_light_bg(slide)
+    add_title_bar(slide, "Walkthrough: Admin Analytics & Safety Management", "", "09")
+    add_description(slide, "Admins monitor user statistics with Chart.js, broadcast urgent notices, manage user roles, and resolve student safety reports.")
+
+    add_screenshot_card(slide, "Screenshot 2026-08-16 103910.png", "Chart.js Visual Analytics Dashboard", Inches(0.8), Inches(1.7), Inches(5.666), Inches(4.8))
+    add_screenshot_card(slide, "Screenshot 2026-08-16 104456.png", "Student Safety & Bug Reporting Pipeline", Inches(6.866), Inches(1.7), Inches(5.666), Inches(4.8))
+
+    # ==================== SLIDE 10: DIFFERENTIATORS & IMPACT ====================
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    add_light_bg(slide)
+    add_title_bar(slide, "Key Differentiators & Measurable Impact", "", "10")
+    add_description(slide, "SmartBus combines mathematical precision with seamless real-time interaction to deliver a superior campus commute.")
+
+    # Differentiators
+    add_content_card(slide, Inches(0.8), Inches(1.7), Inches(5.666), Inches(5.2), bg_color=GREEN_BG, border_color=GREEN_BORDER)
+    ttl1 = slide.shapes.add_textbox(Inches(1.1), Inches(1.9), Inches(5.0), Inches(0.4))
+    r1 = ttl1.text_frame.paragraphs[0].add_run()
+    r1.text = "✨ Key Differentiators"
+    r1.font.size = Pt(17)
+    r1.font.bold = True
+    r1.font.color.rgb = GREEN_TEXT
 
     diff_items = [
-        ("Haversine Formula ETA", "Accurate distance & arrival using real GPS lat/lng coordinates.", RGBColor(236, 253, 245), GREEN),
-        ("Bus-Wise Group Chat", "Firebase Firestore real-time group chat grouped by active bus.", RGBColor(239, 246, 255), BLUE),
-        ("Bilingual (EN/Bangla)", "Full interface localization for student and driver accessibility.", RGBColor(255, 251, 235), ORANGE),
-        ("Push Notifications", "Instant real-time notifications for trip start, delay and completion.", RGBColor(239, 246, 255), BLUE),
-        ("Admin Analytics", "Interactive Chart.js visual dashboard showing data-driven metrics.", RGBColor(236, 253, 245), GREEN),
-        ("Report Workflow", "Categorized reports with direct admin response and status tracking pipeline.", RGBColor(255, 251, 235), ORANGE),
+        ("🧮", "Haversine Formula ETA:", "Mathematical calculation based on geographical GPS coordinates."),
+        ("💬", "Bus-Wise Chatrooms:", "Real-time Firestore communication per active bus."),
+        ("🌐", "Bilingual Driver UI:", "Full English & বাংলা localization for seamless driver usability."),
+        ("🗺️", "Visual Route Builder:", "Click-to-place stops directly on Leaflet OpenStreetMap.")
     ]
+    add_rich_bullet_points(slide, diff_items, Inches(1.1), Inches(2.45), Inches(5.1), Inches(4.2), font_size=11, bullet_type="icon")
 
-    for i, (title, desc, bg, border) in enumerate(diff_items):
-        col = i % 2
-        row = i // 2
-        x = Inches(0.5 + col * 4.8)
-        y = Inches(1.3 + row * 1.9)
+    # Impact
+    add_content_card(slide, Inches(6.866), Inches(1.7), Inches(5.666), Inches(5.2))
+    ttl2 = slide.shapes.add_textbox(Inches(7.166), Inches(1.9), Inches(5.0), Inches(0.4))
+    r2 = ttl2.text_frame.paragraphs[0].add_run()
+    r2.text = "📈 Measurable Impact"
+    r2.font.size = Pt(17)
+    r2.font.bold = True
+    r2.font.color.rgb = DARK_TEXT
 
-        add_content_card(slide, x, y, Inches(4.5), Inches(1.6), bg_color=bg, border_color=border)
+    impact_items = [
+        ("⚡", "Zero Blind Waiting:", "Students track bus locations before heading to stops, eliminating idle wait."),
+        ("📢", "Instant Delay Alerts:", "Push notices reduce campus confusion during unexpected traffic."),
+        ("🛡️", "Enhanced Student Safety:", "Direct reporting pipeline with immediate admin response."),
+        ("📊", "Data-Driven Transit:", "Analytics help optimize bus schedules and fleet allocation.")
+    ]
+    add_rich_bullet_points(slide, impact_items, Inches(7.166), Inches(2.45), Inches(5.1), Inches(4.2), font_size=11, bullet_type="icon")
 
-        ttl = slide.shapes.add_textbox(x + Inches(0.2), y + Inches(0.15), Inches(4.1), Inches(0.4))
-        tf = ttl.text_frame
-        tf.word_wrap = True
-        tf.margin_left = tf.margin_right = tf.margin_top = tf.margin_bottom = Inches(0)
-        run = tf.paragraphs[0].add_run()
-        run.text = title
-        run.font.size = Pt(16)
-        run.font.bold = True
-        run.font.color.rgb = DARK_TEXT
-        run.font.name = "Outfit"
+    # ==================== SLIDE 11: BUSINESS MODEL & MONETIZATION ====================
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    add_light_bg(slide)
+    add_title_bar(slide, "Business Model & Monetization Strategy", "", "11")
+    add_description(slide, "A scalable B2B SaaS and zero-hardware transit management model designed for universities and fleet operators.")
 
-        dsc = slide.shapes.add_textbox(x + Inches(0.2), y + Inches(0.65), Inches(4.1), Inches(0.8))
-        tf2 = dsc.text_frame
-        tf2.word_wrap = True
-        tf2.margin_left = tf2.margin_right = tf2.margin_top = tf2.margin_bottom = Inches(0)
-        run2 = tf2.paragraphs[0].add_run()
-        run2.text = desc
-        run2.font.size = Pt(12)
-        run2.font.color.rgb = GRAY_TEXT
-        run2.font.name = "Inter"
+    # 4 Cards layout
+    card_w = Inches(2.78)
+    gap = Inches(0.20)
+    top_pos = Inches(1.7)
+    card_h = Inches(5.2)
 
-    # ===== SLIDE 24: THANK YOU =====
+    # 1. Target Market
+    x1 = Inches(0.8)
+    add_content_card(slide, x1, top_pos, card_w, card_h)
+    t1 = slide.shapes.add_textbox(x1 + Inches(0.2), Inches(1.9), card_w - Inches(0.4), Inches(0.4))
+    r1 = t1.text_frame.paragraphs[0].add_run()
+    r1.text = "🎯 Target Market"
+    r1.font.size = Pt(15)
+    r1.font.bold = True
+    r1.font.color.rgb = DARK_TEXT
+
+    mkt_items = [
+        ("Private & Public Varsities:", "BUBT, NSU, BRACU, UIU, DU campus networks."),
+        ("Schools & Colleges:", "Institutional transport & student safety tracking."),
+        ("Corporate Shuttles:", "Employee daily office commute & shift transport fleets.")
+    ]
+    add_rich_bullet_points(slide, mkt_items, x1 + Inches(0.2), Inches(2.45), card_w - Inches(0.4), Inches(4.2), font_size=10, bullet_type="check")
+
+    # 2. Value Proposition
+    x2 = x1 + card_w + gap
+    add_content_card(slide, x2, top_pos, card_w, card_h, bg_color=GREEN_BG, border_color=GREEN_BORDER)
+    t2 = slide.shapes.add_textbox(x2 + Inches(0.2), Inches(1.9), card_w - Inches(0.4), Inches(0.4))
+    r2 = t2.text_frame.paragraphs[0].add_run()
+    r2.text = "💎 Value Proposition"
+    r2.font.size = Pt(15)
+    r2.font.bold = True
+    r2.font.color.rgb = GREEN_TEXT
+
+    val_items = [
+        ("Zero Hardware Cost:", "Operates entirely via driver smartphones with no GPS OBD box needed."),
+        ("Zero Blind Waiting:", "Real-time location, ETA, and delay notices eliminate idle wait time."),
+        ("Fuel & Fleet Savings:", "Optimized route planning yields 20-30% transit efficiency gain.")
+    ]
+    add_rich_bullet_points(slide, val_items, x2 + Inches(0.2), Inches(2.45), card_w - Inches(0.4), Inches(4.2), font_size=10, bullet_type="check")
+
+    # 3. Revenue Streams
+    x3 = x2 + card_w + gap
+    add_content_card(slide, x3, top_pos, card_w, card_h, bg_color=ORANGE_BG, border_color=ORANGE_BORDER)
+    t3 = slide.shapes.add_textbox(x3 + Inches(0.2), Inches(1.9), card_w - Inches(0.4), Inches(0.4))
+    r3 = t3.text_frame.paragraphs[0].add_run()
+    r3.text = "💰 Revenue Streams"
+    r3.font.size = Pt(15)
+    r3.font.bold = True
+    r3.font.color.rgb = ORANGE_TEXT
+
+    rev_items = [
+        ("B2B SaaS Subscription:", "$15 - $25/bus/month recurring fee for institution fleet management."),
+        ("White-Label Solution:", "Custom branded app portal deployment & institutional setup fees."),
+        ("Hyperlocal Campus Ads:", "Targeted student deals for local food courts, bookshops & stationeries.")
+    ]
+    add_rich_bullet_points(slide, rev_items, x3 + Inches(0.2), Inches(2.45), card_w - Inches(0.4), Inches(4.2), font_size=10, bullet_type="check")
+
+    # 4. Scalability & Edge
+    x4 = x3 + card_w + gap
+    add_content_card(slide, x4, top_pos, card_w, card_h)
+    t4 = slide.shapes.add_textbox(x4 + Inches(0.2), Inches(1.9), card_w - Inches(0.4), Inches(0.4))
+    r4 = t4.text_frame.paragraphs[0].add_run()
+    r4.text = "🚀 Scalability & Edge"
+    r4.font.size = Pt(15)
+    r4.font.bold = True
+    r4.font.color.rgb = DARK_TEXT
+
+    scl_items = [
+        ("Rapid Onboarding:", "New buses and routes can be onboarded in under 10 minutes."),
+        ("Zero Map Licensing Fees:", "Built on open Leaflet + OSM, avoiding expensive Google Maps API costs."),
+        ("Data-Driven Expansion:", "Rich transit demand logs enable schedule & capacity optimization.")
+    ]
+    add_rich_bullet_points(slide, scl_items, x4 + Inches(0.2), Inches(2.45), card_w - Inches(0.4), Inches(4.2), font_size=10, bullet_type="check")
+
+    # ==================== SLIDE 12: CONCLUSION & FUTURE SCOPE ====================
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    add_light_bg(slide)
+    add_title_bar(slide, "Conclusion & Future Roadmap", "", "12")
+    add_description(slide, "A complete, tested, and reliable university transit solution with clear paths for future expansion.")
+
+    # Summary
+    add_content_card(slide, Inches(0.8), Inches(1.7), Inches(5.666), Inches(5.2))
+    ttl1 = slide.shapes.add_textbox(Inches(1.1), Inches(1.9), Inches(5.0), Inches(0.4))
+    r1 = ttl1.text_frame.paragraphs[0].add_run()
+    r1.text = "🏁 Project Summary"
+    r1.font.size = Pt(17)
+    r1.font.bold = True
+    r1.font.color.rgb = DARK_TEXT
+
+    sum_items = [
+        ("Successfully developed and integrated a real-time GPS transit platform for university campuses."),
+        ("Integrated ASP.NET Core REST API, Firestore real-time sync, and Brevo OTP authentication."),
+        ("Validated through comprehensive xUnit backend testing and Playwright E2E browser automation.")
+    ]
+    add_rich_bullet_points(slide, sum_items, Inches(1.1), Inches(2.55), Inches(5.1), Inches(4.0), font_size=11, bullet_type="check")
+
+    # Roadmap
+    add_content_card(slide, Inches(6.866), Inches(1.7), Inches(5.666), Inches(5.2), bg_color=GREEN_BG, border_color=GREEN_BORDER)
+    ttl2 = slide.shapes.add_textbox(Inches(7.166), Inches(1.9), Inches(5.0), Inches(0.4))
+    r2 = ttl2.text_frame.paragraphs[0].add_run()
+    r2.text = "🔮 Future Roadmap"
+    r2.font.size = Pt(17)
+    r2.font.bold = True
+    r2.font.color.rgb = GREEN_TEXT
+
+    fut_items = [
+        ("IoT Passenger Crowding Sensor:", "Real-time bus seat occupancy tracking via smart sensors."),
+        ("Automated Speed Alerts:", "Instant notifications for bus overspeeding events to ensure safety."),
+        ("Offline SMS Fallback:", "Check bus timings and alerts via standard offline SMS queries."),
+        ("Digital Ticketing Engine:", "Integrated payment gateway for special inter-campus routes.")
+    ]
+    add_rich_bullet_points(slide, fut_items, Inches(7.166), Inches(2.45), Inches(5.1), Inches(4.2), font_size=11, bullet_type="check")
+
+    # ==================== SLIDE 13: THANK YOU ====================
     slide = prs.slides.add_slide(prs.slide_layouts[6])
     add_dark_bg(slide)
 
-    ty_box = slide.shapes.add_textbox(Inches(1), Inches(2.2), Inches(8), Inches(1))
+    # Thank you header
+    ty_box = slide.shapes.add_textbox(Inches(1.5), Inches(1.4), Inches(10.333), Inches(1.0))
     tf = ty_box.text_frame
     p = tf.paragraphs[0]
     p.alignment = PP_ALIGN.CENTER
     run = p.add_run()
     run.text = "Thank You!"
-    run.font.size = Pt(48)
+    run.font.size = Pt(50)
     run.font.bold = True
     run.font.color.rgb = WHITE
     run.font.name = "Outfit"
 
-    sub_box = slide.shapes.add_textbox(Inches(2), Inches(3.3), Inches(6), Inches(0.6))
+    # Subtitle
+    sub_box = slide.shapes.add_textbox(Inches(1.5), Inches(2.5), Inches(10.333), Inches(0.5))
     tf = sub_box.text_frame
     p = tf.paragraphs[0]
     p.alignment = PP_ALIGN.CENTER
@@ -583,28 +702,58 @@ def create_presentation():
     run.font.color.rgb = RGBColor(200, 220, 255)
     run.font.name = "Inter"
 
-    info_lines = [
-        "Software Development Project 400",
-        "Intake 51 | Section 3",
-        "Supervised by Humayra Ahmed, Assistant Professor",
-        "",
-        "Md Arif Khan  |  Karnia Binte Rafique  |  Suraiya Karim",
-        "Prosenjit Biswas  |  Proshanta Saha",
-        "",
-        "Questions & Feedback Welcome!"
-    ]
-    info_box = slide.shapes.add_textbox(Inches(1.5), Inches(4.2), Inches(7), Inches(3))
+    # Project Info
+    info_box = slide.shapes.add_textbox(Inches(1.5), Inches(3.3), Inches(10.333), Inches(2.4))
     tf = info_box.text_frame
     tf.word_wrap = True
-    for i, line in enumerate(info_lines):
-        p = tf.paragraphs[0] if i == 0 else tf.add_paragraph()
-        p.alignment = PP_ALIGN.CENTER
-        p.space_after = Pt(4)
-        run = p.add_run()
-        run.text = line
-        run.font.size = Pt(13)
-        run.font.color.rgb = RGBColor(180, 200, 230)
-        run.font.name = "Inter"
+
+    p1 = tf.paragraphs[0]
+    p1.alignment = PP_ALIGN.CENTER
+    r1 = p1.add_run()
+    r1.text = "Software Development Project 400"
+    r1.font.size = Pt(14)
+    r1.font.bold = True
+    r1.font.color.rgb = WHITE
+
+    p2 = tf.add_paragraph()
+    p2.alignment = PP_ALIGN.CENTER
+    r2 = p2.add_run()
+    r2.text = "Intake 51 | Section 3"
+    r2.font.size = Pt(13)
+    r2.font.color.rgb = RGBColor(190, 215, 250)
+
+    p3 = tf.add_paragraph()
+    p3.alignment = PP_ALIGN.CENTER
+    p3.space_after = Pt(8)
+    r3 = p3.add_run()
+    r3.text = "Supervised by "
+    r3.font.size = Pt(14)
+    r3.font.color.rgb = RGBColor(200, 220, 255)
+    r3_s = p3.add_run()
+    r3_s.text = "Humayra Ahmed"
+    r3_s.font.bold = True
+    r3_s.font.size = Pt(14)
+    r3_s.font.color.rgb = WHITE
+    r3_t = p3.add_run()
+    r3_t.text = ", Assistant Professor"
+    r3_t.font.size = Pt(14)
+    r3_t.font.color.rgb = RGBColor(200, 220, 255)
+
+    p4 = tf.add_paragraph()
+    p4.alignment = PP_ALIGN.CENTER
+    p4.space_after = Pt(14)
+    r4 = p4.add_run()
+    r4.text = "Md Arif Khan  •  Karnia Binte Rafique  •  Suraiya Karim  •  Prosenjit Biswas  •  Proshanta Saha"
+    r4.font.size = Pt(13)
+    r4.font.color.rgb = RGBColor(220, 235, 255)
+
+    p5 = tf.add_paragraph()
+    p5.alignment = PP_ALIGN.CENTER
+    r5 = p5.add_run()
+    r5.text = "Questions & Feedback Welcome 🙌"
+    r5.font.size = Pt(17)
+    r5.font.bold = True
+    r5.font.color.rgb = RGBColor(147, 197, 253)
 
     # Save
     output_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'Smart_Campus_Bus_Tracking_System.pptx')
