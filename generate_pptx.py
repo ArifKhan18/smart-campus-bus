@@ -560,7 +560,7 @@ def create_presentation():
     slide = prs.slides.add_slide(prs.slide_layouts[6])
     add_light_bg(slide)
     add_title_bar(slide, "Business Model & Monetization Strategy", "", "11")
-    add_description(slide, "A scalable B2B SaaS and zero-hardware transit management model designed for universities and fleet operators.")
+    add_description(slide, "A high-margin B2B SaaS transit management platform converting university fleets into recurring subscription revenue.")
 
     # 4 Cards layout
     card_w = Inches(2.78)
@@ -579,9 +579,9 @@ def create_presentation():
     r1.font.color.rgb = DARK_TEXT
 
     mkt_items = [
-        ("Private & Public Varsities:", "BUBT, NSU, BRACU, UIU, DU campus networks."),
-        ("Schools & Colleges:", "Institutional transport & student safety tracking."),
-        ("Corporate Shuttles:", "Employee daily office commute & shift transport fleets.")
+        ("150+ Universities:", "Public & Private campus networks (BUBT, NSU, BRAC, DU)."),
+        ("K-12 Schools:", "Student safety & parental live tracking subscriptions."),
+        ("Corporate Fleets:", "IT & industrial employee shift shuttle fleets.")
     ]
     add_rich_bullet_points(slide, mkt_items, x1 + Inches(0.2), Inches(2.45), card_w - Inches(0.4), Inches(4.2), font_size=10, bullet_type="check")
 
@@ -596,9 +596,9 @@ def create_presentation():
     r2.font.color.rgb = GREEN_TEXT
 
     val_items = [
-        ("Zero Hardware Cost:", "Operates entirely via driver smartphones with no GPS OBD box needed."),
-        ("Zero Blind Waiting:", "Real-time location, ETA, and delay notices eliminate idle wait time."),
-        ("Fuel & Fleet Savings:", "Optimized route planning yields 20-30% transit efficiency gain.")
+        ("Zero Hardware Cost:", "100% Smartphone GPS based — no GPS tracker box needed."),
+        ("Zero Blind Waiting:", "Real-time ETA & live delay alerts eliminate idle wait time."),
+        ("20-30% Fleet Savings:", "Route & schedule analytics optimize fuel & transit costs.")
     ]
     add_rich_bullet_points(slide, val_items, x2 + Inches(0.2), Inches(2.45), card_w - Inches(0.4), Inches(4.2), font_size=10, bullet_type="check")
 
@@ -613,26 +613,26 @@ def create_presentation():
     r3.font.color.rgb = ORANGE_TEXT
 
     rev_items = [
-        ("B2B SaaS Subscription:", "$15 - $25/bus/month recurring fee for institution fleet management."),
-        ("White-Label Solution:", "Custom branded app portal deployment & institutional setup fees."),
-        ("Hyperlocal Campus Ads:", "Targeted student deals for local food courts, bookshops & stationeries.")
+        ("B2B SaaS Subscription:", "$15 - $25 (৳1,500 - ৳2,500) / bus / month recurring fee."),
+        ("White-Label Solution:", "৳50,000 custom campus setup & branded portal license."),
+        ("Hyperlocal Campus Ads:", "Targeted deals for local food courts, bookshops & cafes.")
     ]
     add_rich_bullet_points(slide, rev_items, x3 + Inches(0.2), Inches(2.45), card_w - Inches(0.4), Inches(4.2), font_size=10, bullet_type="check")
 
-    # 4. Scalability & Edge
+    # 4. Unit Economics & Scale
     x4 = x3 + card_w + gap
     add_content_card(slide, x4, top_pos, card_w, card_h)
     t4 = slide.shapes.add_textbox(x4 + Inches(0.2), Inches(1.9), card_w - Inches(0.4), Inches(0.4))
     r4 = t4.text_frame.paragraphs[0].add_run()
-    r4.text = "🚀 Scalability & Edge"
+    r4.text = "📈 Unit Economics"
     r4.font.size = Pt(15)
     r4.font.bold = True
     r4.font.color.rgb = DARK_TEXT
 
     scl_items = [
-        ("Rapid Onboarding:", "New buses and routes can be onboarded in under 10 minutes."),
-        ("Zero Map Licensing Fees:", "Built on open Leaflet + OSM, avoiding expensive Google Maps API costs."),
-        ("Data-Driven Expansion:", "Rich transit demand logs enable schedule & capacity optimization.")
+        ("85%+ Gross Margin:", "Zero map licensing fee (Leaflet/OSM) & low server cost."),
+        ("Scalable ARR:", "10 Universities (~150 buses) = ৳36 Lakhs / Year recurring."),
+        ("Rapid Onboarding:", "Full university campus fleet goes live in < 10 minutes.")
     ]
     add_rich_bullet_points(slide, scl_items, x4 + Inches(0.2), Inches(2.45), card_w - Inches(0.4), Inches(4.2), font_size=10, bullet_type="check")
 
