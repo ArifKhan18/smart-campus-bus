@@ -861,19 +861,42 @@ async function processGoogleUser(user, role, isRegister) {
     } else {
         // ── LOGIN FLOW ──
         if (!docSnap.exists()) {
-            // The email may be registered under a password-based account.
+            // Check if email exists under another role (e.g. driver)
             const emailQuery = query(collection(db, 'users'), where('email', '==', user.email));
             const emailSnap = await getDocs(emailQuery);
             if (!emailSnap.empty) {
                 const existingUser = emailSnap.docs[0].data();
                 await auth.signOut();
-                const msg = `This email is registered as a ${existingUser.role} account. Please sign in with your ${existingUser.role} email/password instead.`;
+                const msg = `This email is registered as a ${existingUser.role} account. Please sign in with your ${existingUser.role} account.`;
                 if (window.showToast) window.showToast(msg, 'warning', 6000);
                 else alert(msg);
                 return;
             }
+
+            // If it's a student signing in with Google for the first time, auto-create student profile!
+            if (role === 'student') {
+                const newProfile = {
+                    uid: user.uid,
+                    name: user.displayName || user.email.split('@')[0],
+                    email: user.email,
+                    role: 'student',
+                    status: 'active',
+                    assignedBus: null,
+                    createdAt: serverTimestamp()
+                };
+                await setDoc(docRef, newProfile);
+                if (window.showToast) window.showToast('Welcome! Your student account has been created.', 'success', 3000);
+                setTimeout(() => {
+                    window.location.replace(`dashboard.html?role=student`);
+                }, 1000);
+                return;
+            }
+
+            // For driver or admin, require prior registration / admin setup
             await auth.signOut();
-            const msg = 'This Google account is not registered yet. Please create an account first.';
+            const msg = role === 'driver' 
+                ? 'This Driver account is not registered yet. Please register first for admin approval.' 
+                : 'This account does not exist. Please contact the administrator.';
             if (window.showToast) window.showToast(msg, 'error', 5000);
             else alert(msg);
             return;
@@ -971,12 +994,10 @@ function initGoogleSignIn(role) {
 
     const isRegister = window.location.pathname.includes('register');
 
-    // Detect if running on a deployed environment (not localhost)
-    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-
     const provider = new GoogleAuthProvider();
     provider.addScope('email');
     provider.addScope('profile');
+    provider.setCustomParameters({ prompt: 'select_account' });
 
     btn.addEventListener('click', async () => {
         const submitBtn = document.getElementById('auth-submit');
@@ -993,18 +1014,9 @@ function initGoogleSignIn(role) {
         sessionStorage.setItem('auth_is_register', isRegister ? 'true' : 'false');
 
         try {
-            if (isLocalhost) {
-                // On localhost, use popup (works reliably in dev)
-                const result = await signInWithPopup(auth, provider);
-                await processGoogleUser(result.user, role, isRegister);
-            } else {
-                // On deployed environments (Vercel/Render), use redirect directly
-                // This avoids popup-blocked issues and cross-origin problems
-                console.log('Deployed environment detected. Using signInWithRedirect...');
-                if (window.showToast) window.showToast('Redirecting to Google Sign-In...', 'info', 3000);
-                await signInWithRedirect(auth, provider);
-                return; // Page will reload after redirect
-            }
+            // Use popup on ALL environments (Vercel, Render, Localhost)
+            const result = await signInWithPopup(auth, provider);
+            await processGoogleUser(result.user, role, isRegister);
         } catch (error) {
             console.error('Google Sign‑In Error:', error);
             if (error.code === 'auth/popup-blocked' || error.code === 'auth/cancelled-popup-request') {
@@ -1023,7 +1035,7 @@ function initGoogleSignIn(role) {
             } else if (error.code === 'auth/popup-closed-by-user') {
                 // User closed popup; do nothing
             } else if (error.code === 'auth/unauthorized-domain') {
-                const msg = 'This domain/port is not authorized in Firebase Authentication Console. Please add your domain to Firebase Authentication > Settings > Authorized Domains.';
+                const msg = 'This domain is not authorized in Firebase Authentication Console. Please ensure your domain is added to Firebase Authentication > Settings > Authorized Domains.';
                 if (window.showToast) window.showToast(msg, 'error', 8000);
                 else alert(msg);
             } else if (error.code === 'auth/account-exists-with-different-credential') {

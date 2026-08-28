@@ -7,18 +7,10 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/fireba
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-// ── Detect environment ──
-const isLocalhost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
-
 // ── Firebase Configuration ──
-// On deployed environments (Vercel/Render), use the current hostname as authDomain
-// to avoid third-party cookie blocking issues with Google Sign-In popup/redirect flows.
-// Firebase Auth uses authDomain for the OAuth handler page (__/auth/handler).
-// When authDomain differs from the page's origin, browsers block cookies as third-party,
-// causing the sign-in to silently fail after account selection.
 const firebaseConfig = {
     apiKey: "AIzaSyDJmFroVCpTFAxD0n035fd1vCfIrZceyqk",
-    authDomain: isLocalhost ? "smart-campus-bus-2bc13.firebaseapp.com" : window.location.hostname,
+    authDomain: "smart-campus-bus-2bc13.firebaseapp.com",
     projectId: "smart-campus-bus-2bc13",
     storageBucket: "smart-campus-bus-2bc13.firebasestorage.app",
     messagingSenderId: "445243680063",
@@ -30,7 +22,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-console.log(`✅ Firebase initialized (authDomain: ${firebaseConfig.authDomain})`);
+console.log("✅ Firebase initialized successfully");
 
 // ── Export for use in other modules ──
 export { app, auth, db };
