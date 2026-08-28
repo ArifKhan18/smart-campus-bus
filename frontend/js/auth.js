@@ -13,6 +13,7 @@ import {
     GoogleAuthProvider,
     signInWithPopup,
     signInWithRedirect,
+    signInWithCredential,
     getRedirectResult,
     onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
@@ -952,76 +953,105 @@ async function processGoogleUser(user, role, isRegister) {
         else alert(errorMsg);
     }
 }
-// ── Google Sign‑In / Sign‑Up Initialization ──
+const GOOGLE_CLIENT_ID = "445243680063-stoeabkvro4u3p0k3ebobc6vtpetcs1u.apps.googleusercontent.com";
+
+// ── Google Sign‑In / Sign‑Up Initialization (Google Identity Services + Firebase) ──
 function initGoogleSignIn(role) {
     const btn = document.getElementById('auth-google-btn');
-    if (!btn) return;
+    const gsiContainer = document.getElementById('auth-google-gsi');
 
     // Admin logs in manually with email/password
     if (role === 'admin') {
-        btn.style.display = 'none';
+        if (btn) btn.style.display = 'none';
         const divider = document.getElementById('auth-divider');
         if (divider) divider.style.display = 'none';
+        if (gsiContainer) gsiContainer.style.display = 'none';
         return;
     }
 
     const isRegister = window.location.pathname.includes('register');
-    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 
-    const provider = new GoogleAuthProvider();
-    provider.addScope('email');
-    provider.addScope('profile');
-    provider.setCustomParameters({ prompt: 'select_account' });
+    // Callback for Google Identity Services (GSI)
+    window.handleGoogleCredentialResponse = async (response) => {
+        console.log("Google Identity Services credential received!");
+        const loadingOverlay = document.getElementById('auth-loading');
+        const loadingText = document.getElementById('auth-loading-text');
+        if (loadingOverlay) loadingOverlay.style.display = 'flex';
+        if (loadingText) loadingText.textContent = 'Signing in with Google...';
 
-    btn.addEventListener('click', async () => {
         isAuthFlowActive = true;
-        sessionStorage.setItem('auth_role', role);
-        sessionStorage.setItem('auth_is_register', isRegister ? 'true' : 'false');
 
         try {
-            // Must be called immediately on click to preserve browser's user-gesture token
-            const result = await signInWithPopup(auth, provider);
-
-            const loadingOverlay = document.getElementById('auth-loading');
-            const loadingText = document.getElementById('auth-loading-text');
-            if (loadingOverlay) loadingOverlay.style.display = 'flex';
-            if (loadingText) loadingText.textContent = 'Setting up your dashboard...';
-
-            await processGoogleUser(result.user, role, isRegister);
+            const credential = GoogleAuthProvider.credential(response.credential);
+            const userCredential = await signInWithCredential(auth, credential);
+            await processGoogleUser(userCredential.user, role, isRegister);
         } catch (error) {
-            console.error('Google Sign‑In Error:', error);
-            if (error.code === 'auth/popup-blocked' || error.code === 'auth/cancelled-popup-request') {
-                console.log('Popup blocked. Falling back to signInWithRedirect...');
-                if (window.showToast) window.showToast('Redirecting to Google Sign-In...', 'info', 2000);
-                try {
-                    await signInWithRedirect(auth, provider);
-                    return;
-                } catch (redirectErr) {
-                    console.error('Redirect error:', redirectErr);
-                }
-            } else if (error.code === 'auth/operation-not-allowed') {
-                const msg = 'Google Sign-In is not enabled. Please enable Google provider in Firebase Authentication.';
-                if (window.showToast) window.showToast(msg, 'error', 8000);
-                else alert(msg);
-            } else if (error.code === 'auth/popup-closed-by-user') {
-                // User closed popup; do nothing
-            } else if (error.code === 'auth/unauthorized-domain') {
-                const msg = 'This domain is not authorized. Please add it to Firebase Authentication > Settings > Authorized Domains.';
-                if (window.showToast) window.showToast(msg, 'error', 8000);
-                else alert(msg);
-            } else if (error.code === 'auth/account-exists-with-different-credential') {
-                const msg = 'An account already exists with this email using email/password. Please sign in with email/password instead.';
-                if (window.showToast) window.showToast(msg, 'warning', 6000);
-                else alert(msg);
-            } else {
-                const msg = error.message || 'Google authentication failed.';
-                if (window.showToast) window.showToast(msg, 'error');
-                else alert(msg);
-            }
+            console.error('Google GSI Authentication Error:', error);
+            if (window.showToast) window.showToast(error.message || 'Google Sign-In failed.', 'error');
+            else alert(error.message);
         } finally {
             isAuthFlowActive = false;
-            const loadingOverlay = document.getElementById('auth-loading');
             if (loadingOverlay) loadingOverlay.style.display = 'none';
         }
-    });
+    };
+
+    // Render Google Identity Services Button
+    function renderGSIButton() {
+        if (window.google && window.google.accounts && window.google.accounts.id) {
+            window.google.accounts.id.initialize({
+                client_id: GOOGLE_CLIENT_ID,
+                callback: window.handleGoogleCredentialResponse,
+                auto_select: false,
+                cancel_on_tap_outside: true
+            });
+
+            if (gsiContainer) {
+                window.google.accounts.id.renderButton(gsiContainer, {
+                    theme: "outline",
+                    size: "large",
+                    type: "standard",
+                    shape: "rectangular",
+                    text: isRegister ? "signup_with" : "signin_with",
+                    logo_alignment: "left",
+                    width: 320
+                });
+                if (btn) btn.style.display = 'none';
+            }
+        }
+    }
+
+    if (window.google && window.google.accounts) {
+        renderGSIButton();
+    } else {
+        window.addEventListener('load', renderGSIButton);
+        setTimeout(renderGSIButton, 500);
+        setTimeout(renderGSIButton, 1500);
+    }
+
+    // Custom button click handler (Fallback / One Tap prompt)
+    if (btn) {
+        btn.addEventListener('click', async () => {
+            if (window.google && window.google.accounts && window.google.accounts.id) {
+                window.google.accounts.id.prompt();
+            } else {
+                // Fallback popup if GSI script didn't load
+                const provider = new GoogleAuthProvider();
+                try {
+                    const result = await signInWithPopup(auth, provider);
+                    await processGoogleUser(result.user, role, isRegister);
+                } catch (error) {
+                    console.error("Popup fallback error:", error);
+                    if (error.code === 'auth/popup-blocked') {
+                        try {
+                            await signInWithRedirect(auth, provider);
+                        } catch (reErr) {
+                            console.error("Redirect fallback error:", reErr);
+                        }
+                    } else {
+                        if (window.showToast) window.showToast(error.message || "Google Sign-In failed", "error");
+                    }
+                }
+            }
+        });
+    }
 }
