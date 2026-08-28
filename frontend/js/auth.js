@@ -887,8 +887,8 @@ async function processGoogleUser(user, role, isRegister) {
                 await setDoc(docRef, newProfile);
                 if (window.showToast) window.showToast('Welcome! Your student account has been created.', 'success', 3000);
                 setTimeout(() => {
-                    window.location.replace(`dashboard.html?role=student`);
-                }, 1000);
+                    window.location.replace(`student-dashboard.html`);
+                }, 800);
                 return;
             }
 
@@ -971,11 +971,15 @@ async function processGoogleUser(user, role, isRegister) {
             return;
         }
 
-        // Success – redirect to appropriate dashboard
+        // Success – redirect directly to target dashboard
+        let targetPage = "student-dashboard.html";
+        if (profile.role === 'admin' || profile.adminLevel === 'main') targetPage = "admin-dashboard.html";
+        else if (profile.role === 'driver') targetPage = "driver-dashboard.html";
+
         if (window.showToast) window.showToast('Login successful! Redirecting...', 'success');
         setTimeout(() => {
-            window.location.replace(`dashboard.html?role=${role}`);
-        }, 1000);
+            window.location.replace(targetPage);
+        }, 800);
     }
 }
 
