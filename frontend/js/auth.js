@@ -970,31 +970,15 @@ function initGoogleSignIn(role) {
         sessionStorage.setItem('auth_is_register', isRegister ? 'true' : 'false');
 
         try {
-            if (isLocalhost) {
-                // Localhost: popup works fine
-                const result = await signInWithPopup(auth, provider);
-                await processGoogleUser(result.user, role, isRegister);
-            } else {
-                // Deployed (Vercel/Render): browsers block popups, use redirect
-                // After Google auth, the browser will redirect back to this page.
-                // getRedirectResult() in DOMContentLoaded will pick up the result.
-                console.log('Deployed environment: using signInWithRedirect');
-                await signInWithRedirect(auth, provider);
-                // Page will navigate away — no code runs after this
-                return;
-            }
+            // signInWithPopup is the standard and most reliable method for Firebase Web SDK
+            const result = await signInWithPopup(auth, provider);
+            await processGoogleUser(result.user, role, isRegister);
         } catch (error) {
             console.error('Google Sign‑In Error:', error);
             if (error.code === 'auth/popup-blocked' || error.code === 'auth/cancelled-popup-request') {
-                // Fallback: if popup is blocked even on localhost
-                console.log('Popup blocked. Falling back to signInWithRedirect...');
-                if (window.showToast) window.showToast('Redirecting to Google Sign-In...', 'info', 3000);
-                try {
-                    await signInWithRedirect(auth, provider);
-                    return;
-                } catch (redirectErr) {
-                    console.error('Redirect sign-in error:', redirectErr);
-                }
+                const msg = '🚫 Pop-up was blocked by your browser! Please click the pop-up icon in your address bar (URL bar) and select "Always allow pop-ups from this site", then click Sign in again.';
+                if (window.showToast) window.showToast(msg, 'warning', 10000);
+                else alert(msg);
             } else if (error.code === 'auth/operation-not-allowed') {
                 const msg = 'Google Sign-In is not enabled. Please enable Google provider in Firebase Authentication.';
                 if (window.showToast) window.showToast(msg, 'error', 8000);
