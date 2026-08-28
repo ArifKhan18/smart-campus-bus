@@ -62,13 +62,21 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidIssuer = $"https://securetoken.google.com/{projectId}",
             ValidateAudience = true,
             ValidAudience = projectId,
-            ValidateLifetime = true
+            ValidateLifetime = true,
+            NameClaimType = "user_id",
+            RoleClaimType = ClaimTypes.Role
         };
         options.Events = new JwtBearerEvents
         {
             OnTokenValidated = async context =>
             {
+<<<<<<< HEAD
+                var authService = context.HttpContext.RequestServices.GetRequiredService<IAuthService>();
+                var uid = context.Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value?? context.Principal?.FindFirst("user_id")?.Value;
+                if (!string.IsNullOrEmpty(uid))
+=======
                 try
+>>>>>>> b11ad7a6c8c8233b9ab5a9028980cc8b450d31ba
                 {
                     var authService = context.HttpContext.RequestServices.GetRequiredService<IAuthService>();
                     var uid = context.Principal?.FindFirst("user_id")?.Value
@@ -100,10 +108,18 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                         }
                     }
                 }
+<<<<<<< HEAD
+            },
+            OnAuthenticationFailed = context =>
+            {
+                Console.WriteLine($"Firebase token validation failed: {context.Exception.Message}");
+                return Task.CompletedTask;
+=======
                 catch (Exception ex)
                 {
                     Console.WriteLine($"Error in JWT OnTokenValidated: {ex.Message}");
                 }
+>>>>>>> b11ad7a6c8c8233b9ab5a9028980cc8b450d31ba
             }
         };
     });
