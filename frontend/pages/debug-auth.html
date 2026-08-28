@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Sign-In Debug Test</title>
+    <style>
+        body { font-family: monospace; background: #111; color: #0f0; padding: 20px; }
+        #log { white-space: pre-wrap; border: 1px solid #333; padding: 15px; margin: 10px 0; max-height: 500px; overflow-y: auto; }
+        button { padding: 15px 30px; font-size: 18px; cursor: pointer; background: #2563eb; color: white; border: none; border-radius: 8px; margin: 10px 5px; }
+        .error { color: #f00; }
+        .success { color: #0f0; }
+        .warn { color: #ff0; }
+        .info { color: #0ff; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Google Sign-In Debug Test</h1>
+    <p>Hostname: <span id="hostname"></span></p>
+    <button id="btn-popup">Test signInWithPopup</button>
+    <button id="btn-redirect">Test signInWithRedirect</button>
+    <button id="btn-signout">Sign Out</button>
+    <div id="log"></div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getAuth, signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+        const logEl = document.getElementById('log');
+        function log(msg, type = 'info') {
+            const time = new Date().toLocaleTimeString();
+            logEl.innerHTML += `<span class="${type}">[${time}] ${msg}</span>\n`;
+            logEl.scrollTop = logEl.scrollHeight;
+            console.log(msg);
+        }
+
+        document.getElementById('hostname').textContent = window.location.hostname;
+
+        // Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyDJmFroVCpTFAxD0n035fd1vCfIrZceyqk",
+            authDomain: "smart-campus-bus-2bc13.firebaseapp.com",
+            projectId: "smart-campus-bus-2bc13",
+            storageBucket: "smart-campus-bus-2bc13.firebasestorage.app",
+            messagingSenderId: "445243680063",
+            appId: "1:445243680063:web:46cebd5f54d97ef9cb1f8a"
+        };
+
+        log(`Firebase config authDomain: ${firebaseConfig.authDomain}`);
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        log('✅ Firebase initialized', 'success');
+
+        // Check auth state
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                log(`🟢 AUTH STATE: Logged in as ${user.email} (uid: ${user.uid})`, 'success');
+            } else {
+                log('🔴 AUTH STATE: Not logged in', 'warn');
+            }
+        });
+
+        // Check redirect result on page load
+        log('Checking for redirect result...');
+        try {
+            const result = await getRedirectResult(auth);
+            if (result && result.user) {
+                log(`✅ REDIRECT RESULT: ${result.user.email}`, 'success');
+            } else {
+                log('No redirect result found (normal if not returning from redirect)', 'info');
+            }
+        } catch (e) {
+            log(`❌ REDIRECT ERROR: code=${e.code}, message=${e.message}`, 'error');
+        }
+
+        const provider = new GoogleAuthProvider();
+        provider.addScope('email');
+        provider.addScope('profile');
+        provider.setCustomParameters({ prompt: 'select_account' });
+
+        // Popup test
+        document.getElementById('btn-popup').addEventListener('click', async () => {
+            log('--- POPUP TEST STARTED ---', 'info');
+            log(`Current origin: ${window.location.origin}`);
+            log(`Auth domain: ${firebaseConfig.authDomain}`);
+            try {
+                log('Calling signInWithPopup...');
+                const result = await signInWithPopup(auth, provider);
+                log(`✅ POPUP SUCCESS! User: ${result.user.email}`, 'success');
+                log(`Display Name: ${result.user.displayName}`, 'success');
+                log(`UID: ${result.user.uid}`, 'success');
+            } catch (error) {
+                log(`❌ POPUP ERROR:`, 'error');
+                log(`  code: ${error.code}`, 'error');
+                log(`  message: ${error.message}`, 'error');
+                log(`  full error: ${JSON.stringify(error, null, 2)}`, 'error');
+                if (error.customData) {
+                    log(`  customData: ${JSON.stringify(error.customData)}`, 'error');
+                }
+            }
+        });
+
+        // Redirect test
+        document.getElementById('btn-redirect').addEventListener('click', async () => {
+            log('--- REDIRECT TEST STARTED ---', 'info');
+            try {
+                log('Calling signInWithRedirect...');
+                await signInWithRedirect(auth, provider);
+            } catch (error) {
+                log(`❌ REDIRECT ERROR: code=${error.code}, message=${error.message}`, 'error');
+            }
+        });
+
+        // Sign out
+        document.getElementById('btn-signout').addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+                log('Signed out successfully', 'success');
+            } catch (e) {
+                log(`Sign out error: ${e.message}`, 'error');
+            }
+        });
+    </script>
+</body>
+</html>
