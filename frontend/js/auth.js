@@ -542,11 +542,15 @@ async function handleLoginSubmit(role) {
                     return;
                 }
 
-                // 6. Success - Redirect to Dashboard
+                // 6. Success - Redirect directly to target dashboard
+                let targetPage = "student-dashboard.html";
+                if (profile.role === 'admin' || profile.adminLevel === 'main') targetPage = "admin-dashboard.html";
+                else if (profile.role === 'driver') targetPage = "driver-dashboard.html";
+
                 if(window.showToast) window.showToast("Login successful! Redirecting...", 'success');
                 setTimeout(() => {
-                    window.location.replace(`dashboard.html?role=${role}`);
-                }, 1000);
+                    window.location.replace(targetPage);
+                }, 800);
                 return;
             } else {
                 await auth.signOut();
@@ -855,8 +859,8 @@ async function processGoogleUser(user, role, isRegister) {
         // Student registration success
         if (window.showToast) window.showToast('Registration successful! Redirecting...', 'success');
         setTimeout(() => {
-            window.location.replace(`dashboard.html?role=${role}`);
-        }, 1000);
+            window.location.replace(`student-dashboard.html`);
+        }, 800);
 
     } else {
         // ── LOGIN FLOW ──

@@ -56,15 +56,26 @@ export function initAuthGuard(requireAuth = true, allowedRoles = []) {
                                 return resolve(null);
                             }
                         }
-                        
                         resolve({ user, profile: currentProfile });
                     } else {
-                        console.error("No user profile found in Firestore!");
-                        if (requireAuth) {
-                            await logoutUser();
-                            window.location.href = "login.html";
+                        console.warn("No user profile found in Firestore. Creating default student profile...");
+                        // Auto-create student profile for authenticated user (e.g. Google Sign-In)
+                        const fallbackProfile = {
+                            uid: user.uid,
+                            name: user.displayName || user.email.split('@')[0],
+                            email: user.email,
+                            role: 'student',
+                            status: 'active',
+                            assignedBus: null
+                        };
+                        try {
+                            const { setDoc, serverTimestamp } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+                            await setDoc(docRef, { ...fallbackProfile, createdAt: serverTimestamp() });
+                        } catch (e) {
+                            console.error("Failed to auto-create profile:", e);
                         }
-                        resolve(null);
+                        currentProfile = fallbackProfile;
+                        resolve({ user, profile: currentProfile });
                     }
                 } catch (error) {
                     console.error("Error fetching user profile:", error);
