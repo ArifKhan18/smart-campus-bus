@@ -956,6 +956,10 @@ function initGoogleSignIn(role) {
                 else alert(msg);
             } else if (error.code === 'auth/popup-closed-by-user') {
                 // User closed popup; do nothing
+            } else if (error.code === 'auth/popup-blocked') {
+                const msg = 'Browser popup blocked! Please click the Pop-up icon in your browser address bar and select "Always allow pop-ups" to sign in with Google.';
+                if (window.showToast) window.showToast(msg, 'warning', 8000);
+                else alert(msg);
             } else if (error.code === 'auth/unauthorized-domain') {
                 const msg = 'This domain/port is not authorized in Firebase Authentication Console.';
                 if (window.showToast) window.showToast(msg, 'error');
