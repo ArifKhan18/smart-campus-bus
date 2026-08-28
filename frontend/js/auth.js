@@ -511,9 +511,16 @@ async function handleLoginSubmit(role) {
                     return;
                 }
 
-                // 5. Co-Admin choice if logging in from student role
-                if (role === 'student' && profile.adminLevel === 'co') {
-                    const targetDashboard = await promptCoAdminDashboardChoice(profile);
+                // 5. Co-Admin choice if logging in from student role (or role-select)
+                if (profile.adminLevel === 'co') {
+                    let targetDashboard;
+                    if (role === 'admin') {
+                        targetDashboard = "admin-dashboard.html";
+                    } else if (role === 'student') {
+                        targetDashboard = await promptCoAdminDashboardChoice(profile);
+                    } else {
+                        targetDashboard = await promptCoAdminDashboardChoice(profile);
+                    }
                     if(window.showToast) window.showToast("Login successful! Redirecting...", 'success');
                     setTimeout(() => {
                         window.location.replace(targetDashboard);
@@ -523,7 +530,7 @@ async function handleLoginSubmit(role) {
 
                 // 6. Success - Redirect directly to target dashboard
                 let targetPage = "student-dashboard.html";
-                if (profile.role === 'admin' || profile.adminLevel === 'main') targetPage = "admin-dashboard.html";
+                if (profile.role === 'admin' || profile.adminLevel === 'main' || profile.adminLevel === 'co') targetPage = "admin-dashboard.html";
                 else if (profile.role === 'driver') targetPage = "driver-dashboard.html";
 
                 if(window.showToast) window.showToast("Login successful! Redirecting...", 'success');
@@ -824,8 +831,15 @@ async function processGoogleUser(user, role, isRegister) {
             }
 
             // Co-Admin Choice handling
-            if (role === 'student' && profile.adminLevel === 'co') {
-                const targetDashboard = await promptCoAdminDashboardChoice(profile);
+            if (profile.adminLevel === 'co') {
+                let targetDashboard;
+                if (role === 'admin') {
+                    targetDashboard = "admin-dashboard.html";
+                } else if (role === 'student') {
+                    targetDashboard = await promptCoAdminDashboardChoice(profile);
+                } else {
+                    targetDashboard = await promptCoAdminDashboardChoice(profile);
+                }
                 if (window.showToast) window.showToast('Login successful! Redirecting...', 'success');
                 setTimeout(() => {
                     window.location.replace(targetDashboard);
@@ -835,7 +849,7 @@ async function processGoogleUser(user, role, isRegister) {
 
             // Redirect directly to dashboard
             let targetPage = "student-dashboard.html";
-            if (profile.role === 'admin' || profile.adminLevel === 'main') targetPage = "admin-dashboard.html";
+            if (profile.role === 'admin' || profile.adminLevel === 'main' || profile.adminLevel === 'co') targetPage = "admin-dashboard.html";
             else if (profile.role === 'driver') targetPage = "driver-dashboard.html";
 
             if (window.showToast) window.showToast('Login successful! Redirecting...', 'success');
