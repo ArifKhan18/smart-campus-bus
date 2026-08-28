@@ -787,65 +787,131 @@ function initForgotPassword() {
 // ── Process Google User Profile & Role Validations ──
 async function processGoogleUser(user, role, isRegister) {
     // Fetch user profile from Firestore
-    const docRef = doc(db, 'users', user.uid);
-    const docSnap = await getDoc(docRef);
+// ── Process Google User Profile & Role Validations ──
+async function processGoogleUser(user, role, isRegister) {
+    try {
+        console.log(`Processing Google user: ${user.email} (role: ${role})`);
+        
+        // 1. Fetch user profile from Firestore by UID
+        const docRef = doc(db, 'users', user.uid);
+        let docSnap = null;
+        try {
+            docSnap = await getDoc(docRef);
+        } catch (fetchErr) {
+            console.warn("Firestore getDoc error (using auth profile):", fetchErr);
+        }
 
-    if (isRegister) {
-        // ── REGISTRATION FLOW ──
-        if (docSnap.exists()) {
+        // 2. If profile already exists in Firestore
+        if (docSnap && docSnap.exists()) {
             const profile = docSnap.data();
-            await auth.signOut();
 
+            // Strict Role Separation
             if (role === 'driver' && profile.role === 'student') {
-                const msg = 'This Google account is already registered as a Student. A Student account cannot be registered as a Driver.';
+                await auth.signOut();
+                const msg = 'This Google account is registered as a Student. A Student account cannot log in as a Driver.';
                 if (window.showToast) window.showToast(msg, 'error', 6000);
                 else alert(msg);
                 return;
             }
             if (role === 'student' && profile.role === 'driver') {
-                const msg = 'This Google account is already registered as a Driver. A Driver account cannot be registered as a Student.';
+                await auth.signOut();
+                const msg = 'This Google account is registered as a Driver. A Driver account cannot log in as a Student.';
                 if (window.showToast) window.showToast(msg, 'error', 6000);
                 else alert(msg);
                 return;
             }
-
-            const msg = `This Google account is already registered as a ${profile.role}. Please sign in instead.`;
-            if (window.showToast) window.showToast(msg, 'warning', 5000);
-            else alert(msg);
-            return;
-        }
-
-        // Cross-provider safety: the email may already exist under a password-based account.
-        const emailQuery = query(collection(db, 'users'), where('email', '==', user.email));
-        const emailSnap = await getDocs(emailQuery);
-        if (!emailSnap.empty) {
-            const existingUser = emailSnap.docs[0].data();
-            await auth.signOut();
-            if (existingUser.role !== role) {
-                const msg = `This Google account is already registered as a ${existingUser.role}. A ${existingUser.role} account cannot be registered as a ${role}.`;
-                if (window.showToast) window.showToast(msg, 'error', 6000);
-                else alert(msg);
-            } else {
-                const msg = `This Google account is already registered as a ${role}. Please sign in instead.`;
-                if (window.showToast) window.showToast(msg, 'warning', 5000);
-                else alert(msg);
+            if (role === 'admin') {
+                const isAdmin = profile.role === 'admin' || profile.adminLevel === 'main' || profile.adminLevel === 'co';
+                if (!isAdmin) {
+                    await auth.signOut();
+                    const msg = 'Access Denied: This account does not have Admin privileges.';
+                    if (window.showToast) window.showToast(msg, 'error', 6000);
+                    else alert(msg);
+                    return;
+                }
             }
+
+            // Driver pending/rejected handling
+            if (role === 'driver' && profile.status === 'pending') {
+                await auth.signOut();
+                const msg = 'Your driver account is pending admin approval. You cannot log in yet.';
+                if (window.showToast) window.showToast(msg, 'warning');
+                else alert(msg);
+                return;
+            }
+            if (role === 'driver' && profile.status === 'rejected') {
+                await auth.signOut();
+                const msg = 'Your driver account application was rejected.';
+                if (window.showToast) window.showToast(msg, 'error');
+                else alert(msg);
+                return;
+            }
+
+            // Co-Admin Choice handling
+            if (role === 'student' && profile.adminLevel === 'co') {
+                const targetDashboard = await promptCoAdminDashboardChoice(profile);
+                if (window.showToast) window.showToast('Login successful! Redirecting...', 'success');
+                setTimeout(() => {
+                    window.location.replace(targetDashboard);
+                }, 500);
+                return;
+            }
+
+            // Redirect directly to dashboard
+            let targetPage = "student-dashboard.html";
+            if (profile.role === 'admin' || profile.adminLevel === 'main') targetPage = "admin-dashboard.html";
+            else if (profile.role === 'driver') targetPage = "driver-dashboard.html";
+
+            if (window.showToast) window.showToast('Login successful! Redirecting...', 'success');
+            setTimeout(() => {
+                window.location.replace(targetPage);
+            }, 600);
             return;
         }
 
-        // New student or driver Google user – create profile in database
-        const newProfile = {
-            uid: user.uid,
-            name: user.displayName || user.email.split('@')[0],
-            email: user.email,
-            role: role,
-            status: role === 'driver' ? 'pending' : 'active',
-            assignedBus: null,
-            createdAt: serverTimestamp()
-        };
-        await setDoc(docRef, newProfile);
+        // 3. If profile does NOT exist yet (New User)
+        if (role === 'student') {
+            const newProfile = {
+                uid: user.uid,
+                name: user.displayName || (user.email ? user.email.split('@')[0] : 'Student'),
+                email: user.email,
+                role: 'student',
+                status: 'active',
+                assignedBus: null,
+                createdAt: serverTimestamp()
+            };
+            try {
+                await setDoc(docRef, newProfile);
+            } catch (setErr) {
+                console.warn("Firestore setDoc warning:", setErr);
+            }
+
+            if (window.showToast) window.showToast('Welcome! Your student account is ready.', 'success', 3000);
+            setTimeout(() => {
+                window.location.replace('student-dashboard.html');
+            }, 600);
+            return;
+        }
 
         if (role === 'driver') {
+            if (!isRegister) {
+                await auth.signOut();
+                const msg = 'This Driver account is not registered yet. Please register first for admin approval.';
+                if (window.showToast) window.showToast(msg, 'error', 5000);
+                else alert(msg);
+                return;
+            }
+
+            const newDriverProfile = {
+                uid: user.uid,
+                name: user.displayName || (user.email ? user.email.split('@')[0] : 'Driver'),
+                email: user.email,
+                role: 'driver',
+                status: 'pending',
+                assignedBus: null,
+                createdAt: serverTimestamp()
+            };
+            await setDoc(docRef, newDriverProfile);
             await auth.signOut();
             const msg = 'Registration submitted! Your driver account is pending admin approval.';
             if (window.showToast) window.showToast(msg, 'warning', 6000);
@@ -856,134 +922,17 @@ async function processGoogleUser(user, role, isRegister) {
             return;
         }
 
-        // Student registration success
-        if (window.showToast) window.showToast('Registration successful! Redirecting...', 'success');
-        setTimeout(() => {
-            window.location.replace(`student-dashboard.html`);
-        }, 800);
+        // Admin cannot register via Google
+        await auth.signOut();
+        const msg = 'Admin accounts cannot be registered publicly.';
+        if (window.showToast) window.showToast(msg, 'error', 5000);
+        else alert(msg);
 
-    } else {
-        // ── LOGIN FLOW ──
-        if (!docSnap.exists()) {
-            // Check if email exists under another role (e.g. driver)
-            const emailQuery = query(collection(db, 'users'), where('email', '==', user.email));
-            const emailSnap = await getDocs(emailQuery);
-            if (!emailSnap.empty) {
-                const existingUser = emailSnap.docs[0].data();
-                await auth.signOut();
-                const msg = `This email is registered as a ${existingUser.role} account. Please sign in with your ${existingUser.role} account.`;
-                if (window.showToast) window.showToast(msg, 'warning', 6000);
-                else alert(msg);
-                return;
-            }
-
-            // If it's a student signing in with Google for the first time, auto-create student profile!
-            if (role === 'student') {
-                const newProfile = {
-                    uid: user.uid,
-                    name: user.displayName || user.email.split('@')[0],
-                    email: user.email,
-                    role: 'student',
-                    status: 'active',
-                    assignedBus: null,
-                    createdAt: serverTimestamp()
-                };
-                await setDoc(docRef, newProfile);
-                if (window.showToast) window.showToast('Welcome! Your student account has been created.', 'success', 3000);
-                setTimeout(() => {
-                    window.location.replace(`student-dashboard.html`);
-                }, 800);
-                return;
-            }
-
-            // For driver or admin, require prior registration / admin setup
-            await auth.signOut();
-            const msg = role === 'driver' 
-                ? 'This Driver account is not registered yet. Please register first for admin approval.' 
-                : 'This account does not exist. Please contact the administrator.';
-            if (window.showToast) window.showToast(msg, 'error', 5000);
-            else alert(msg);
-            return;
-        }
-
-        const profile = docSnap.data();
-
-        // Role validation & Strict Separation
-        if (role === 'driver') {
-            if (profile.role === 'student') {
-                await auth.signOut();
-                const msg = 'This Google account is registered as a Student. A Student account cannot log in as a Driver.';
-                if (window.showToast) window.showToast(msg, 'error', 6000);
-                else alert(msg);
-                return;
-            }
-            if (profile.role !== 'driver') {
-                await auth.signOut();
-                const msg = `This account is registered as a ${profile.role}. Please switch roles.`;
-                if (window.showToast) window.showToast(msg, 'error', 6000);
-                else alert(msg);
-                return;
-            }
-        } else if (role === 'student') {
-            if (profile.role === 'driver') {
-                await auth.signOut();
-                const msg = 'This Google account is registered as a Driver. A Driver account cannot log in as a Student.';
-                if (window.showToast) window.showToast(msg, 'error', 6000);
-                else alert(msg);
-                return;
-            }
-        } else if (role === 'admin') {
-            if (profile.role === 'driver') {
-                await auth.signOut();
-                const msg = 'Access Denied: Driver accounts do not have Admin privileges.';
-                if (window.showToast) window.showToast(msg, 'error', 6000);
-                else alert(msg);
-                return;
-            }
-            const isAdmin = profile.role === 'admin' || profile.adminLevel === 'main' || profile.adminLevel === 'co';
-            if (!isAdmin) {
-                await auth.signOut();
-                const msg = 'Access Denied: This Student account does not have Admin privileges.';
-                if (window.showToast) window.showToast(msg, 'error', 6000);
-                else alert(msg);
-                return;
-            }
-        }
-
-        // Driver pending/rejected handling
-        if (role === 'driver' && profile.status === 'pending') {
-            await auth.signOut();
-            const msg = 'Your driver account is pending admin approval. You cannot log in yet.';
-            if (window.showToast) window.showToast(msg, 'warning');
-            else alert(msg);
-            return;
-        } else if (role === 'driver' && profile.status === 'rejected') {
-            await auth.signOut();
-            const msg = 'Your driver account application was rejected.';
-            if (window.showToast) window.showToast(msg, 'error');
-            else alert(msg);
-            return;
-        }
-
-        // Co-Admin Choice handling
-        if (role === 'student' && profile.adminLevel === 'co') {
-            const targetDashboard = await promptCoAdminDashboardChoice(profile);
-            if (window.showToast) window.showToast('Login successful! Redirecting...', 'success');
-            setTimeout(() => {
-                window.location.replace(targetDashboard);
-            }, 500);
-            return;
-        }
-
-        // Success – redirect directly to target dashboard
-        let targetPage = "student-dashboard.html";
-        if (profile.role === 'admin' || profile.adminLevel === 'main') targetPage = "admin-dashboard.html";
-        else if (profile.role === 'driver') targetPage = "driver-dashboard.html";
-
-        if (window.showToast) window.showToast('Login successful! Redirecting...', 'success');
-        setTimeout(() => {
-            window.location.replace(targetPage);
-        }, 800);
+    } catch (err) {
+        console.error("Critical error in processGoogleUser:", err);
+        const errorMsg = err.message || "Google authentication failed. Please try again.";
+        if (window.showToast) window.showToast(errorMsg, 'error', 6000);
+        else alert(errorMsg);
     }
 }
 
