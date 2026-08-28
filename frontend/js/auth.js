@@ -786,9 +786,6 @@ function initForgotPassword() {
 }
 // ── Process Google User Profile & Role Validations ──
 async function processGoogleUser(user, role, isRegister) {
-    // Fetch user profile from Firestore
-// ── Process Google User Profile & Role Validations ──
-async function processGoogleUser(user, role, isRegister) {
     try {
         console.log(`Processing Google user: ${user.email} (role: ${role})`);
         
