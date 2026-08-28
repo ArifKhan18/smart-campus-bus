@@ -86,7 +86,7 @@ export function initAuthGuard(requireAuth = true, allowedRoles = []) {
 export async function logoutUser() {
     try {
         await signOut(auth);
-        window.location.href = "role-select.html";
+        window.location.replace("../index.html");
     } catch (error) {
         console.error("Error signing out:", error);
         alert("Failed to sign out. Please try again.");

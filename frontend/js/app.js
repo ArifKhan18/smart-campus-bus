@@ -14,13 +14,39 @@ document.addEventListener("DOMContentLoaded", async () => {
     initScrollAnimations();
     initHeaderScroll();
 
-    // Check if user is already logged in (redirect if true)
+    // Check if user is already logged in (update buttons to Dashboard)
     const authData = await initAuthGuard(false);
     if (authData && authData.profile) {
-        const role = authData.profile.role;
-        if (role === 'admin') window.location.href = 'pages/admin-dashboard.html';
-        else if (role === 'driver') window.location.href = 'pages/driver-dashboard.html';
-        else window.location.href = 'pages/student-dashboard.html';
+        const profile = authData.profile;
+        const role = profile.role;
+
+        let dashboardUrl = "pages/student-dashboard.html";
+        let roleIcon = "🎓";
+        let roleName = "Student";
+
+        if (role === 'admin' || profile.adminLevel === 'main' || profile.adminLevel === 'co') {
+            dashboardUrl = "pages/admin-dashboard.html";
+            roleIcon = "🛡️";
+            roleName = "Admin";
+        } else if (role === 'driver') {
+            dashboardUrl = "pages/driver-dashboard.html";
+            roleIcon = "🚐";
+            roleName = "Driver";
+        }
+
+        // Update header button
+        const btnRegister = document.getElementById("btn-register");
+        if (btnRegister) {
+            btnRegister.textContent = `Dashboard (${roleIcon} ${roleName}) →`;
+            btnRegister.href = dashboardUrl;
+        }
+
+        // Update hero CTA button
+        const btnGetStarted = document.getElementById("btn-get-started");
+        if (btnGetStarted) {
+            btnGetStarted.textContent = `Go to Dashboard →`;
+            btnGetStarted.href = dashboardUrl;
+        }
     }
 });
 

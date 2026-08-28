@@ -625,10 +625,10 @@
         <!-- Sidebar -->
         <aside class="admin-sidebar">
             <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                <div class="logo">
+                <a href="../index.html" class="logo" style="text-decoration: none; color: inherit;" title="Back to Home Page">
                     <span class="logo__icon">🚌</span>
                     <span class="logo__text">SmartBus</span>
-                </div>
+                </a>
                 <div style="display: flex; gap: 10px;">
                     <button id="theme-toggle-btn" class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme" style="background:none; border:none; color:var(--text-primary); cursor:pointer; font-size:1.2rem;">☀️</button>
                     <button class="mobile-close-btn" onclick="document.querySelector('.admin-sidebar').classList.remove('open'); document.querySelector('.sidebar-overlay').classList.remove('open');" style="background:none; border:none; color:var(--text-primary); cursor:pointer; font-size:1.5rem; display: none;">×</button>

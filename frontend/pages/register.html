@@ -44,10 +44,29 @@
 
             <!-- Auth Card -->
             <div class="auth__card" id="auth-card">
-                <!-- Role Badge (dynamically styled by JS) -->
-                <div class="auth__role-badge" id="auth-role-badge">
-                    <span class="auth__role-badge-icon" id="auth-role-icon">🎓</span>
-                    <span id="auth-role-label">Student</span>
+                <!-- Role Selector Dropdown -->
+                <div class="auth__role-switcher" id="auth-role-switcher">
+                    <button type="button" class="auth__role-badge" id="auth-role-badge" aria-expanded="false" aria-haspopup="true" title="Click to switch role">
+                        <span class="auth__role-badge-icon" id="auth-role-icon">🎓</span>
+                        <span id="auth-role-label">Student</span>
+                        <svg class="auth__role-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </button>
+                    <div class="auth__role-dropdown" id="auth-role-dropdown" role="menu">
+                        <a href="register.html?role=student" class="auth__role-option" data-role="student" role="menuitem">
+                            <span class="auth__role-option-icon">🎓</span>
+                            <span class="auth__role-option-label">Student</span>
+                        </a>
+                        <a href="register.html?role=driver" class="auth__role-option" data-role="driver" role="menuitem">
+                            <span class="auth__role-option-icon">🚐</span>
+                            <span class="auth__role-option-label">Driver</span>
+                        </a>
+                        <a href="login.html?role=admin" class="auth__role-option" data-role="admin" role="menuitem" title="Admin Login">
+                            <span class="auth__role-option-icon">🛡️</span>
+                            <span class="auth__role-option-label">Admin (Login)</span>
+                        </a>
+                    </div>
                 </div>
 
                 <h1 class="auth__title" id="auth-title">Create Account</h1>
@@ -111,7 +130,7 @@
                 </form>
 
                 <!-- Divider -->
-                <div class="auth__divider">or</div>
+                <div class="auth__divider" id="auth-divider">or</div>
 
                 <!-- Google Sign-In Button -->
                 <button type="button" class="auth__google-btn" id="auth-google-btn">
@@ -121,7 +140,7 @@
                         <path d="M6.53 13.85A5.98 5.98 0 0 1 6 12c0-.65.1-1.3.28-1.85V7.65H3.1A9.99 9.99 0 0 0 2 12c0 1.65.4 3.2 1.1 4.6l3.43-2.75z" fill="#FBBC05"/>
                         <path d="M12 6.15c1.47 0 2.8.5 3.84 1.5l2.87-2.86C16.95 3.2 14.7 2 12 2 8.05 2 4.75 4.1 3.1 7.65l3.48 2.5C7.3 7.85 9.45 6.15 12 6.15z" fill="#EA4335"/>
                     </svg>
-                    Sign in with Google
+                    Sign up with Google
                 </button>
 
                 <!-- Login Link -->

@@ -1,6 +1,32 @@
-// ========================================
-// Smart Campus Bus — Role Selection Page
-// ========================================
+import { auth, db } from "./firebase-config.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+// Check if user is already logged in
+onAuthStateChanged(auth, async (user) => {
+    if (user) {
+        try {
+            const docRef = doc(db, "users", user.uid);
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists()) {
+                const profile = docSnap.data();
+                if (profile.status === 'blocked') return;
+                if (profile.role === 'driver' && profile.status !== 'active') return;
+
+                let target = "student-dashboard.html";
+                if (profile.role === "admin" || profile.adminLevel === "main" || profile.adminLevel === "co") {
+                    target = "admin-dashboard.html";
+                } else if (profile.role === "driver") {
+                    target = "driver-dashboard.html";
+                }
+                console.log(`Active session found (${profile.role}). Redirecting to ${target}`);
+                window.location.replace(target);
+            }
+        } catch (e) {
+            console.error("Role select auth check error:", e);
+        }
+    }
+});
 
 document.addEventListener("DOMContentLoaded", () => {
     console.log("🚌 Role Selection Page Loaded");
