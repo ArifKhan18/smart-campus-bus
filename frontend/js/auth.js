@@ -970,8 +970,34 @@ function initGoogleSignIn(role) {
     }
 
     const isRegister = window.location.pathname.includes('register');
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 
-    // Callback for Google Identity Services (GSI)
+    // On Localhost: Use standard Firebase Popup (zero origin setup required)
+    if (isLocalhost) {
+        if (gsiContainer) gsiContainer.style.display = 'none';
+        if (btn) {
+            btn.style.display = 'flex';
+            btn.addEventListener('click', async () => {
+                isAuthFlowActive = true;
+                sessionStorage.setItem('auth_role', role);
+                sessionStorage.setItem('auth_is_register', isRegister ? 'true' : 'false');
+                const provider = new GoogleAuthProvider();
+                try {
+                    const result = await signInWithPopup(auth, provider);
+                    await processGoogleUser(result.user, role, isRegister);
+                } catch (error) {
+                    console.error("Local popup error:", error);
+                    if (window.showToast) window.showToast(error.message || "Google Sign-In failed", "error");
+                    else alert(error.message);
+                } finally {
+                    isAuthFlowActive = false;
+                }
+            });
+        }
+        return;
+    }
+
+    // On Deployed (Vercel): Use Google Identity Services (GSI)
     window.handleGoogleCredentialResponse = async (response) => {
         console.log("Google Identity Services credential received!");
         const loadingOverlay = document.getElementById('auth-loading');
@@ -995,7 +1021,6 @@ function initGoogleSignIn(role) {
         }
     };
 
-    // Render Google Identity Services Button
     function renderGSIButton() {
         if (window.google && window.google.accounts && window.google.accounts.id) {
             window.google.accounts.id.initialize({
@@ -1026,32 +1051,5 @@ function initGoogleSignIn(role) {
         window.addEventListener('load', renderGSIButton);
         setTimeout(renderGSIButton, 500);
         setTimeout(renderGSIButton, 1500);
-    }
-
-    // Custom button click handler (Fallback / One Tap prompt)
-    if (btn) {
-        btn.addEventListener('click', async () => {
-            if (window.google && window.google.accounts && window.google.accounts.id) {
-                window.google.accounts.id.prompt();
-            } else {
-                // Fallback popup if GSI script didn't load
-                const provider = new GoogleAuthProvider();
-                try {
-                    const result = await signInWithPopup(auth, provider);
-                    await processGoogleUser(result.user, role, isRegister);
-                } catch (error) {
-                    console.error("Popup fallback error:", error);
-                    if (error.code === 'auth/popup-blocked') {
-                        try {
-                            await signInWithRedirect(auth, provider);
-                        } catch (reErr) {
-                            console.error("Redirect fallback error:", reErr);
-                        }
-                    } else {
-                        if (window.showToast) window.showToast(error.message || "Google Sign-In failed", "error");
-                    }
-                }
-            }
-        });
     }
 }
