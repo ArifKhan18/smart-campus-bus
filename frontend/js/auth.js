@@ -997,59 +997,80 @@ function initGoogleSignIn(role) {
         return;
     }
 
-    // On Deployed (Vercel): Use Google Identity Services (GSI)
-    window.handleGoogleCredentialResponse = async (response) => {
-        console.log("Google Identity Services credential received!");
-        const loadingOverlay = document.getElementById('auth-loading');
-        const loadingText = document.getElementById('auth-loading-text');
-        if (loadingOverlay) loadingOverlay.style.display = 'flex';
-        if (loadingText) loadingText.textContent = 'Signing in with Google...';
+    // Google OAuth 2.0 Token Client (Official Google Identity Services)
+    let tokenClient = null;
 
-        isAuthFlowActive = true;
-
-        try {
-            const credential = GoogleAuthProvider.credential(response.credential);
-            const userCredential = await signInWithCredential(auth, credential);
-            await processGoogleUser(userCredential.user, role, isRegister);
-        } catch (error) {
-            console.error('Google GSI Authentication Error:', error);
-            if (window.showToast) window.showToast(error.message || 'Google Sign-In failed.', 'error');
-            else alert(error.message);
-        } finally {
-            isAuthFlowActive = false;
-            if (loadingOverlay) loadingOverlay.style.display = 'none';
-        }
-    };
-
-    function renderGSIButton() {
-        if (window.google && window.google.accounts && window.google.accounts.id) {
-            window.google.accounts.id.initialize({
+    function initTokenClient() {
+        if (window.google && window.google.accounts && window.google.accounts.oauth2) {
+            tokenClient = window.google.accounts.oauth2.initTokenClient({
                 client_id: GOOGLE_CLIENT_ID,
-                callback: window.handleGoogleCredentialResponse,
-                auto_select: false,
-                cancel_on_tap_outside: true
-            });
+                scope: 'email profile openid',
+                callback: async (tokenResponse) => {
+                    if (tokenResponse.error) {
+                        console.error('Google Token Client error:', tokenResponse);
+                        if (tokenResponse.error !== 'popup_closed_by_user') {
+                            if (window.showToast) window.showToast(`Google Sign-In: ${tokenResponse.error}`, 'error');
+                            else alert(`Google Sign-In: ${tokenResponse.error}`);
+                        }
+                        return;
+                    }
 
-            if (gsiContainer) {
-                window.google.accounts.id.renderButton(gsiContainer, {
-                    theme: "outline",
-                    size: "large",
-                    type: "standard",
-                    shape: "rectangular",
-                    text: isRegister ? "signup_with" : "signin_with",
-                    logo_alignment: "left",
-                    width: 320
-                });
-                if (btn) btn.style.display = 'none';
-            }
+                    console.log('Google OAuth token received successfully!');
+                    const loadingOverlay = document.getElementById('auth-loading');
+                    const loadingText = document.getElementById('auth-loading-text');
+                    if (loadingOverlay) loadingOverlay.style.display = 'flex';
+                    if (loadingText) loadingText.textContent = 'Signing in with Google...';
+
+                    isAuthFlowActive = true;
+
+                    try {
+                        const credential = GoogleAuthProvider.credential(null, tokenResponse.access_token);
+                        const userCredential = await signInWithCredential(auth, credential);
+                        await processGoogleUser(userCredential.user, role, isRegister);
+                    } catch (error) {
+                        console.error('Firebase Auth with Google Token error:', error);
+                        if (window.showToast) window.showToast(error.message || 'Google authentication failed.', 'error');
+                        else alert(error.message);
+                    } finally {
+                        isAuthFlowActive = false;
+                        if (loadingOverlay) loadingOverlay.style.display = 'none';
+                    }
+                }
+            });
         }
     }
 
+    // Initialize Token Client
     if (window.google && window.google.accounts) {
-        renderGSIButton();
+        initTokenClient();
     } else {
-        window.addEventListener('load', renderGSIButton);
-        setTimeout(renderGSIButton, 500);
-        setTimeout(renderGSIButton, 1500);
+        window.addEventListener('load', initTokenClient);
+        setTimeout(initTokenClient, 500);
+        setTimeout(initTokenClient, 1500);
+    }
+
+    // Click handler for the custom styled button
+    if (btn) {
+        btn.style.display = 'flex';
+        if (gsiContainer) gsiContainer.style.display = 'none';
+
+        btn.addEventListener('click', async () => {
+            if (tokenClient) {
+                tokenClient.requestAccessToken({ prompt: 'select_account' });
+            } else if (window.google && window.google.accounts && window.google.accounts.oauth2) {
+                initTokenClient();
+                if (tokenClient) tokenClient.requestAccessToken({ prompt: 'select_account' });
+            } else {
+                // Fallback to Firebase popup if GSI script did not load
+                const provider = new GoogleAuthProvider();
+                try {
+                    const result = await signInWithPopup(auth, provider);
+                    await processGoogleUser(result.user, role, isRegister);
+                } catch (error) {
+                    console.error('Fallback popup error:', error);
+                    if (window.showToast) window.showToast(error.message || 'Google Sign-In failed', 'error');
+                }
+            }
+        });
     }
 }
