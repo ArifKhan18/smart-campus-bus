@@ -954,24 +954,19 @@ function initGoogleSignIn(role) {
     provider.setCustomParameters({ prompt: 'select_account' });
 
     btn.addEventListener('click', async () => {
-        const submitBtn = document.getElementById('auth-submit');
-        const loadingOverlay = document.getElementById('auth-loading');
-        const loadingText = document.getElementById('auth-loading-text');
-        const originalText = submitBtn ? submitBtn.textContent : '';
-        if (submitBtn) {
-            submitBtn.disabled = true;
-            submitBtn.textContent = isRegister ? 'Signing Up...' : 'Signing In...';
-        }
-        if (loadingOverlay) loadingOverlay.style.display = 'flex';
-        if (loadingText) loadingText.textContent = 'Connecting to Google...';
-
         isAuthFlowActive = true;
         sessionStorage.setItem('auth_role', role);
         sessionStorage.setItem('auth_is_register', isRegister ? 'true' : 'false');
 
         try {
-            // signInWithPopup is the standard and most reliable method for Firebase Web SDK
+            // Must be called immediately on click to preserve browser's user-gesture token
             const result = await signInWithPopup(auth, provider);
+
+            const loadingOverlay = document.getElementById('auth-loading');
+            const loadingText = document.getElementById('auth-loading-text');
+            if (loadingOverlay) loadingOverlay.style.display = 'flex';
+            if (loadingText) loadingText.textContent = 'Setting up your dashboard...';
+
             await processGoogleUser(result.user, role, isRegister);
         } catch (error) {
             console.error('Google Sign‑In Error:', error);
@@ -1000,10 +995,7 @@ function initGoogleSignIn(role) {
             }
         } finally {
             isAuthFlowActive = false;
-            if (submitBtn) {
-                submitBtn.textContent = originalText;
-                submitBtn.disabled = false;
-            }
+            const loadingOverlay = document.getElementById('auth-loading');
             if (loadingOverlay) loadingOverlay.style.display = 'none';
         }
     });

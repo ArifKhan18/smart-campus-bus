@@ -81,23 +81,14 @@
 
         // Popup test
         document.getElementById('btn-popup').addEventListener('click', async () => {
-            log('--- POPUP TEST STARTED ---', 'info');
-            log(`Current origin: ${window.location.origin}`);
-            log(`Auth domain: ${firebaseConfig.authDomain}`);
             try {
-                log('Calling signInWithPopup...');
+                // Must be first call to preserve transient user activation token
                 const result = await signInWithPopup(auth, provider);
                 log(`✅ POPUP SUCCESS! User: ${result.user.email}`, 'success');
                 log(`Display Name: ${result.user.displayName}`, 'success');
                 log(`UID: ${result.user.uid}`, 'success');
             } catch (error) {
-                log(`❌ POPUP ERROR:`, 'error');
-                log(`  code: ${error.code}`, 'error');
-                log(`  message: ${error.message}`, 'error');
-                log(`  full error: ${JSON.stringify(error, null, 2)}`, 'error');
-                if (error.customData) {
-                    log(`  customData: ${JSON.stringify(error.customData)}`, 'error');
-                }
+                log(`❌ POPUP ERROR: code=${error.code}, message=${error.message}`, 'error');
             }
         });
 
