@@ -932,7 +932,6 @@ async function processGoogleUser(user, role, isRegister) {
         else alert(errorMsg);
     }
 }
-
 // ── Google Sign‑In / Sign‑Up Initialization ──
 function initGoogleSignIn(role) {
     const btn = document.getElementById('auth-google-btn');
@@ -947,6 +946,7 @@ function initGoogleSignIn(role) {
     }
 
     const isRegister = window.location.pathname.includes('register');
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 
     const provider = new GoogleAuthProvider();
     provider.addScope('email');
@@ -956,25 +956,38 @@ function initGoogleSignIn(role) {
     btn.addEventListener('click', async () => {
         const submitBtn = document.getElementById('auth-submit');
         const loadingOverlay = document.getElementById('auth-loading');
+        const loadingText = document.getElementById('auth-loading-text');
         const originalText = submitBtn ? submitBtn.textContent : '';
         if (submitBtn) {
             submitBtn.disabled = true;
             submitBtn.textContent = isRegister ? 'Signing Up...' : 'Signing In...';
         }
         if (loadingOverlay) loadingOverlay.style.display = 'flex';
+        if (loadingText) loadingText.textContent = 'Connecting to Google...';
 
         isAuthFlowActive = true;
         sessionStorage.setItem('auth_role', role);
         sessionStorage.setItem('auth_is_register', isRegister ? 'true' : 'false');
 
         try {
-            // Use popup on ALL environments (Vercel, Render, Localhost)
-            const result = await signInWithPopup(auth, provider);
-            await processGoogleUser(result.user, role, isRegister);
+            if (isLocalhost) {
+                // Localhost: popup works fine
+                const result = await signInWithPopup(auth, provider);
+                await processGoogleUser(result.user, role, isRegister);
+            } else {
+                // Deployed (Vercel/Render): browsers block popups, use redirect
+                // After Google auth, the browser will redirect back to this page.
+                // getRedirectResult() in DOMContentLoaded will pick up the result.
+                console.log('Deployed environment: using signInWithRedirect');
+                await signInWithRedirect(auth, provider);
+                // Page will navigate away — no code runs after this
+                return;
+            }
         } catch (error) {
             console.error('Google Sign‑In Error:', error);
             if (error.code === 'auth/popup-blocked' || error.code === 'auth/cancelled-popup-request') {
-                console.log('Popup blocked by browser. Falling back to signInWithRedirect...');
+                // Fallback: if popup is blocked even on localhost
+                console.log('Popup blocked. Falling back to signInWithRedirect...');
                 if (window.showToast) window.showToast('Redirecting to Google Sign-In...', 'info', 3000);
                 try {
                     await signInWithRedirect(auth, provider);
@@ -983,17 +996,17 @@ function initGoogleSignIn(role) {
                     console.error('Redirect sign-in error:', redirectErr);
                 }
             } else if (error.code === 'auth/operation-not-allowed') {
-                const msg = 'Google Sign-In is not enabled yet in your Firebase Project Console. Please enable Google provider in Firebase Authentication.';
+                const msg = 'Google Sign-In is not enabled. Please enable Google provider in Firebase Authentication.';
                 if (window.showToast) window.showToast(msg, 'error', 8000);
                 else alert(msg);
             } else if (error.code === 'auth/popup-closed-by-user') {
                 // User closed popup; do nothing
             } else if (error.code === 'auth/unauthorized-domain') {
-                const msg = 'This domain is not authorized in Firebase Authentication Console. Please ensure your domain is added to Firebase Authentication > Settings > Authorized Domains.';
+                const msg = 'This domain is not authorized. Please add it to Firebase Authentication > Settings > Authorized Domains.';
                 if (window.showToast) window.showToast(msg, 'error', 8000);
                 else alert(msg);
             } else if (error.code === 'auth/account-exists-with-different-credential') {
-                const msg = 'An account already exists with this email using email/password. Please sign in with your email and password instead.';
+                const msg = 'An account already exists with this email using email/password. Please sign in with email/password instead.';
                 if (window.showToast) window.showToast(msg, 'warning', 6000);
                 else alert(msg);
             } else {
