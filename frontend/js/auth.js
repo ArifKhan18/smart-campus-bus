@@ -180,8 +180,9 @@ function checkExistingSession() {
                         target = "admin-dashboard.html";
                     } else if (profile.role === "driver") {
                         target = "driver-dashboard.html";
+                    } else if (profile.role === "student") {
+                        target = "student-dashboard.html";
                     } else if (profile.adminLevel === "co") {
-                        // If co-admin explicitly visits ?role=admin, go to admin-dashboard
                         if (currentRoleParam === "admin") {
                             target = "admin-dashboard.html";
                         } else if (currentRoleParam === "student") {
@@ -193,6 +194,25 @@ function checkExistingSession() {
 
                     console.log(`Active session found (${profile.role}). Redirecting to ${target}`);
                     window.location.replace(target);
+                } else {
+                    // User is authenticated in Firebase Auth (e.g. from Google login) but no Firestore profile yet
+                    console.log("Authenticated user without Firestore profile. Auto-creating student profile...");
+                    const newProfile = {
+                        uid: user.uid,
+                        name: user.displayName || (user.email ? user.email.split('@')[0] : 'Student'),
+                        email: user.email,
+                        role: 'student',
+                        status: 'active',
+                        assignedBus: null,
+                        createdAt: serverTimestamp()
+                    };
+                    try {
+                        await setDoc(docRef, newProfile);
+                    } catch (e) {
+                        console.warn("setDoc in checkExistingSession error:", e);
+                    }
+                    console.log("Redirecting to student-dashboard.html");
+                    window.location.replace("student-dashboard.html");
                 }
             } catch (err) {
                 console.error("Auth session check error:", err);
@@ -971,9 +991,14 @@ function initGoogleSignIn(role) {
         } catch (error) {
             console.error('Google Sign‑In Error:', error);
             if (error.code === 'auth/popup-blocked' || error.code === 'auth/cancelled-popup-request') {
-                const msg = '🚫 Pop-up was blocked by your browser! Please click the pop-up icon in your address bar (URL bar) and select "Always allow pop-ups from this site", then click Sign in again.';
-                if (window.showToast) window.showToast(msg, 'warning', 10000);
-                else alert(msg);
+                console.log('Popup blocked. Falling back to signInWithRedirect...');
+                if (window.showToast) window.showToast('Redirecting to Google Sign-In...', 'info', 2000);
+                try {
+                    await signInWithRedirect(auth, provider);
+                    return;
+                } catch (redirectErr) {
+                    console.error('Redirect error:', redirectErr);
+                }
             } else if (error.code === 'auth/operation-not-allowed') {
                 const msg = 'Google Sign-In is not enabled. Please enable Google provider in Firebase Authentication.';
                 if (window.showToast) window.showToast(msg, 'error', 8000);
