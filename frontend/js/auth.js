@@ -14,7 +14,7 @@ import {
     signInWithPopup,
     onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { doc, getDoc, setDoc, serverTimestamp, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { API_BASE_URL } from "./api.js";
 
 // ── Role Configuration ──
@@ -48,6 +48,11 @@ const ROLE_CONFIG = {
     },
 };
 
+// Tracks when an explicit sign-in / sign-up flow is running on this page.
+// While true, checkExistingSession must NOT auto-redirect, otherwise the
+// redirect would race (and bypass) the flow's own validation & prompts.
+let isAuthFlowActive = false;
+
 // ── Initialize ──
 document.addEventListener("DOMContentLoaded", () => {
     const role = getRoleFromURL();
@@ -65,10 +70,59 @@ document.addEventListener("DOMContentLoaded", () => {
     initGoogleSignIn(role);
 });
 
+// ── Prompt Co-Admin Dashboard Choice Modal ──
+function promptCoAdminDashboardChoice(profile) {
+    return new Promise((resolve) => {
+        // Remove any existing modal
+        const existing = document.querySelector(".coadmin-modal-overlay");
+        if (existing) existing.remove();
+
+        const overlay = document.createElement("div");
+        overlay.className = "coadmin-modal-overlay";
+        overlay.style.cssText = `
+            position: fixed; inset: 0; background: rgba(0,0,0,0.65);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 9999; backdrop-filter: blur(8px); padding: 1.5rem;
+        `;
+
+        overlay.innerHTML = `
+            <div style="background: var(--bg-surface); border: 1px solid var(--border-card); border-radius: 16px; max-width: 440px; width: 100%; padding: 2rem; box-shadow: 0 20px 40px rgba(0,0,0,0.3); text-align: center; font-family: var(--font-family);">
+                <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">🛡️ 🎓</div>
+                <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.5rem;">Co-Admin Privileges</h3>
+                <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1.5rem; line-height: 1.5;">
+                    Welcome, <strong>${profile.name || 'User'}</strong>! You have access to both Student and Admin portals. Which dashboard would you like to enter?
+                </p>
+                <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                    <button id="choice-student" style="display: flex; align-items: center; justify-content: center; gap: 0.6rem; padding: 0.9rem; border-radius: 10px; background: rgba(37, 99, 235, 0.1); color: var(--accent-primary); border: 1.5px solid rgba(37, 99, 235, 0.3); font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: all 0.2s;">
+                        <span>🎓</span> Enter Student Dashboard
+                    </button>
+                    <button id="choice-admin" style="display: flex; align-items: center; justify-content: center; gap: 0.6rem; padding: 0.9rem; border-radius: 10px; background: var(--accent-primary); color: #fff; border: none; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: all 0.2s;">
+                        <span>🛡️</span> Enter Admin Dashboard
+                    </button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(overlay);
+
+        overlay.querySelector("#choice-student").addEventListener("click", () => {
+            overlay.remove();
+            resolve("student-dashboard.html");
+        });
+
+        overlay.querySelector("#choice-admin").addEventListener("click", () => {
+            overlay.remove();
+            resolve("admin-dashboard.html");
+        });
+    });
+}
+
 // ── Check Existing Session (Redirect if already logged in) ──
 function checkExistingSession() {
     onAuthStateChanged(auth, async (user) => {
         if (user) {
+            // An explicit sign-in/sign-up flow owns validation & redirect
+            if (isAuthFlowActive) return;
             try {
                 const docRef = doc(db, "users", user.uid);
                 const docSnap = await getDoc(docRef);
@@ -77,12 +131,25 @@ function checkExistingSession() {
                     if (profile.status === 'blocked') return;
                     if (profile.role === 'driver' && profile.status !== 'active') return;
 
+                    const params = new URLSearchParams(window.location.search);
+                    const currentRoleParam = params.get("role");
+
                     let target = "student-dashboard.html";
-                    if (profile.role === "admin" || profile.adminLevel === "main" || profile.adminLevel === "co") {
+                    if (profile.role === "admin" || profile.adminLevel === "main") {
                         target = "admin-dashboard.html";
                     } else if (profile.role === "driver") {
                         target = "driver-dashboard.html";
+                    } else if (profile.adminLevel === "co") {
+                        // If co-admin explicitly visits ?role=admin, go to admin-dashboard
+                        if (currentRoleParam === "admin") {
+                            target = "admin-dashboard.html";
+                        } else if (currentRoleParam === "student") {
+                            target = "student-dashboard.html";
+                        } else {
+                            target = await promptCoAdminDashboardChoice(profile);
+                        }
                     }
+
                     console.log(`Active session found (${profile.role}). Redirecting to ${target}`);
                     window.location.replace(target);
                 }
@@ -345,6 +412,8 @@ async function handleLoginSubmit(role) {
         submitBtn.disabled = true;
         if(loadingOverlay) loadingOverlay.style.display = "flex";
 
+        isAuthFlowActive = true;
+
         try {
             // 1. Authenticate with Firebase
             const userCredential = await signInWithEmailAndPassword(auth, email.value, password.value);
@@ -357,22 +426,50 @@ async function handleLoginSubmit(role) {
             if (docSnap.exists()) {
                 const profile = docSnap.data();
 
-                // 3. Verify Role Mismatch
-                let hasAccess = false;
-                if (profile.role === role) {
-                    hasAccess = true;
-                } else if (role === 'admin' && (profile.adminLevel === 'main' || profile.adminLevel === 'co')) {
-                    hasAccess = true;
+                // 3. Verify Role Mismatch & Strict Role Separation
+                if (role === 'driver') {
+                    if (profile.role === 'student') {
+                        await auth.signOut();
+                        const msg = 'This account is registered as a Student. A Student account cannot log in as a Driver.';
+                        if (window.showToast) window.showToast(msg, 'error', 6000);
+                        else alert(msg);
+                        return;
+                    }
+                    if (profile.role !== 'driver') {
+                        await auth.signOut();
+                        const msg = `This account is registered as a ${profile.role}. Please switch roles.`;
+                        if (window.showToast) window.showToast(msg, 'error', 6000);
+                        else alert(msg);
+                        return;
+                    }
+                } else if (role === 'student') {
+                    if (profile.role === 'driver') {
+                        await auth.signOut();
+                        const msg = 'This account is registered as a Driver. A Driver account cannot log in as a Student.';
+                        if (window.showToast) window.showToast(msg, 'error', 6000);
+                        else alert(msg);
+                        return;
+                    }
+                } else if (role === 'admin') {
+                    if (profile.role === 'driver') {
+                        await auth.signOut();
+                        const msg = 'Access Denied: Driver accounts do not have Admin privileges.';
+                        if (window.showToast) window.showToast(msg, 'error', 6000);
+                        else alert(msg);
+                        return;
+                    }
+                    const isAdmin = profile.role === 'admin' || profile.adminLevel === 'main' || profile.adminLevel === 'co';
+                    if (!isAdmin) {
+                        await auth.signOut();
+                        const msg = 'Access Denied: This Student account does not have Admin privileges.';
+                        if (window.showToast) window.showToast(msg, 'error', 6000);
+                        else alert(msg);
+                        return;
+                    }
                 }
 
-                if (!hasAccess) {
-                    // Sign out because they tried to log in with wrong role
-                    await auth.signOut();
-                    if(window.showToast) window.showToast(`Error: This account is registered as a ${profile.role}. Please switch roles.`, 'error');
-                    else alert(`Error: This account is registered as a ${profile.role}. Please switch roles.`);
-                } 
                 // 3.5 Verify Email (Skip for admins to prevent lockout if manually added)
-                else if (!user.emailVerified && role !== 'admin') {
+                if (!user.emailVerified && role !== 'admin') {
                     if(window.showToast) window.showToast("Please verify your email address. Redirecting...", 'warning', 3000);
                     else alert("Please verify your email address.");
                     setTimeout(() => {
@@ -380,26 +477,36 @@ async function handleLoginSubmit(role) {
                     }, 1000);
                     return;
                 }
+                
                 // 4. Verify Driver Approval Status
-                else if (role === 'driver' && profile.status === 'pending') {
+                if (role === 'driver' && profile.status === 'pending') {
                     await auth.signOut();
-                    if(window.showToast) window.showToast("Your account is pending admin approval. You cannot log in yet.", 'warning');
-                    else alert("Your account is pending admin approval. You cannot log in yet.");
-                }
-                else if (role === 'driver' && profile.status === 'rejected') {
+                    if(window.showToast) window.showToast("Your driver account is pending admin approval. You cannot log in yet.", 'warning');
+                    else alert("Your driver account is pending admin approval. You cannot log in yet.");
+                    return;
+                } else if (role === 'driver' && profile.status === 'rejected') {
                     await auth.signOut();
-                    if(window.showToast) window.showToast("Your account application was rejected.", 'error');
-                    else alert("Your account application was rejected.");
+                    if(window.showToast) window.showToast("Your driver account application was rejected.", 'error');
+                    else alert("Your driver account application was rejected.");
+                    return;
                 }
-                // 5. Success - Redirect to Dashboard
-                else {
+
+                // 5. Co-Admin choice if logging in from student role
+                if (role === 'student' && profile.adminLevel === 'co') {
+                    const targetDashboard = await promptCoAdminDashboardChoice(profile);
                     if(window.showToast) window.showToast("Login successful! Redirecting...", 'success');
                     setTimeout(() => {
-                        window.location.replace(`dashboard.html?role=${role}`);
-                    }, 1000);
-                    // Don't reset loading state because we are redirecting
-                    return; 
+                        window.location.replace(targetDashboard);
+                    }, 500);
+                    return;
                 }
+
+                // 6. Success - Redirect to Dashboard
+                if(window.showToast) window.showToast("Login successful! Redirecting...", 'success');
+                setTimeout(() => {
+                    window.location.replace(`dashboard.html?role=${role}`);
+                }, 1000);
+                return;
             } else {
                 await auth.signOut();
                 if(window.showToast) window.showToast("This account is not registered yet. Please create an account first.", 'error');
@@ -426,6 +533,7 @@ async function handleLoginSubmit(role) {
         }
 
         // Reset UI if not redirected
+        isAuthFlowActive = false;
         submitBtn.textContent = originalText;
         submitBtn.disabled = false;
         if(loadingOverlay) loadingOverlay.style.display = "none";
@@ -499,6 +607,8 @@ async function handleRegisterSubmit(role) {
             loadingOverlay.style.display = "flex";
         }
 
+        isAuthFlowActive = true;
+
         try {
             // 1. Create User in Firebase Auth
             const userCredential = await createUserWithEmailAndPassword(auth, email.value, password.value);
@@ -534,18 +644,34 @@ async function handleRegisterSubmit(role) {
             
             let errorMessage = "An error occurred during registration.";
             if (error.code === 'auth/email-already-in-use') {
-                errorMessage = "This account is already registered. Please sign in instead.";
+                try {
+                    const q = query(collection(db, "users"), where("email", "==", email.value.trim()));
+                    const querySnap = await getDocs(q);
+                    if (!querySnap.empty) {
+                        const existingUser = querySnap.docs[0].data();
+                        if (existingUser.role !== role) {
+                            errorMessage = `This email is already registered as a ${existingUser.role}. A ${existingUser.role} account cannot be registered as a ${role}.`;
+                        } else {
+                            errorMessage = `This account is already registered as a ${role}. Please sign in instead.`;
+                        }
+                    } else {
+                        errorMessage = "This account is already registered. Please sign in instead.";
+                    }
+                } catch (e) {
+                    errorMessage = "This account is already registered. Please sign in instead.";
+                }
             } else if (error.code === 'auth/weak-password') {
                 errorMessage = "Password is too weak. Must be at least 6 characters.";
             } else if (error.message) {
                 errorMessage = error.message;
             }
             
-            if(window.showToast) window.showToast(errorMessage, 'error');
+            if(window.showToast) window.showToast(errorMessage, 'error', 6000);
             else alert(errorMessage);
         }
 
         // Reset UI if error occurred
+        isAuthFlowActive = false;
         submitBtn.textContent = originalText;
         submitBtn.disabled = false;
         if(loadingOverlay) loadingOverlay.style.display = "none";
@@ -642,6 +768,8 @@ function initGoogleSignIn(role) {
         }
         if (loadingOverlay) loadingOverlay.style.display = 'flex';
 
+        isAuthFlowActive = true;
+
         try {
             const result = await signInWithPopup(auth, provider);
             const user = result.user;
@@ -655,9 +783,43 @@ function initGoogleSignIn(role) {
                 if (docSnap.exists()) {
                     const profile = docSnap.data();
                     await auth.signOut();
+
+                    if (role === 'driver' && profile.role === 'student') {
+                        const msg = 'This Google account is already registered as a Student. A Student account cannot be registered as a Driver.';
+                        if (window.showToast) window.showToast(msg, 'error', 6000);
+                        else alert(msg);
+                        return;
+                    }
+                    if (role === 'student' && profile.role === 'driver') {
+                        const msg = 'This Google account is already registered as a Driver. A Driver account cannot be registered as a Student.';
+                        if (window.showToast) window.showToast(msg, 'error', 6000);
+                        else alert(msg);
+                        return;
+                    }
+
                     const msg = `This Google account is already registered as a ${profile.role}. Please sign in instead.`;
                     if (window.showToast) window.showToast(msg, 'warning', 5000);
                     else alert(msg);
+                    return;
+                }
+
+                // Cross-provider safety: the email may already exist under a
+                // password-based account. Never allow a second role to be created
+                // with the same email (e.g. student AND driver at the same time).
+                const emailQuery = query(collection(db, 'users'), where('email', '==', user.email));
+                const emailSnap = await getDocs(emailQuery);
+                if (!emailSnap.empty) {
+                    const existingUser = emailSnap.docs[0].data();
+                    await auth.signOut();
+                    if (existingUser.role !== role) {
+                        const msg = `This Google account is already registered as a ${existingUser.role}. A ${existingUser.role} account cannot be registered as a ${role}.`;
+                        if (window.showToast) window.showToast(msg, 'error', 6000);
+                        else alert(msg);
+                    } else {
+                        const msg = `This Google account is already registered as a ${role}. Please sign in instead.`;
+                        if (window.showToast) window.showToast(msg, 'warning', 5000);
+                        else alert(msg);
+                    }
                     return;
                 }
 
@@ -693,6 +855,17 @@ function initGoogleSignIn(role) {
             } else {
                 // ── LOGIN FLOW ──
                 if (!docSnap.exists()) {
+                    // The email may be registered under a password-based account.
+                    const emailQuery = query(collection(db, 'users'), where('email', '==', user.email));
+                    const emailSnap = await getDocs(emailQuery);
+                    if (!emailSnap.empty) {
+                        const existingUser = emailSnap.docs[0].data();
+                        await auth.signOut();
+                        const msg = `This email is registered as a ${existingUser.role} account. Please sign in with your ${existingUser.role} email/password instead.`;
+                        if (window.showToast) window.showToast(msg, 'warning', 6000);
+                        else alert(msg);
+                        return;
+                    }
                     await auth.signOut();
                     const msg = 'This Google account is not registered yet. Please create an account first.';
                     if (window.showToast) window.showToast(msg, 'error', 5000);
@@ -702,20 +875,46 @@ function initGoogleSignIn(role) {
 
                 const profile = docSnap.data();
 
-                // Role validation
-                let hasAccess = false;
-                if (profile.role === role) {
-                    hasAccess = true;
-                } else if (role === 'admin' && (profile.adminLevel === 'main' || profile.adminLevel === 'co')) {
-                    hasAccess = true;
-                }
-
-                if (!hasAccess) {
-                    await auth.signOut();
-                    const msg = `Error: This account is registered as a ${profile.role}. Please switch roles.`;
-                    if (window.showToast) window.showToast(msg, 'error');
-                    else alert(msg);
-                    return;
+                // Role validation & Strict Separation
+                if (role === 'driver') {
+                    if (profile.role === 'student') {
+                        await auth.signOut();
+                        const msg = 'This Google account is registered as a Student. A Student account cannot log in as a Driver.';
+                        if (window.showToast) window.showToast(msg, 'error', 6000);
+                        else alert(msg);
+                        return;
+                    }
+                    if (profile.role !== 'driver') {
+                        await auth.signOut();
+                        const msg = `This account is registered as a ${profile.role}. Please switch roles.`;
+                        if (window.showToast) window.showToast(msg, 'error', 6000);
+                        else alert(msg);
+                        return;
+                    }
+                } else if (role === 'student') {
+                    if (profile.role === 'driver') {
+                        await auth.signOut();
+                        const msg = 'This Google account is registered as a Driver. A Driver account cannot log in as a Student.';
+                        if (window.showToast) window.showToast(msg, 'error', 6000);
+                        else alert(msg);
+                        return;
+                    }
+                } else if (role === 'admin') {
+                    if (profile.role === 'driver') {
+                        await auth.signOut();
+                        const msg = 'Access Denied: Driver accounts do not have Admin privileges.';
+                        if (window.showToast) window.showToast(msg, 'error', 6000);
+                        else alert(msg);
+                        return;
+                    }
+                    const isAdmin = profile.role === 'admin' || profile.adminLevel === 'main' || profile.adminLevel === 'co';
+                    if (!isAdmin) {
+                        await auth.signOut();
+                        const msg = 'Access Denied: This Student account does not have Admin privileges.';
+                        if (window.showToast) window.showToast(msg, 'error', 6000);
+                        else alert(msg);
+                        return;
+                    }
                 }
 
                 // Driver pending/rejected handling
@@ -730,6 +929,16 @@ function initGoogleSignIn(role) {
                     const msg = 'Your driver account application was rejected.';
                     if (window.showToast) window.showToast(msg, 'error');
                     else alert(msg);
+                    return;
+                }
+
+                // Co-Admin Choice handling
+                if (role === 'student' && profile.adminLevel === 'co') {
+                    const targetDashboard = await promptCoAdminDashboardChoice(profile);
+                    if (window.showToast) window.showToast('Login successful! Redirecting...', 'success');
+                    setTimeout(() => {
+                        window.location.replace(targetDashboard);
+                    }, 500);
                     return;
                 }
 
@@ -751,12 +960,17 @@ function initGoogleSignIn(role) {
                 const msg = 'This domain/port is not authorized in Firebase Authentication Console.';
                 if (window.showToast) window.showToast(msg, 'error');
                 else alert(msg);
+            } else if (error.code === 'auth/account-exists-with-different-credential') {
+                const msg = 'An account already exists with this email using email/password. Please sign in with your email and password instead.';
+                if (window.showToast) window.showToast(msg, 'warning', 6000);
+                else alert(msg);
             } else {
                 const msg = error.message || 'Google authentication failed.';
                 if (window.showToast) window.showToast(msg, 'error');
                 else alert(msg);
             }
         } finally {
+            isAuthFlowActive = false;
             if (submitBtn) {
                 submitBtn.textContent = originalText;
                 submitBtn.disabled = false;
