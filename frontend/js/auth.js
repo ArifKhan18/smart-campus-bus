@@ -71,18 +71,41 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Check if returning from Google Redirect Auth
     try {
+        console.log('Checking for Google redirect result...');
         const redirectResult = await getRedirectResult(auth);
         if (redirectResult && redirectResult.user) {
+            console.log('Google redirect result found. Processing user...');
             const savedRole = sessionStorage.getItem('auth_role') || role;
             const savedIsRegister = sessionStorage.getItem('auth_is_register') === 'true';
             sessionStorage.removeItem('auth_role');
             sessionStorage.removeItem('auth_is_register');
             isAuthFlowActive = true;
+
+            // Show loading overlay while processing
+            const loadingOverlay = document.getElementById('auth-loading');
+            const loadingText = document.getElementById('auth-loading-text');
+            if (loadingOverlay) loadingOverlay.style.display = 'flex';
+            if (loadingText) loadingText.textContent = 'Completing Google Sign-In...';
+
             await processGoogleUser(redirectResult.user, savedRole, savedIsRegister);
             return;
+        } else {
+            console.log('No Google redirect result found.');
         }
     } catch (e) {
         console.error("Error processing Google redirect result:", e);
+        // Show error to user if redirect processing failed
+        if (e.code === 'auth/unauthorized-domain') {
+            const msg = 'This domain is not authorized in Firebase. Please add it to Firebase Authentication > Settings > Authorized Domains.';
+            if (window.showToast) window.showToast(msg, 'error', 8000);
+            else alert(msg);
+        } else if (e.code !== 'auth/popup-closed-by-user') {
+            const msg = e.message || 'Google Sign-In redirect failed. Please try again.';
+            if (window.showToast) window.showToast(msg, 'error', 5000);
+        }
+        // Clear stale session data
+        sessionStorage.removeItem('auth_role');
+        sessionStorage.removeItem('auth_is_register');
     }
 
     checkExistingSession();
@@ -948,6 +971,9 @@ function initGoogleSignIn(role) {
 
     const isRegister = window.location.pathname.includes('register');
 
+    // Detect if running on a deployed environment (not localhost)
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
     const provider = new GoogleAuthProvider();
     provider.addScope('email');
     provider.addScope('profile');
@@ -967,8 +993,18 @@ function initGoogleSignIn(role) {
         sessionStorage.setItem('auth_is_register', isRegister ? 'true' : 'false');
 
         try {
-            const result = await signInWithPopup(auth, provider);
-            await processGoogleUser(result.user, role, isRegister);
+            if (isLocalhost) {
+                // On localhost, use popup (works reliably in dev)
+                const result = await signInWithPopup(auth, provider);
+                await processGoogleUser(result.user, role, isRegister);
+            } else {
+                // On deployed environments (Vercel/Render), use redirect directly
+                // This avoids popup-blocked issues and cross-origin problems
+                console.log('Deployed environment detected. Using signInWithRedirect...');
+                if (window.showToast) window.showToast('Redirecting to Google Sign-In...', 'info', 3000);
+                await signInWithRedirect(auth, provider);
+                return; // Page will reload after redirect
+            }
         } catch (error) {
             console.error('Google Sign‑In Error:', error);
             if (error.code === 'auth/popup-blocked' || error.code === 'auth/cancelled-popup-request') {
